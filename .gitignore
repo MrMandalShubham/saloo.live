@@ -1,0 +1,70 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Turbo
+.turbo
+
+# Build outputs
+dist
+build
+.next
+out
+*.tsbuildinfo
+
+# Expo
+apps/mobile/.expo
+apps/mobile/android
+apps/mobile/ios
+
+# Supabase
+supabase/.branches
+supabase/.temp
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+ehthumbs.db
+
+# Editor / IDE
+.vscode
+.idea
+*.suo
+*.user
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+*.tgz
+.cache
+.vercel
+.netlify
+
+# Planning / docs not part of source
+*.docx
+*.pptx
+extracted_content.txt
+plan_raw.txt
+
+# Claude
+.claude/todos.json
+.gemini
+.gsd

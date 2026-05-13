@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-syne: 'Syne', sans-serif;
+  --font-dm-sans: 'DM Sans', sans-serif;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-background text-ink antialiased;
+  font-family: var(--font-dm-sans);
+  overscroll-behavior: none;
+}
+
+/* Scrollbar: Editorial Minimal */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #AC9C8D; border-radius: 0px; }
+::-webkit-scrollbar-thumb:hover { background: #72383D; }
+
+/* Luxe Taupe Focus Ring */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 1px #AC9C8D;
+  border-color: #AC9C8D !important;
+}
+
+/* Silk transitions for a premium feel */
+a, button { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+@layer utilities {
+  .text-balance { text-wrap: balance; }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+}

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /c/Users/shubh/Desktop/OnO/apps/web/.env*)",
+      "Bash(wc -l \"C:/Users/shubh/Desktop/OnO/supabase/migrations/\"*.sql)",
+      "Bash(winget --version)",
+      "Bash(winget install:*)",
+      "Bash(powershell -Command ':*)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\shubh\\Desktop\\OnO\\supabase\\migrations"
+    ]
+  }
+}
