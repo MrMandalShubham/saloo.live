@@ -427,7 +427,6 @@ export default function LandingPage() {
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {TESTIMONIALS.map((t, i) => {
-              const cardColors = ['border-saloo-teal/20 hover:border-saloo-teal/40', 'border-saloo-pink/20 hover:border-saloo-pink/40', 'border-saloo-gold/20 hover:border-saloo-gold/40']
               const avatarBg = ['bg-saloo-teal', 'bg-saloo-pink', 'bg-saloo-gold']
               return (
                 <div key={i} className={`bg-white/60 backdrop-blur-xl border border-white p-8 sm:p-10 relative group hover:shadow-glass-lg transition-all duration-300 rounded-card animate-float`} style={{ animationDelay: `${i}s` }}>
