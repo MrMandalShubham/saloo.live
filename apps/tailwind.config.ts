@@ -14,6 +14,15 @@ const config: Config = {
         'luxe-stone': '#D1C7BD',      // warm stone
         'luxe-gray': '#D9D9D9',       // cool gray
         'luxe-ivory': '#EFE9E1',      // ivory
+        'luxe-sage': '#4CAF50',        // vibrant green
+        'luxe-amber': '#F59E0B',      // bright amber
+        'luxe-charcoal': '#1E1E1E',   // deep black
+        'luxe-cream': '#FAF7F2',      // warm cream
+        'luxe-rose': '#E8446D',       // vivid rose
+        'luxe-midnight': '#0F172A',   // deep navy
+        'luxe-blue': '#3B82F6',       // bright blue
+        'luxe-violet': '#8B5CF6',     // vivid violet
+        'luxe-teal': '#14B8A6',       // bright teal
         
         // Customer-facing design tokens (OnO theme)
         navy: { DEFAULT: '#1B1F3B', mid: '#2A2F52' },
@@ -43,6 +52,9 @@ const config: Config = {
       },
       backgroundImage: {
         'luxe-gradient': 'linear-gradient(180deg, #EFE9E1 0%, #D9D9D9 100%)',
+        'luxe-hero': 'linear-gradient(135deg, #0F172A 0%, #1E1E1E 40%, #322D29 100%)',
+        'luxe-warm': 'linear-gradient(135deg, #FAF7F2 0%, #EFE9E1 50%, #D1C7BD 100%)',
+        'luxe-dark-gradient': 'linear-gradient(135deg, #0F172A 0%, #1E1E1E 50%, #322D29 100%)',
         'royal-gradient': 'linear-gradient(135deg, #1B1F3B 0%, #2A2F52 100%)',
       },
       boxShadow: {

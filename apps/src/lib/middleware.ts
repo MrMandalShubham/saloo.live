@@ -46,15 +46,8 @@ export async function updateSession(request: NextRequest) {
 
   // 0. Developer Bypass (for testing UI without auth)
   const isDevBypass = request.cookies.get('saloo-dev-bypass')?.value === 'true'
-  const devRole    = request.cookies.get('saloo-dev-role')?.value
 
   if (isDevBypass) {
-    // If on landing page and bypass has a role, redirect to appropriate dashboard
-    if (pathname === '/') {
-      const url = request.nextUrl.clone()
-      url.pathname = devRole === 'admin' ? '/admin/dashboard' : devRole === 'shop_owner' ? '/owner/dashboard' : '/home'
-      return NextResponse.redirect(url)
-    }
     return supabaseResponse
   }
 
@@ -67,18 +60,17 @@ export async function updateSession(request: NextRequest) {
 
   // 2. Role-based redirection for logged-in users
   const isLoginPage = pathname === '/login' || pathname === '/admin/login'
-  const isLandingPage = pathname === '/'
   const isOwnerRoute = pathname.startsWith('/owner')
   const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin/login'
-  
-  const needsRoleCheck = user && (isLoginPage || isLandingPage || isOwnerRoute || isAdminRoute || isCustomerOnly(pathname))
+
+  const needsRoleCheck = user && (isLoginPage || isOwnerRoute || isAdminRoute || isCustomerOnly(pathname))
 
   if (needsRoleCheck) {
     const { data: role } = await supabase.rpc('get_user_role')
     const url = request.nextUrl.clone()
 
-    // Redirect logged-in users away from login/landing pages to their dashboards
-    if (isLoginPage || isLandingPage) {
+    // Redirect logged-in users away from login page to their dashboards
+    if (isLoginPage) {
       if (role === 'admin')      { url.pathname = '/admin/dashboard'; return NextResponse.redirect(url) }
       if (role === 'shop_owner') { url.pathname = '/owner/dashboard'; return NextResponse.redirect(url) }
       url.pathname = '/home';                                          return NextResponse.redirect(url)
