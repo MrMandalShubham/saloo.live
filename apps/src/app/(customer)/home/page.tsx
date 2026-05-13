@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { createClient } from '@/lib/supabase/server'
 import { ShopsGrid } from '@/components/customer/ShopsGrid'
 import { QuickReBook } from '@/components/customer/QuickReBook'
