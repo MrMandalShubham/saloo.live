@@ -1,5 +1,7 @@
 # Saloo — How to Start the Project
 
+..
+
 ## Prerequisites
 
 - **Node.js** >= 20
