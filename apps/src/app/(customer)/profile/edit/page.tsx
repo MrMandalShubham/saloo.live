@@ -56,22 +56,23 @@ export default function EditProfilePage() {
 
       const { data: profile } = await supabase
         .from('users')
-        .select('name, email, phone, avatar_url, date_of_birth, gender, address, city, pincode, preferred_language, referral_code')
+        .select('*')
         .eq('id', user.id)
         .single()
 
       if (profile) {
-        setName(profile.name ?? '')
-        setEmail(profile.email ?? user.email ?? '')
-        setPhone(profile.phone ?? '')
-        setAvatarUrl(profile.avatar_url)
-        setDateOfBirth(profile.date_of_birth ?? '')
-        setGender(profile.gender ?? '')
-        setAddress(profile.address ?? '')
-        setCity(profile.city ?? '')
-        setPincode(profile.pincode ?? '')
-        setPreferredLanguage(profile.preferred_language ?? 'en')
-        setReferralCode(profile.referral_code ?? '')
+        const p = profile as Record<string, any>
+        setName(p.name ?? '')
+        setEmail(p.email ?? user.email ?? '')
+        setPhone(p.phone ?? '')
+        setAvatarUrl(p.avatar_url)
+        setDateOfBirth(p.date_of_birth ?? '')
+        setGender(p.gender ?? '')
+        setAddress(p.address ?? '')
+        setCity(p.city ?? '')
+        setPincode(p.pincode ?? '')
+        setPreferredLanguage(p.preferred_language ?? 'en')
+        setReferralCode(p.referral_code ?? '')
       } else {
         setEmail(user.email ?? '')
       }

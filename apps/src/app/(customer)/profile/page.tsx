@@ -68,7 +68,7 @@ export default function ProfilePage() {
       if (user) {
         const { data } = await supabase
           .from('users')
-          .select('name, avatar_url, loyalty_tier, loyalty_points, email, phone, city, gender, date_of_birth, preferred_language, referral_code')
+          .select('*')
           .eq('id', user.id)
           .single()
         setProfile(data)
