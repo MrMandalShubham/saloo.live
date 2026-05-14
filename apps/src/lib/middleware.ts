@@ -14,8 +14,6 @@ const CUSTOMER_ONLY_PREFIXES = [
   '/home', '/search', '/shop', '/book', '/bookings', '/loyalty', '/open-shop'
 ]
 
-// Routes that need role check (admin/owner areas + customer-only redirect)
-const ROLE_CHECK_PREFIXES = ['/owner', '/admin', '/login']
 
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some(prefix => pathname.startsWith(prefix))
