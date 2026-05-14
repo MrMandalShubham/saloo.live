@@ -29,7 +29,7 @@ export const AVATARS = [
   { id: 'chill-3', bg: '#FFAFA8', emoji: '☕' },
   { id: 'chill-4', bg: '#B0EBD2', emoji: '🎯' },
   { id: 'chill-5', bg: '#C5BE77', emoji: '⚡' },
-] as const
+]
 
 export function getAvatarById(avatarUrl: string | null | undefined) {
   if (!avatarUrl?.startsWith('avatar:')) return null
