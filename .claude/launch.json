@@ -10,7 +10,7 @@
     {
       "name": "Web (Next.js)",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@ono/web", "dev"],
+      "runtimeArgs": ["--filter", "@saloo/web", "dev"],
       "port": 3000,
     },
     {

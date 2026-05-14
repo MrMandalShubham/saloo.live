@@ -38,7 +38,9 @@ Deno.serve(async (req) => {
 
     if (dbError) throw dbError
 
-    return json({ data, error: null })
+    // Cache for 30s — nearby results don't change frequently
+    // and many users in the same area will get the same results
+    return json({ data, error: null }, 200, 30)
   } catch (err) {
     console.error('shops-nearby error:', err)
     return error('Failed to fetch nearby shops', 500)

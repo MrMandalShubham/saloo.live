@@ -15,7 +15,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (!user && !isDevBypass) redirect('/login')
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col overflow-x-hidden">
       <AppNav />
       {/* pb-20 accounts for mobile bottom nav height */}
       <main className="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 pb-24 md:pb-8">

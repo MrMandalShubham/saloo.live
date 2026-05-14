@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import { ShopsGrid } from '@/components/customer/ShopsGrid'
 import { QuickReBook } from '@/components/customer/QuickReBook'
+import { getAvatarById } from '@/lib/avatars'
 import Link from 'next/link'
 
 export default async function HomePage() {
@@ -15,7 +16,7 @@ export default async function HomePage() {
   if (user) {
     const { data: p } = await supabase
       .from('users')
-      .select('name, loyalty_tier, loyalty_points')
+      .select('name, loyalty_tier, loyalty_points, avatar_url')
       .eq('id', user.id)
       .single()
     profile = p
@@ -34,34 +35,85 @@ export default async function HomePage() {
   }
 
   const firstName = profile?.name?.split(' ')[0] ?? 'there'
-  const hour = new Date().getHours()
-  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+
+  const greetings = [
+    'Looking sharp today,',
+    'Ready to level up,',
+    'Time for a fresh look,',
+    'Your barber awaits,',
+    'Stay sharp,',
+    'Let\'s get you styled,',
+    'Confidence starts here,',
+    'Fresh cuts loading for',
+    'The chair is waiting,',
+    'Your style, your rules,',
+    'Clean cuts, bold moves,',
+    'Make heads turn,',
+    'Upgrade your look,',
+    'Style never sleeps,',
+    'Own the look,',
+    'First class grooming for',
+    'Sharp looks ahead,',
+    'Glow up time,',
+    'Your next look starts here,',
+    'Precision cuts for',
+    'Stay groomed, stay great,',
+    'It\'s your time to shine,',
+    'A great cut changes everything,',
+    'Walk in good, walk out great,',
+    'The best version of you awaits,',
+    'Because you deserve the best,',
+    'Crisp. Clean. Confident.',
+    'Looking for perfection?',
+    'Every cut tells a story,',
+    'Hey there, handsome —',
+  ]
+  const greeting = greetings[Math.floor(Math.random() * greetings.length)]
 
   return (
     <div className="space-y-6 pb-4">
 
       {/* Greeting Banner */}
-      <div className="bg-royal-gradient rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-royal-lg group hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500">
+      <div className="bg-royal-gradient rounded-3xl p-5 sm:p-8 relative overflow-hidden shadow-royal-lg group hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500">
         {/* Decorative orbs */}
         <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-gold/10 blur-[40px] pointer-events-none group-hover:bg-gold/20 transition-colors duration-700" />
         <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 rounded-full bg-blue-500/20 blur-[40px] pointer-events-none" />
-        <div className="absolute top-1/2 right-1/4 w-24 h-24 rounded-full bg-gold/5 blur-[30px] pointer-events-none" />
 
-        <div className="relative z-10 flex items-center justify-between">
-          <div>
-            <p className="text-white/60 text-xs sm:text-sm font-bold uppercase tracking-widest mb-1">{greeting}</p>
-            <h1 className="font-syne text-3xl sm:text-4xl font-bold text-white tracking-tight">{firstName}</h1>
-            <p className="text-white/45 text-xs sm:text-sm mt-1.5 font-light">Ready for your next great cut?</p>
-          </div>
-          {profile && (
-            <div className="text-right shrink-0">
-              <div className="bg-white/5 backdrop-blur-md border border-white/20 rounded-2xl px-4 py-3 text-center shadow-glass">
-                <div className="font-syne font-bold text-gold text-2xl leading-none tracking-tight drop-shadow-[0_0_8px_rgba(201,168,76,0.5)]">
-                  {profile.loyalty_points?.toLocaleString('en-IN') ?? 0}
+        <div className="relative z-10 flex items-center gap-4">
+          {/* Avatar */}
+          <Link href="/profile" className="shrink-0">
+            {(() => {
+              const avatarData = getAvatarById(profile?.avatar_url)
+              return (
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-gold/30 flex items-center justify-center overflow-hidden hover:border-gold/60 transition-colors"
+                     style={{ backgroundColor: avatarData?.bg ?? 'rgba(255,255,255,0.08)' }}>
+                  {avatarData ? (
+                    <span className="text-3xl sm:text-4xl">{avatarData.emoji}</span>
+                  ) : profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="font-syne font-bold text-gold text-xl sm:text-2xl">{firstName?.[0]?.toUpperCase() ?? 'U'}</span>
+                  )}
                 </div>
-                <div className="text-gold/70 text-[10px] mt-1 uppercase tracking-widest font-bold">points</div>
+              )
+            })()}
+          </Link>
+
+          {/* Name & greeting */}
+          <div className="flex-1 min-w-0">
+            <p className="text-white/50 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-0.5">{greeting}</p>
+            <h1 className="font-syne text-2xl sm:text-3xl font-bold text-white tracking-tight truncate">{firstName}</h1>
+            <p className="text-white/40 text-[10px] sm:text-xs mt-1 font-light">Ready for your next great cut?</p>
+          </div>
+
+          {/* Points — compact */}
+          {profile && (
+            <div className="shrink-0 text-center">
+              <div className="bg-white/5 border border-white/15 rounded-xl px-3 py-2">
+                <span className="font-syne font-bold text-gold text-lg leading-none">{profile.loyalty_points ?? 0}</span>
+                <p className="text-gold/50 text-[8px] uppercase tracking-widest font-bold mt-0.5">pts</p>
               </div>
-              <div className="text-white/40 text-[10px] font-bold uppercase tracking-widest mt-2 bg-white/5 inline-block px-2 py-0.5 rounded-full">{profile.loyalty_tier} member</div>
+              <p className="text-white/30 text-[8px] uppercase tracking-wider mt-1 font-semibold">{profile.loyalty_tier}</p>
             </div>
           )}
         </div>

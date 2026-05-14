@@ -62,7 +62,7 @@ function LoginPage() {
 
     setLoading(false)
     if (role === 'admin')      { window.location.href = '/admin/dashboard'; return }
-    if (role === 'shop_owner') { window.location.href = '/owner/dashboard'; return }
+    // All users (including shop_owner) land on customer home first
     window.location.href = '/home'
   }
 

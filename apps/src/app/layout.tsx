@@ -24,6 +24,12 @@ const dmSans = DM_Sans({
 export const metadata: Metadata = {
   title: 'Saloo — Book Your Barber',
   description: 'India\'s premier barber booking platform. Find top barbers near you, book instantly, pay securely.',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
   openGraph: {
     title: 'Saloo — Book Your Barber',
     description: 'India\'s premier barber booking platform.',

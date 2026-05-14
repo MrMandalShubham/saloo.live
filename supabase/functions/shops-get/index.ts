@@ -65,6 +65,8 @@ Deno.serve(async (req) => {
       is_favourite = !!fav
     }
 
+    // Cache shop profiles for 15s — reduces DB load for popular shops
+    // viewed by many users simultaneously
     return json({
       data: {
         ...shop,
@@ -78,7 +80,7 @@ Deno.serve(async (req) => {
         distance_km,
       },
       error: null,
-    })
+    }, 200, 15)
   } catch (err) {
     console.error('shops-get error:', err)
     return error('Failed to fetch shop', 500)

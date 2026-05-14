@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { getAvatarById } from '@/lib/avatars'
 import Link from 'next/link'
 
 const TIER_COLORS: Record<string, string> = {
@@ -67,7 +68,7 @@ export default function ProfilePage() {
       if (user) {
         const { data } = await supabase
           .from('users')
-          .select('name, avatar_url, loyalty_tier, loyalty_points, email')
+          .select('name, avatar_url, loyalty_tier, loyalty_points, email, phone, city, gender, date_of_birth, preferred_language, referral_code')
           .eq('id', user.id)
           .single()
         setProfile(data)
@@ -103,13 +104,21 @@ export default function ProfilePage() {
         <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 rounded-full bg-blue-500/20 blur-[40px] pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-5">
-          <div className="w-20 h-20 rounded-2xl border-2 border-gold/30 flex items-center justify-center shrink-0 overflow-hidden bg-white/5 backdrop-blur-sm shadow-glass">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <span className="font-syne font-bold text-gold text-2xl drop-shadow-[0_0_8px_rgba(201,168,76,0.5)]">{initials}</span>
-            )}
-          </div>
+          {(() => {
+            const avatarData = getAvatarById(profile?.avatar_url)
+            return (
+              <div className="w-20 h-20 rounded-2xl border-2 border-gold/30 flex items-center justify-center shrink-0 overflow-hidden backdrop-blur-sm shadow-glass"
+                   style={{ backgroundColor: avatarData?.bg ?? 'rgba(255,255,255,0.05)' }}>
+                {avatarData ? (
+                  <span className="text-4xl animate-bounce" style={{ animationDuration: '2s' }}>{avatarData.emoji}</span>
+                ) : profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-syne font-bold text-gold text-2xl drop-shadow-[0_0_8px_rgba(201,168,76,0.5)]">{initials}</span>
+                )}
+              </div>
+            )
+          })()}
           <div className="flex-1 min-w-0">
             <h2 className="font-syne font-bold text-2xl text-white truncate tracking-tight">{profile?.name ?? 'Your Name'}</h2>
             <p className="text-white/50 text-sm mt-1">{user?.phone ?? profile?.email ?? ''}</p>

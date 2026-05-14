@@ -1,5 +1,6 @@
 // Create a 5-minute slot hold during the payment step.
-// Uses FOR UPDATE SKIP LOCKED to prevent race conditions.
+// Uses a single atomic SQL transaction to prevent race conditions (TOCTOU).
+// At 1K concurrent users, multiple people may try to book the same slot simultaneously.
 
 import { handleCors, json, error } from '../_shared/cors.ts'
 import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
@@ -42,51 +43,36 @@ Deno.serve(async (req) => {
     const endMin = h * 60 + m + total_duration
     const end_time = `${String(Math.floor(endMin / 60)).padStart(2,'0')}:${String(endMin % 60).padStart(2,'0')}`
 
-    // Check for conflicts (bookings + existing holds) atomically
-    const { data: conflicts } = await supabase
-      .from('bookings')
-      .select('id')
-      .eq('barber_id', barber_id)
-      .eq('date', date)
-      .in('status', ['confirmed', 'in_chair'])
-      .lt('start_time', end_time)
-      .gt('end_time', start_time)
+    // ── ATOMIC conflict check + insert in a single SQL call ────────────
+    // This prevents the TOCTOU race condition where two users check at the
+    // same time, both see "available", and both insert holds.
+    // The CTE uses FOR UPDATE to lock conflicting rows during the transaction.
+    const { data: result, error: txErr } = await supabase.rpc('atomic_hold_slot', {
+      p_shop_id: shop_id,
+      p_barber_id: barber_id,
+      p_user_id: user.id,
+      p_hold_date: date,
+      p_start_time: start_time,
+      p_end_time: end_time,
+      p_service_ids: service_ids,
+      p_addon_ids: addon_ids,
+    })
 
-    if (conflicts?.length) return error('Slot is no longer available', 409)
-
-    const { data: holdConflicts } = await supabase
-      .from('slot_holds')
-      .select('id')
-      .eq('barber_id', barber_id)
-      .eq('hold_date', date)
-      .gt('expires_at', new Date().toISOString())
-      .lt('start_time', end_time)
-      .gt('end_time', start_time)
-
-    if (holdConflicts?.length) return error('Slot is being held by another user', 409)
-
-    // Create the hold
-    const { data: hold, error: holdErr } = await supabase
-      .from('slot_holds')
-      .insert({
-        shop_id,
-        barber_id,
-        user_id: user.id,
-        hold_date: date,
-        start_time,
-        end_time,
-        service_ids,
-        addon_ids,
-      })
-      .select()
-      .single()
-
-    if (holdErr) throw holdErr
+    if (txErr) {
+      // Conflict detected by the atomic function
+      if (txErr.message?.includes('SLOT_CONFLICT')) {
+        return error('Slot is no longer available', 409)
+      }
+      if (txErr.message?.includes('HOLD_CONFLICT')) {
+        return error('Slot is being held by another user', 409)
+      }
+      throw txErr
+    }
 
     return json({
       data: {
-        hold_id: hold.id,
-        expires_at: hold.expires_at,
+        hold_id: result.hold_id,
+        expires_at: result.expires_at,
         total_duration_min: total_duration,
         total_amount,
         advance_amount,

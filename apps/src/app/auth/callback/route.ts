@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
       // Redirect to the correct dashboard based on role
       if (role === 'admin')      return NextResponse.redirect(`${base}/admin/dashboard`)
-      if (role === 'shop_owner') return NextResponse.redirect(`${base}/owner/dashboard`)
+      // All users (including shop_owner) land on customer home first
       return NextResponse.redirect(`${base}/home`)
     }
   }

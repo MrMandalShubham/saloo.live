@@ -121,6 +121,7 @@ export function AppNav() {
     { href: '/bookings',      label: 'Bookings' },
     { href: '/notifications', label: 'Alerts'   },
     { href: '/loyalty',       label: 'Rewards'  },
+    { href: '/profile',       label: 'Profile'  },
     ...(isOwner
       ? [{ href: '/owner/dashboard', label: 'Dashboard' }]
       : isAdmin
