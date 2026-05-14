@@ -1,4 +1,4 @@
-# Saloo — Premium Barber Booking Platform
+# Saloo — Premium Barber Booking Platform v1
 
 Saloo is a full-stack marketplace for barbers and customers, featuring a Next.js web application, an Expo mobile app, and a robust Supabase backend with Edge Functions.
 
