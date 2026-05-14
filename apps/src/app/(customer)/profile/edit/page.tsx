@@ -109,7 +109,7 @@ export default function EditProfilePage() {
           city: city.trim() || null,
           pincode: pincode.trim() || null,
           preferred_language: preferredLanguage,
-        })
+        } as any)
         .eq('id', userId)
 
       if (updateErr) {
