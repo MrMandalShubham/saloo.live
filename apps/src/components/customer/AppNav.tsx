@@ -295,23 +295,33 @@ export function AppNav() {
 
       {/* ── Mobile bottom nav ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-2xl border-t-2 border-[#008B7D]/30 shadow-glass-lg">
-        <div className="flex">
+        <div className="flex overflow-x-auto scrollbar-none">
           {BOTTOM_NAV.map(item => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link key={item.href} href={item.href}
-                className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 ${
+                className={`flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 ${
                   active ? 'text-saloo-teal' : 'text-saloo-dark/50 hover:text-saloo-dark'
                 }`}>
-                <span className={`text-xl font-syne leading-none transition-all ${active ? 'scale-110' : ''}`}>
+                <span className={`text-2xl font-syne leading-none transition-all ${active ? 'scale-110' : ''}`}>
                   {item.icon}
                 </span>
-                <span className={`text-[10px] font-medium leading-none ${active ? 'text-saloo-teal' : ''}`}>
+                <span className={`text-[10px] font-medium leading-none whitespace-nowrap ${active ? 'text-saloo-teal' : ''}`}>
                   {item.label}
                 </span>
               </Link>
             )
           })}
+          {/* Owner Dashboard / Open a Shop — at the end of scroll strip */}
+          <Link href={isOwner ? '/owner/dashboard' : '/open-shop'}
+            className={`flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 border-l border-saloo-dark/10 ${
+              pathname.startsWith('/owner') || pathname === '/open-shop' ? 'text-saloo-teal' : 'text-saloo-dark/50 hover:text-saloo-dark'
+            }`}>
+            <span className="text-2xl leading-none">🏪</span>
+            <span className="text-[10px] font-medium leading-none whitespace-nowrap">
+              {isOwner ? 'My Shop' : 'Open Shop'}
+            </span>
+          </Link>
         </div>
       </div>
     </>
