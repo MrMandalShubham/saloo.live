@@ -103,7 +103,7 @@ export default function ReviewPage() {
             placeholder="Tell us about your experience..."
             maxLength={500}
             rows={4}
-            className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-gold resize-none"
+            className="w-full border border-border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50 focus:border-saloo-teal resize-none"
           />
           <p className="text-xs text-gray-400 text-right">{comment.length}/500</p>
         </div>
@@ -113,7 +113,7 @@ export default function ReviewPage() {
         <button
           type="submit"
           disabled={mutation.isPending || overall === 0}
-          className="w-full bg-gold text-navy font-syne font-bold py-4 rounded-2xl hover:bg-gold/90 transition-colors disabled:opacity-50"
+          className="w-full bg-saloo-teal text-navy font-syne font-bold py-4 rounded-2xl hover:bg-saloo-teal/90 transition-colors disabled:opacity-50"
         >
           {mutation.isPending ? 'Submitting...' : 'Submit Review ⭐'}
         </button>

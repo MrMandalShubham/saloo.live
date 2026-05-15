@@ -70,7 +70,7 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
         <div className="absolute top-4 right-4 flex gap-2">
           {shop.avg_rating > 0 && (
             <span className="bg-black/40 backdrop-blur-md text-white text-sm px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 shadow-sm">
-              <svg className="w-3.5 h-3.5 text-gold" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5 text-saloo-teal" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
               </svg>
               {shop.avg_rating.toFixed(1)}
@@ -100,8 +100,8 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
       {/* Services */}
       <section className="bg-white rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-gold/10 flex items-center justify-center">
-            <svg className="w-4 h-4 text-gold" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <div className="w-8 h-8 rounded-xl bg-saloo-teal/10 flex items-center justify-center">
+            <svg className="w-4 h-4 text-saloo-teal" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M7.848 8.25l1.536.887M7.848 8.25a3 3 0 11-5.196-3 3 3 0 015.196 3zm1.536.887a2.165 2.165 0 011.083 1.839c.005.351.054.695.14 1.024M9.384 9.137l2.077 1.199" />
             </svg>
           </div>
@@ -117,7 +117,7 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
                   {formatDuration(svc.duration_min)}
                 </p>
               </div>
-              <p className="font-syne font-bold text-gold text-lg">{formatINR(svc.price)}</p>
+              <p className="font-syne font-bold text-saloo-teal text-lg">{formatINR(svc.price)}</p>
             </div>
           ))}
         </div>
@@ -150,11 +150,11 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {shop.barbers.map((b: any) => (
               <div key={b.id} className="text-center bg-lavender/30 rounded-2xl p-4 hover:bg-lavender/60 transition-colors">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/20 to-champagne flex items-center justify-center mx-auto mb-3 overflow-hidden border border-gold/20 shadow-sm">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/20 to-champagne flex items-center justify-center mx-auto mb-3 overflow-hidden border border-saloo-teal/20 shadow-sm">
                   {b.photo_url ? (
                     <Image src={b.photo_url} alt={b.name} width={64} height={64} className="rounded-2xl object-cover" />
                   ) : (
-                    <svg className="w-7 h-7 text-gold/60" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                    <svg className="w-7 h-7 text-saloo-teal/60" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                     </svg>
                   )}
@@ -162,7 +162,7 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
                 <p className="font-semibold text-navy text-sm">{b.name}</p>
                 {b.avg_rating > 0 && (
                   <div className="flex items-center justify-center gap-1 mt-1">
-                    <svg className="w-3 h-3 text-gold" fill="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-3 h-3 text-saloo-teal" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
                     </svg>
                     <span className="text-xs text-muted font-medium">{b.avg_rating.toFixed(1)}</span>
@@ -192,7 +192,7 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
                   <span className="font-semibold text-sm text-navy">{r.user?.full_name ?? 'Customer'}</span>
                   <div className="flex items-center gap-0.5">
                     {Array.from({ length: 5 }).map((_, i) => (
-                      <svg key={i} className={`w-3.5 h-3.5 ${i < r.overall_rating ? 'text-gold' : 'text-border'}`} fill="currentColor" viewBox="0 0 24 24">
+                      <svg key={i} className={`w-3.5 h-3.5 ${i < r.overall_rating ? 'text-saloo-teal' : 'text-border'}`} fill="currentColor" viewBox="0 0 24 24">
                         <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
                       </svg>
                     ))}
@@ -209,7 +209,7 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
       <div className="fixed bottom-0 left-0 right-0 md:static md:mt-0 bg-white/80 backdrop-blur-lg border-t md:border md:rounded-2xl border-border/60 p-4 z-40 shadow-royal-lg md:shadow-sm">
         <Link
           href={`/book/${shop.id}`}
-          className="block w-full bg-gold text-navy font-syne font-bold text-center py-4 rounded-2xl hover:bg-gold/90 transition-all hover:shadow-gold text-lg tracking-tight"
+          className="block w-full bg-saloo-teal text-navy font-syne font-bold text-center py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all hover:shadow-gold text-lg tracking-tight"
         >
           Book Now
         </Link>

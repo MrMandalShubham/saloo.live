@@ -83,7 +83,7 @@ export default function BookingsPage() {
           <p className="font-syne font-bold text-navy text-lg">No {tab} bookings</p>
           <p className="text-muted text-sm mt-1">Your appointments will appear here</p>
           {tab === 'upcoming' && (
-            <Link href="/search" className="inline-flex items-center gap-2 bg-gold text-navy font-syne font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-gold/90 transition-colors mt-4">
+            <Link href="/search" className="inline-flex items-center gap-2 bg-saloo-teal text-navy font-syne font-bold text-sm px-6 py-2.5 rounded-xl hover:bg-saloo-teal/90 transition-colors mt-4">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
               Book Now
             </Link>
@@ -98,7 +98,7 @@ export default function BookingsPage() {
               <Link
                 key={b.id}
                 href={`/bookings/${b.id}`}
-                className="block bg-white border border-border rounded-2xl p-4 sm:p-5 hover:border-gold/40 hover:shadow-royal transition-all"
+                className="block bg-white border border-border rounded-2xl p-4 sm:p-5 hover:border-saloo-teal/40 hover:shadow-royal transition-all"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">

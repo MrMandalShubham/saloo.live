@@ -69,7 +69,7 @@ export default function SearchPage() {
           value={query}
           onChange={e => setQuery(e.target.value)}
           placeholder="Search by shop name or area..."
-          className="w-full bg-white border border-border rounded-2xl pl-12 pr-24 py-4 text-sm text-navy placeholder-muted focus:outline-none focus:border-gold/50 focus:shadow-royal transition-all shadow-sm"
+          className="w-full bg-white border border-border rounded-2xl pl-12 pr-24 py-4 text-sm text-navy placeholder-muted focus:outline-none focus:border-saloo-teal/50 focus:shadow-royal transition-all shadow-sm"
         />
         <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
           {query && (
@@ -90,7 +90,7 @@ export default function SearchPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
             </svg>
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-gold text-navy text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-saloo-teal text-navy text-[10px] font-bold rounded-full flex items-center justify-center">
                 {activeFilterCount}
               </span>
             )}
@@ -144,8 +144,8 @@ export default function SearchPage() {
                   onClick={() => setSort(value)}
                   className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-all flex items-center gap-1.5 ${
                     sort === value
-                      ? 'bg-gold text-navy border-gold shadow-gold'
-                      : 'bg-white border-border text-secondary hover:border-gold/40 hover:text-navy'
+                      ? 'bg-saloo-teal text-navy border-saloo-teal shadow-gold'
+                      : 'bg-white border-border text-secondary hover:border-saloo-teal/40 hover:text-navy'
                   }`}
                 >
                   {icon}
@@ -195,7 +195,7 @@ export default function SearchPage() {
             <Link
               key={shop.id}
               href={`/shop/${shop.id}`}
-              className="bg-white border border-border rounded-2xl overflow-hidden hover:border-gold/40 hover:shadow-royal hover:-translate-y-0.5 transition-all duration-300 group"
+              className="bg-white border border-border rounded-2xl overflow-hidden hover:border-saloo-teal/40 hover:shadow-royal hover:-translate-y-0.5 transition-all duration-300 group"
             >
               <div className="relative h-44 bg-lavender overflow-hidden">
                 {shop.photos?.[0] ? (
@@ -237,7 +237,7 @@ export default function SearchPage() {
                 <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border/60">
                   {shop.avg_rating > 0 && (
                     <span className="text-xs font-semibold text-navy flex items-center gap-1">
-                      <svg className="w-3.5 h-3.5 text-gold" fill="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-3.5 h-3.5 text-saloo-teal" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
                       </svg>
                       {shop.avg_rating.toFixed(1)}
@@ -245,7 +245,7 @@ export default function SearchPage() {
                     </span>
                   )}
                   {shop.min_price > 0 && (
-                    <span className="text-xs text-muted ml-auto">from <span className="font-bold text-gold">{formatINR(shop.min_price)}</span></span>
+                    <span className="text-xs text-muted ml-auto">from <span className="font-bold text-saloo-teal">{formatINR(shop.min_price)}</span></span>
                   )}
                 </div>
               </div>

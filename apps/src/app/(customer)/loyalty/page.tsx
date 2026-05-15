@@ -76,8 +76,8 @@ export default async function LoyaltyPage() {
       {/* Quick Redeem */}
       <div className="bg-white border border-border rounded-2xl p-5 space-y-1 shadow-sm">
         <div className="flex items-center gap-2 mb-3">
-          <div className="w-8 h-8 rounded-xl bg-gold/10 flex items-center justify-center">
-            <svg className="w-4 h-4 text-gold" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <div className="w-8 h-8 rounded-xl bg-saloo-teal/10 flex items-center justify-center">
+            <svg className="w-4 h-4 text-saloo-teal" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H5.25a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 109.375 7.5H12m0-2.625V7.5m0-2.625A2.625 2.625 0 1114.625 7.5H12m0 0V21m-8.625-9.75h18c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125h-18c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
             </svg>
           </div>
@@ -94,7 +94,7 @@ export default async function LoyaltyPage() {
             </div>
             <button
               disabled={(loyalty?.points ?? 0) < r.pts}
-              className="bg-navy text-gold px-5 py-2.5 rounded-xl text-xs font-syne font-bold hover:bg-navy-mid transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-royal"
+              className="bg-navy text-saloo-teal px-5 py-2.5 rounded-xl text-xs font-syne font-bold hover:bg-navy-mid transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:shadow-royal"
             >
               Redeem
             </button>
@@ -125,7 +125,7 @@ export default async function LoyaltyPage() {
                 <span className="text-base">{item.icon}</span>
                 <span className="text-sm text-secondary">{item.label}</span>
               </div>
-              <span className="text-sm font-bold text-gold bg-gold/5 px-3 py-1 rounded-lg">{item.pts}</span>
+              <span className="text-sm font-bold text-saloo-teal bg-saloo-teal/5 px-3 py-1 rounded-lg">{item.pts}</span>
             </div>
           ))}
         </div>

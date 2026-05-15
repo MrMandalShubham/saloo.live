@@ -109,7 +109,7 @@ export default function BookingDetailPage() {
         <span className="px-4 py-1.5 rounded-pill text-sm font-semibold" style={{ color: statusCfg.color, backgroundColor: statusCfg.bg }}>
           {statusCfg.label}
         </span>
-        <p className="font-syne font-bold text-xl text-gold">{booking.booking_ref}</p>
+        <p className="font-syne font-bold text-xl text-saloo-teal">{booking.booking_ref}</p>
       </div>
 
       {/* Shop & Appointment */}
@@ -157,7 +157,7 @@ export default function BookingDetailPage() {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Advance paid</span>
-            <span className="text-gold">{formatINR(booking.advance_amount)}</span>
+            <span className="text-saloo-teal">{formatINR(booking.advance_amount)}</span>
           </div>
         </div>
       </div>
@@ -174,7 +174,7 @@ export default function BookingDetailPage() {
         {canReview && (
           <Link
             href={`/review/${booking.id}`}
-            className="block w-full bg-gold text-navy font-syne font-bold py-4 rounded-2xl text-center hover:bg-gold/90 transition-colors"
+            className="block w-full bg-saloo-teal text-navy font-syne font-bold py-4 rounded-2xl text-center hover:bg-saloo-teal/90 transition-colors"
           >
             Leave a Review ⭐
           </Link>

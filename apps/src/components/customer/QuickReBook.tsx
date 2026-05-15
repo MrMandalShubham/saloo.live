@@ -16,7 +16,7 @@ export function QuickReBook({ booking }: Props) {
   const shopName = Array.isArray(booking.shop) ? booking.shop[0]?.name : booking.shop?.name
 
   return (
-    <div className="bg-white border border-border rounded-2xl p-4 sm:p-5 flex items-center justify-between hover:border-gold/40 hover:shadow-royal transition-all">
+    <div className="bg-white border border-border rounded-2xl p-4 sm:p-5 flex items-center justify-between hover:border-saloo-teal/40 hover:shadow-royal transition-all">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-lavender flex items-center justify-center shrink-0">
           <span className="font-syne text-navy text-lg">◈</span>
@@ -29,7 +29,7 @@ export function QuickReBook({ booking }: Props) {
       </div>
       <Link
         href={`/shop/${booking.id}`}
-        className="bg-gold text-navy px-4 py-2 rounded-xl text-sm font-syne font-bold hover:bg-gold/90 shadow-gold transition-all active:scale-95 shrink-0"
+        className="bg-saloo-teal text-navy px-4 py-2 rounded-xl text-sm font-syne font-bold hover:bg-saloo-teal/90 shadow-gold transition-all active:scale-95 shrink-0"
       >
         Book Again
       </Link>

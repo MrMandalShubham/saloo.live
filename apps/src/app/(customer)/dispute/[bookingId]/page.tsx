@@ -108,7 +108,7 @@ export default function DisputePage() {
             maxLength={1000}
             rows={5}
             className={`w-full border rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50 resize-none transition-colors ${
-              description.length > 0 && description.length < 30 ? 'border-error' : 'border-border focus:border-gold'
+              description.length > 0 && description.length < 30 ? 'border-error' : 'border-border focus:border-saloo-teal'
             }`}
           />
           <div className="flex justify-between text-xs">
@@ -124,7 +124,7 @@ export default function DisputePage() {
         <button
           type="submit"
           disabled={mutation.isPending || !canSubmit}
-          className="w-full bg-navy text-gold font-syne font-bold py-4 rounded-2xl hover:bg-navy/90 transition-colors disabled:opacity-50"
+          className="w-full bg-navy text-saloo-teal font-syne font-bold py-4 rounded-2xl hover:bg-navy/90 transition-colors disabled:opacity-50"
         >
           {mutation.isPending ? 'Submitting...' : 'Submit Dispute'}
         </button>

@@ -130,7 +130,7 @@ export default function EditProfilePage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-saloo-teal border-t-transparent rounded-full animate-spin" />
       </div>
     )
   }
@@ -139,7 +139,7 @@ export default function EditProfilePage() {
   const selectedAvatarData = getAvatarById(avatarUrl)
   const initial = name?.[0]?.toUpperCase() ?? '?'
 
-  const inputCls = 'w-full border border-border rounded-xl px-4 py-3 text-navy text-sm outline-none focus:border-gold focus:ring-1 focus:ring-gold/20 transition-all'
+  const inputCls = 'w-full border border-border rounded-xl px-4 py-3 text-navy text-sm outline-none focus:border-saloo-teal focus:ring-1 focus:ring-gold/20 transition-all'
   const labelCls = 'block text-xs font-medium text-secondary uppercase tracking-wide'
 
   return (
@@ -153,19 +153,19 @@ export default function EditProfilePage() {
       <div className="bg-white border border-border rounded-2xl p-5">
         <p className="text-xs font-medium text-secondary uppercase tracking-wide mb-3">Profile Avatar</p>
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-full border-2 border-gold/30 flex items-center justify-center shrink-0 overflow-hidden"
+          <div className="w-16 h-16 rounded-full border-2 border-saloo-teal/30 flex items-center justify-center shrink-0 overflow-hidden"
                style={{ backgroundColor: selectedAvatarData?.bg ?? '#f3f0e8' }}>
             {selectedAvatarData ? (
               <span className="text-3xl animate-bounce" style={{ animationDuration: '2s' }}>{selectedAvatarData.emoji}</span>
             ) : avatarUrl && !avatarUrl.startsWith('avatar:') ? (
               <img src={avatarUrl} alt="Avatar" className="w-full h-full rounded-full object-cover" />
             ) : (
-              <span className="font-syne font-bold text-gold text-xl">{initial}</span>
+              <span className="font-syne font-bold text-saloo-teal text-xl">{initial}</span>
             )}
           </div>
           <button
             onClick={() => setShowAvatarPicker(!showAvatarPicker)}
-            className="text-gold text-sm font-semibold hover:text-gold/80 transition-colors"
+            className="text-saloo-teal text-sm font-semibold hover:text-saloo-teal/80 transition-colors"
           >
             {showAvatarPicker ? 'Close' : 'Choose Avatar'}
           </button>
@@ -281,7 +281,7 @@ export default function EditProfilePage() {
                 className={inputCls + ' bg-lavender/50 font-mono font-bold tracking-widest'} />
               <button
                 onClick={() => { navigator.clipboard.writeText(referralCode) }}
-                className="px-4 py-3 bg-gold/10 text-gold text-sm font-semibold rounded-xl hover:bg-gold/20 transition-colors shrink-0"
+                className="px-4 py-3 bg-saloo-teal/10 text-saloo-teal text-sm font-semibold rounded-xl hover:bg-saloo-teal/20 transition-colors shrink-0"
               >
                 Copy
               </button>
@@ -306,7 +306,7 @@ export default function EditProfilePage() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full bg-navy text-gold font-syne font-bold py-4 rounded-2xl hover:bg-navy/90 transition-all active:scale-[0.98] text-sm disabled:opacity-50 shadow-lg shadow-navy/20"
+          className="w-full bg-navy text-saloo-teal font-syne font-bold py-4 rounded-2xl hover:bg-navy/90 transition-all active:scale-[0.98] text-sm disabled:opacity-50 shadow-lg shadow-navy/20"
         >
           {saving ? 'Saving…' : 'Save Changes'}
         </button>

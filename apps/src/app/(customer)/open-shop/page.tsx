@@ -102,7 +102,7 @@ export default function OpenShopPage() {
   if (pageLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-8 h-8 rounded-full border-2 border-gold/40 border-t-gold animate-spin" />
+        <div className="w-8 h-8 rounded-full border-2 border-saloo-teal/40 border-t-gold animate-spin" />
       </div>
     )
   }
@@ -111,7 +111,7 @@ export default function OpenShopPage() {
   if (role === 'shop_owner' && shopStatus === 'verified') {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-6">
-        <div className="w-20 h-20 rounded-3xl bg-gold/10 border-2 border-gold/25 flex items-center justify-center mx-auto">
+        <div className="w-20 h-20 rounded-3xl bg-saloo-teal/10 border-2 border-saloo-teal/25 flex items-center justify-center mx-auto">
           <span className="text-4xl">🏪</span>
         </div>
         <div>
@@ -122,7 +122,7 @@ export default function OpenShopPage() {
           Your shop is live on Saloo. Head to your dashboard to manage bookings, team, and analytics.
         </p>
         <Link href="/owner/dashboard"
-          className="inline-flex items-center gap-2 bg-gold text-white font-syne font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-all active:scale-[0.98]">
+          className="inline-flex items-center gap-2 bg-saloo-teal text-white font-syne font-bold px-8 py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all active:scale-[0.98]">
           Owner Dashboard →
         </Link>
         <p className="text-muted text-xs">
@@ -142,7 +142,7 @@ export default function OpenShopPage() {
         </div>
         <div>
           <h1 className="font-syne font-bold text-2xl text-ink">Application Under Review</h1>
-          <p className="text-gold text-sm mt-1 font-semibold">{shopName}</p>
+          <p className="text-saloo-teal text-sm mt-1 font-semibold">{shopName}</p>
         </div>
         <p className="text-secondary text-sm leading-relaxed">
           Our team is reviewing your shop application. This usually takes 2–5 business days.
@@ -172,7 +172,7 @@ export default function OpenShopPage() {
           Check your notifications for the reason.
         </p>
         <Link href="/owner/dashboard"
-          className="inline-flex items-center gap-2 bg-gold text-white font-syne font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-all active:scale-[0.98]">
+          className="inline-flex items-center gap-2 bg-saloo-teal text-white font-syne font-bold px-8 py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all active:scale-[0.98]">
           Update & Reapply →
         </Link>
       </div>
@@ -183,7 +183,7 @@ export default function OpenShopPage() {
   if (role === 'shop_owner' && shopStatus === 'none') {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-6">
-        <div className="w-20 h-20 rounded-3xl bg-gold/10 border-2 border-gold/25 flex items-center justify-center mx-auto">
+        <div className="w-20 h-20 rounded-3xl bg-saloo-teal/10 border-2 border-saloo-teal/25 flex items-center justify-center mx-auto">
           <span className="text-4xl">✂</span>
         </div>
         <div>
@@ -194,7 +194,7 @@ export default function OpenShopPage() {
           Head to your Owner Dashboard to complete your shop profile. Once submitted, our team will review and verify it.
         </p>
         <Link href="/owner/dashboard"
-          className="inline-flex items-center gap-2 bg-gold text-white font-syne font-bold px-8 py-4 rounded-2xl hover:bg-gold/90 transition-all active:scale-[0.98]">
+          className="inline-flex items-center gap-2 bg-saloo-teal text-white font-syne font-bold px-8 py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all active:scale-[0.98]">
           Owner Dashboard →
         </Link>
       </div>
@@ -207,12 +207,12 @@ export default function OpenShopPage() {
 
       {/* Hero */}
       <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 bg-gold/10 border border-gold/30 rounded-full px-4 py-1.5">
-          <span className="text-gold text-xs font-bold uppercase tracking-wider">For Shop Owners</span>
+        <div className="inline-flex items-center gap-2 bg-saloo-teal/10 border border-saloo-teal/30 rounded-full px-4 py-1.5">
+          <span className="text-saloo-teal text-xs font-bold uppercase tracking-wider">For Shop Owners</span>
         </div>
         <h1 className="font-syne font-bold text-3xl sm:text-4xl text-ink leading-tight">
           Grow Your Barbershop<br />
-          <span className="text-gold">with Saloo</span>
+          <span className="text-saloo-teal">with Saloo</span>
         </h1>
         <p className="text-secondary text-base leading-relaxed max-w-md mx-auto">
           Join hundreds of barbershops already using Saloo to manage bookings, payments, and their team — all in one place.
@@ -223,7 +223,7 @@ export default function OpenShopPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {BENEFITS.map(b => (
           <div key={b.title} className="bg-white border border-border rounded-2xl p-5 flex items-start gap-4 shadow-sm">
-            <div className="w-10 h-10 rounded-xl bg-gold/10 border border-gold/20 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-saloo-teal/10 border border-saloo-teal/20 flex items-center justify-center shrink-0">
               <span className="text-xl">{b.icon}</span>
             </div>
             <div>
@@ -246,7 +246,7 @@ export default function OpenShopPage() {
         <div className="p-6 space-y-3">
           {CODE_OF_CONDUCT.map((rule, i) => (
             <div key={i} className="flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-gold/15 border border-gold/25 text-gold text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+              <span className="w-5 h-5 rounded-full bg-saloo-teal/15 border border-saloo-teal/25 text-saloo-teal text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
                 {i + 1}
               </span>
               <p className="text-secondary text-sm leading-relaxed">{rule}</p>
@@ -275,20 +275,20 @@ export default function OpenShopPage() {
       </div>
 
       {/* Agreement + CTA */}
-      <div className="bg-champagne border border-gold/25 rounded-2xl p-6 space-y-5">
+      <div className="bg-champagne border border-saloo-teal/25 rounded-2xl p-6 space-y-5">
         {/* Checkbox */}
         <label className="flex items-start gap-3 cursor-pointer group">
           <div
             onClick={() => setAgreed(v => !v)}
             className={`w-5 h-5 rounded-md border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all ${
-              agreed ? 'bg-gold border-gold' : 'border-ink/25 group-hover:border-gold/60 bg-white'
+              agreed ? 'bg-saloo-teal border-saloo-teal' : 'border-ink/25 group-hover:border-saloo-teal/60 bg-white'
             }`}
           >
             {agreed && <span className="text-white text-xs font-bold">✓</span>}
           </div>
           <p className="text-ink/70 text-sm leading-relaxed">
-            I have read and agree to the <span className="text-gold font-semibold">Code of Conduct</span> and{' '}
-            <span className="text-gold font-semibold">Terms & Conditions</span> above. I understand that my shop
+            I have read and agree to the <span className="text-saloo-teal font-semibold">Code of Conduct</span> and{' '}
+            <span className="text-saloo-teal font-semibold">Terms & Conditions</span> above. I understand that my shop
             application will be reviewed by the Saloo team before going live.
           </p>
         </label>

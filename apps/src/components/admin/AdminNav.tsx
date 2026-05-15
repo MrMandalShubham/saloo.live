@@ -19,7 +19,7 @@ export function AdminNav() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-56 min-h-screen bg-white/50 backdrop-blur-3xl border-r border-white/60 shadow-glass-lg fixed left-0 top-0 z-40">
+      <aside className="hidden lg:flex flex-col w-56 min-h-screen bg-gradient-to-b from-[#F4F7F8]/90 to-[#E9EEF0]/90 backdrop-blur-2xl border-r-[3px] border-saloo-admin/20 shadow-glass-lg fixed left-0 top-0 z-40">
         <div className="px-6 py-6 border-b border-saloo-dark/10">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-saloo-admin/15 border border-saloo-admin/30 flex items-center justify-center">
@@ -57,7 +57,7 @@ export function AdminNav() {
       <div className="hidden lg:block w-56 flex-shrink-0" />
 
       {/* Mobile top bar */}
-      <header className="lg:hidden sticky top-0 z-40 bg-white/60 backdrop-blur-3xl border-b border-white/60 px-4 h-14 flex items-center justify-between shadow-sm">
+      <header className="lg:hidden sticky top-0 z-40 bg-gradient-to-r from-[#F4F7F8]/90 to-[#E9EEF0]/90 backdrop-blur-2xl border-b-[3px] border-saloo-admin/20 px-4 h-14 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-saloo-admin/15 border border-saloo-admin/30 flex items-center justify-center">
             <span className="text-saloo-admin text-[10px]">🛡️</span>
@@ -68,7 +68,7 @@ export function AdminNav() {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/60 backdrop-blur-3xl border-t border-white/60 shadow-glass-lg">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-gradient-to-r from-[#F4F7F8]/90 to-[#E9EEF0]/90 backdrop-blur-2xl border-t-[3px] border-saloo-admin/20 shadow-glass-lg">
         <div className="flex overflow-x-auto scrollbar-none">
           {NAV_ITEMS.map(item => {
             const active = pathname.startsWith(item.href)

@@ -66,7 +66,7 @@ export default function NotificationsPage() {
         <div className="flex items-center gap-2">
           <h1 className="font-syne text-2xl font-bold text-navy">Notifications</h1>
           {data.unread_count > 0 && (
-            <span className="bg-gold text-navy text-xs font-bold w-5 h-5 inline-flex items-center justify-center rounded-full">
+            <span className="bg-saloo-teal text-navy text-xs font-bold w-5 h-5 inline-flex items-center justify-center rounded-full">
               {data.unread_count}
             </span>
           )}
@@ -75,7 +75,7 @@ export default function NotificationsPage() {
           <button
             onClick={() => markAllMutation.mutate()}
             disabled={markAllMutation.isPending}
-            className="text-sm text-gold font-semibold hover:text-gold/80 transition-colors"
+            className="text-sm text-saloo-teal font-semibold hover:text-saloo-teal/80 transition-colors"
           >
             Mark all read
           </button>
@@ -128,11 +128,11 @@ export default function NotificationsPage() {
             <div
               key={n.id}
               className={`bg-white border rounded-2xl p-4 flex gap-3 transition-all ${
-                !n.is_read ? 'border-gold/40 bg-gold/[0.02]' : 'border-border'
+                !n.is_read ? 'border-saloo-teal/40 bg-saloo-teal/[0.02]' : 'border-border'
               }`}
             >
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${!n.is_read ? 'bg-gold/10' : 'bg-lavender'}`}>
-                <span className={`font-syne text-sm ${!n.is_read ? 'text-gold' : 'text-navy'}`}>
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${!n.is_read ? 'bg-saloo-teal/10' : 'bg-lavender'}`}>
+                <span className={`font-syne text-sm ${!n.is_read ? 'text-saloo-teal' : 'text-navy'}`}>
                   {TYPE_ICON[n.type] ?? '◎'}
                 </span>
               </div>
@@ -144,7 +144,7 @@ export default function NotificationsPage() {
                 <p className="text-[11px] text-muted/60 mt-1.5">{relativeTime(n.created_at)}</p>
               </div>
               {!n.is_read && (
-                <div className="w-2 h-2 rounded-full bg-gold mt-2 shrink-0" />
+                <div className="w-2 h-2 rounded-full bg-saloo-teal mt-2 shrink-0" />
               )}
             </div>
           ))}

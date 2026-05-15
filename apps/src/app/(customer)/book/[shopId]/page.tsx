@@ -175,7 +175,7 @@ export default function BookingFlowPage() {
           {STEPS.map((s, i) => (
             <div key={s} className="flex-1 flex flex-col items-center gap-1">
               <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                i < step ? 'bg-success text-white' : i === step ? 'bg-gold text-navy' : 'bg-gray-200 text-gray-500'
+                i < step ? 'bg-success text-white' : i === step ? 'bg-saloo-teal text-navy' : 'bg-gray-200 text-gray-500'
               }`}>
                 {i < step ? '✓' : i + 1}
               </div>
@@ -206,7 +206,7 @@ export default function BookingFlowPage() {
                     <div className="flex items-center gap-3">
                       <span className="font-syne font-bold">{formatINR(svc.price)}</span>
                       <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                        selected ? 'bg-gold border-gold' : 'border-gray-300'
+                        selected ? 'bg-saloo-teal border-saloo-teal' : 'border-gray-300'
                       }`}>
                         {selected && <span className="text-white text-xs">✓</span>}
                       </div>
@@ -231,7 +231,7 @@ export default function BookingFlowPage() {
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-700">+{formatINR(a.price)}</span>
                           <div className={`w-4 h-4 rounded border flex items-center justify-center ${
-                            selected ? 'bg-gold border-gold' : 'border-gray-300'
+                            selected ? 'bg-saloo-teal border-saloo-teal' : 'border-gray-300'
                           }`}>
                             {selected && <span className="text-white text-[10px]">✓</span>}
                           </div>
@@ -245,7 +245,7 @@ export default function BookingFlowPage() {
             <button
               onClick={() => setStep(1)}
               disabled={selectedServices.length === 0}
-              className="w-full bg-gold text-navy font-syne font-bold py-3 rounded-xl disabled:opacity-40 hover:bg-gold/90 transition-colors"
+              className="w-full bg-saloo-teal text-navy font-syne font-bold py-3 rounded-xl disabled:opacity-40 hover:bg-saloo-teal/90 transition-colors"
             >
               Continue — {formatINR(total)}
             </button>
@@ -259,10 +259,10 @@ export default function BookingFlowPage() {
             <button
               onClick={() => { setSelectedBarber(null); setStep(2) }}
               className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                !selectedBarber ? 'border-gold bg-gold/5' : 'border-border hover:border-gold/50'
+                !selectedBarber ? 'border-saloo-teal bg-saloo-teal/5' : 'border-border hover:border-saloo-teal/50'
               }`}
             >
-              <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-xl">⚡</div>
+              <div className="w-12 h-12 rounded-full bg-saloo-teal/20 flex items-center justify-center text-xl">⚡</div>
               <div className="text-left">
                 <p className="font-medium text-navy">Any (Fastest)</p>
                 <p className="text-sm text-gray-400">Best available barber</p>
@@ -273,10 +273,10 @@ export default function BookingFlowPage() {
                 key={b.id}
                 onClick={() => { setSelectedBarber(b); setStep(2) }}
                 className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                  selectedBarber?.id === b.id ? 'border-gold bg-gold/5' : 'border-border hover:border-gold/50'
+                  selectedBarber?.id === b.id ? 'border-saloo-teal bg-saloo-teal/5' : 'border-border hover:border-saloo-teal/50'
                 }`}
               >
-                <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center text-xl">✂️</div>
+                <div className="w-12 h-12 rounded-full bg-saloo-teal/20 flex items-center justify-center text-xl">✂️</div>
                 <div className="text-left flex-1">
                   <p className="font-medium text-navy">{b.name}</p>
                   {b.avg_rating > 0 && <p className="text-sm text-gray-400">⭐ {b.avg_rating.toFixed(1)}</p>}
@@ -299,7 +299,7 @@ export default function BookingFlowPage() {
                   key={d}
                   onClick={() => { setSelectedDate(d); setSelectedSlot('') }}
                   className={`shrink-0 flex flex-col items-center px-4 py-3 rounded-xl border font-medium transition-colors ${
-                    selectedDate === d ? 'bg-gold border-gold text-navy' : 'bg-white border-border text-gray-600 hover:border-gold/50'
+                    selectedDate === d ? 'bg-saloo-teal border-saloo-teal text-navy' : 'bg-white border-border text-gray-600 hover:border-saloo-teal/50'
                   }`}
                 >
                   <span className="text-xs">{new Date(d).toLocaleDateString('en-IN', { weekday: 'short' })}</span>
@@ -322,10 +322,10 @@ export default function BookingFlowPage() {
                         onClick={() => setSelectedSlot(s.start_time)}
                         className={`py-2 px-1 rounded-lg text-xs font-medium border transition-colors ${
                           selectedSlot === s.start_time
-                            ? 'bg-gold border-gold text-navy'
+                            ? 'bg-saloo-teal border-saloo-teal text-navy'
                             : !s.available
                               ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed'
-                              : 'bg-white border-border text-gray-700 hover:border-gold/50'
+                              : 'bg-white border-border text-gray-700 hover:border-saloo-teal/50'
                         }`}
                       >
                         {formatTime(s.start_time)}
@@ -336,13 +336,13 @@ export default function BookingFlowPage() {
               </div>
             )}
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 border border-border py-3 rounded-xl text-sm font-medium text-gray-600 hover:border-gold/50">
+              <button onClick={() => setStep(1)} className="flex-1 border border-border py-3 rounded-xl text-sm font-medium text-gray-600 hover:border-saloo-teal/50">
                 ← Back
               </button>
               <button
                 onClick={handleHold}
                 disabled={!selectedDate || !selectedSlot || holding}
-                className="flex-1 bg-gold text-navy font-syne font-bold py-3 rounded-xl disabled:opacity-40 hover:bg-gold/90 transition-colors"
+                className="flex-1 bg-saloo-teal text-navy font-syne font-bold py-3 rounded-xl disabled:opacity-40 hover:bg-saloo-teal/90 transition-colors"
               >
                 {holding ? 'Holding...' : 'Hold Slot →'}
               </button>
@@ -379,7 +379,7 @@ export default function BookingFlowPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Advance (30%)</span>
-                  <span className="font-syne font-bold text-gold">{formatINR(holdData.advance_amount)}</span>
+                  <span className="font-syne font-bold text-saloo-teal">{formatINR(holdData.advance_amount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Due at shop</span>
@@ -400,7 +400,7 @@ export default function BookingFlowPage() {
               <button
                 onClick={handlePay}
                 disabled={paying}
-                className="w-full bg-gold text-navy font-syne font-bold py-4 rounded-xl hover:bg-gold/90 transition-colors disabled:opacity-50"
+                className="w-full bg-saloo-teal text-navy font-syne font-bold py-4 rounded-xl hover:bg-saloo-teal/90 transition-colors disabled:opacity-50"
               >
                 {paying ? 'Processing...' : `Pay ${formatINR(holdData.advance_amount)} Now →`}
               </button>

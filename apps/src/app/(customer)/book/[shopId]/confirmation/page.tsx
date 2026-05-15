@@ -31,7 +31,7 @@ export default async function BookingConfirmationPage() {
         <div className="bg-white rounded-card p-6 text-left space-y-3">
           <div className="flex justify-between">
             <span className="text-sm text-gray-500">Booking Ref</span>
-            <span className="font-syne font-bold text-gold">{latestBooking.booking_ref}</span>
+            <span className="font-syne font-bold text-saloo-teal">{latestBooking.booking_ref}</span>
           </div>
           {shopName && (
             <div className="flex justify-between">

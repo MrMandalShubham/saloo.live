@@ -58,7 +58,7 @@ export function ShopsGrid() {
         <Link
           key={shop.id}
           href={`/shop/${shop.id}`}
-          className="bg-white border border-border rounded-2xl overflow-hidden hover:border-gold/40 hover:shadow-royal transition-all group"
+          className="bg-white border border-border rounded-2xl overflow-hidden hover:border-saloo-teal/40 hover:shadow-royal transition-all group"
         >
           <div className="relative h-44 bg-lavender">
             {shop.photos?.[0] ? (
@@ -96,7 +96,7 @@ export function ShopsGrid() {
             <div className="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-border">
               {shop.avg_rating > 0 && (
                 <span className="text-xs font-semibold text-navy flex items-center gap-1">
-                  <span className="text-gold">★</span>
+                  <span className="text-saloo-teal">★</span>
                   {shop.avg_rating.toFixed(1)}
                   <span className="text-muted font-normal">({shop.total_reviews})</span>
                 </span>
