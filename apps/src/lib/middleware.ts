@@ -114,10 +114,14 @@ export async function updateSession(request: NextRequest) {
 
     const url = request.nextUrl.clone()
 
-    // Non-owner/Non-admin hitting /owner/* → Open a Shop page
+    // Non-owner/Non-admin hitting /owner/* → check if they have a shop, else Open a Shop page
     if (isOwnerRoute && role !== 'shop_owner' && role !== 'admin') {
-      url.pathname = '/open-shop'
-      return NextResponse.redirect(url)
+      // Check if user owns a shop (covers cases where role wasn't upgraded)
+      const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).limit(1).single()
+      if (!shop) {
+        url.pathname = '/open-shop'
+        return NextResponse.redirect(url)
+      }
     }
 
     // Non-admin hitting /admin/* → home

@@ -14,16 +14,26 @@ Deno.serve(async (req) => {
     const body = await req.json()
     const supabase = createAdminClient()
 
-    // Verify user is a shop_owner
+    // Any authenticated user can create a shop.
+    // If their role is lower than shop_owner, upgrade it.
+    // Admin keeps admin role (admin > shop_owner in hierarchy).
     const { data: profile } = await supabase
       .from('users')
       .select('role')
       .eq('id', user.id)
       .single()
 
-    if (!profile || profile.role !== 'shop_owner') {
-      return error('Only shop owners can create a shop', 403)
+    if (!profile) return error('User profile not found', 404)
+
+    // Role hierarchy: admin > shop_owner > barber > customer
+    // Only upgrade if current role is below shop_owner
+    if (profile.role === 'customer' || profile.role === 'barber') {
+      await supabase
+        .from('users')
+        .update({ role: 'shop_owner' })
+        .eq('id', user.id)
     }
+    // admin and shop_owner can create shops without role change
 
     // Check if user already has a shop
     const { data: existing } = await supabase
