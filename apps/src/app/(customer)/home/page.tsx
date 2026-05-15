@@ -74,10 +74,10 @@ export default async function HomePage() {
     <div className="space-y-6 pb-4">
 
       {/* Greeting Banner */}
-      <div className="bg-gradient-to-br from-[#33D1C1] to-saloo-teal border border-white/20 rounded-3xl p-5 sm:p-8 relative overflow-hidden shadow-glass-lg group hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500">
+      <div className="bg-gradient-to-br from-[#0A1116] to-[#0E1B24] border border-white/10 rounded-3xl p-5 sm:p-8 relative overflow-hidden shadow-2xl group hover:shadow-saloo-teal/20 hover:-translate-y-0.5 transition-all duration-500">
         {/* Decorative orbs */}
-        <div className="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white/20 blur-[40px] pointer-events-none group-hover:bg-white/30 transition-colors duration-700" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 rounded-full bg-[#00A896]/40 blur-[40px] pointer-events-none" />
+        <div className="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-saloo-teal/10 blur-[60px] pointer-events-none group-hover:bg-saloo-teal/20 transition-colors duration-700" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 rounded-full bg-blue-500/10 blur-[40px] pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-4">
           {/* Avatar */}

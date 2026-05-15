@@ -99,9 +99,9 @@ export default function ProfilePage() {
     <div className="max-w-2xl mx-auto space-y-5 pb-6">
 
       {/* Profile Hero */}
-      <div className="bg-royal-gradient rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-royal-lg">
+      <div className="bg-gradient-to-br from-[#0A1116] to-[#0E1B24] border border-white/10 rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-2xl">
         <div className="absolute top-0 right-0 w-48 h-48 rounded-full bg-saloo-teal/10 blur-[40px] pointer-events-none" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 rounded-full bg-blue-500/20 blur-[40px] pointer-events-none" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 rounded-full bg-blue-500/10 blur-[40px] pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-5">
           {(() => {
