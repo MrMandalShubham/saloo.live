@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { formatINR } from '@saloo/lib'
+import { ShopSetupForm } from './ShopSetupForm'
 
 const STATUS_COLOR: Record<string, string> = {
   pending:   'text-amber-600 bg-amber-400/20 border-amber-400/40',
@@ -74,14 +75,7 @@ export default async function OwnerDashboardPage() {
   const { data: shop } = await supabase.from('shops').select('id, name, status').eq('owner_id', user.id).single()
 
   if (!shop) {
-    return (
-      <div className="flex flex-col items-center justify-center py-32 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/80 flex items-center justify-center mb-4">
-          <span className="text-2xl">🏪</span>
-        </div>
-        <p className="text-saloo-dark/70 text-sm">No shop found. Contact support to set up your shop.</p>
-      </div>
-    )
+    return <ShopSetupForm />
   }
 
   if (shop.status === 'rejected') {
