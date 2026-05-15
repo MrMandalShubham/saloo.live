@@ -39,13 +39,13 @@ Deno.serve(async (req) => {
     const supabase = createAdminClient()
 
     // ── PARALLEL FETCH: all 6 queries at once ──────────────────────────
-    const barbersQuery = supabase
+    let barbersQuery = supabase
       .from('barbers')
       .select('id, barber_hours(*)')
       .eq('shop_id', shopId)
       .eq('is_active', true)
 
-    if (barberId) barbersQuery.eq('id', barberId)
+    if (barberId) barbersQuery = barbersQuery.eq('id', barberId)
 
     const [hoursRes, barbersRes, bookingsRes, holdsRes, blocksRes, breaksRes, shopRes] = await Promise.all([
       // 1. Shop hours for this day

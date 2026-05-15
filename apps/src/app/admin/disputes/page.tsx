@@ -42,8 +42,8 @@ export default function AdminDisputesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-white text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Dispute Management</h1>
-        <p className="text-white/40 text-sm mt-1">{total} disputes</p>
+        <h1 className="text-saloo-dark text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Dispute Management</h1>
+        <p className="text-saloo-dark/60 text-sm mt-1">{total} disputes</p>
       </div>
 
       <div className="flex gap-2">
@@ -52,7 +52,7 @@ export default function AdminDisputesPage() {
             key={s}
             onClick={() => { setStatus(s); setPage(1) }}
             className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${
-              status === s ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'
+              status === s ? 'bg-saloo-admin text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
             }`}
           >
             {s}
@@ -63,35 +63,35 @@ export default function AdminDisputesPage() {
       <div className="space-y-3">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="h-20 bg-white/5 rounded-2xl animate-pulse" />
+            <div key={i} className="h-20 bg-white/60 backdrop-blur-md shadow-sm rounded-2xl animate-pulse" />
           ))
         ) : disputes.length === 0 ? (
-          <div className="text-center py-16 text-white/30">No disputes found</div>
+          <div className="text-center py-16 text-saloo-dark/50">No disputes found</div>
         ) : disputes.map((d: any) => (
           <Link
             key={d.id}
             href={`/admin/disputes/${d.id}`}
-            className="block bg-white/5 border border-white/10 rounded-2xl p-4 hover:bg-white/10 transition-colors"
+            className="block bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-4 hover:bg-white/70 backdrop-blur-md shadow-sm transition-colors"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-white font-medium text-sm">{d.booking_ref}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_COLORS[d.status] ?? 'text-white/40 bg-white/10'}`}>
+                  <span className="text-saloo-dark font-medium text-sm">{d.booking_ref}</span>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_COLORS[d.status] ?? 'text-saloo-dark/60 bg-white/70 backdrop-blur-md shadow-sm'}`}>
                     {d.status}
                   </span>
                   {d.in_escrow && (
                     <span className="px-2 py-0.5 rounded-full text-xs font-medium text-purple-400 bg-purple-400/10">Escrow</span>
                   )}
                 </div>
-                <p className="text-white/60 text-xs mt-1 truncate">{d.customer_name} → {d.shop_name}</p>
-                <p className="text-white/40 text-xs mt-0.5 capitalize">{d.reason?.replace(/_/g, ' ')}</p>
+                <p className="text-saloo-dark/80 text-xs mt-1 truncate">{d.customer_name} → {d.shop_name}</p>
+                <p className="text-saloo-dark/60 text-xs mt-0.5 capitalize">{d.reason?.replace(/_/g, ' ')}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="text-white/80 text-sm font-medium">₹{d.amount_at_stake?.toLocaleString('en-IN')}</p>
-                <p className="text-white/30 text-xs mt-0.5">{new Date(d.created_at).toLocaleDateString('en-IN')}</p>
+                <p className="text-saloo-dark/90 text-sm font-medium">₹{d.amount_at_stake?.toLocaleString('en-IN')}</p>
+                <p className="text-saloo-dark/50 text-xs mt-0.5">{new Date(d.created_at).toLocaleDateString('en-IN')}</p>
                 {d.sla_deadline && (
-                  <p className={`text-xs mt-0.5 ${new Date(d.sla_deadline) < new Date() ? 'text-red-400' : 'text-white/30'}`}>
+                  <p className={`text-xs mt-0.5 ${new Date(d.sla_deadline) < new Date() ? 'text-red-400' : 'text-saloo-dark/50'}`}>
                     SLA: {new Date(d.sla_deadline).toLocaleDateString('en-IN')}
                   </p>
                 )}
@@ -103,9 +103,9 @@ export default function AdminDisputesPage() {
 
       {total > 20 && (
         <div className="flex justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 bg-white/10 text-white/60 rounded-lg text-sm disabled:opacity-40">Prev</button>
-          <span className="px-3 py-1.5 text-white/40 text-sm">Page {page} of {Math.ceil(total / 20)}</span>
-          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 20)} className="px-3 py-1.5 bg-white/10 text-white/60 rounded-lg text-sm disabled:opacity-40">Next</button>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80 rounded-lg text-sm disabled:opacity-40">Prev</button>
+          <span className="px-3 py-1.5 text-saloo-dark/60 text-sm">Page {page} of {Math.ceil(total / 20)}</span>
+          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 20)} className="px-3 py-1.5 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80 rounded-lg text-sm disabled:opacity-40">Next</button>
         </div>
       )}
     </div>

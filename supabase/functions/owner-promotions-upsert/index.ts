@@ -22,8 +22,8 @@ Deno.serve(async (req) => {
 
     if (!shop) return error('Shop not found', 404)
 
-    if (!body.title || !body.type || body.discount_value === undefined || !body.valid_from || !body.valid_until) {
-      return error('title, type, discount_value, valid_from, valid_until required', 400)
+    if (!body.title || !body.type || body.discount_value === undefined || !body.valid_from) {
+      return error('title, type, discount_value, valid_from required', 400)
     }
 
     const payload = {
@@ -31,12 +31,15 @@ Deno.serve(async (req) => {
       title: body.title,
       type: body.type,
       discount_value: body.discount_value,
-      min_order_amount: body.min_order_amount ?? null,
+      max_discount_amount: body.max_discount_amount ?? null,
+      service_ids: body.service_ids ?? null,
+      min_booking_amount: body.min_booking_amount ?? null,
       valid_from: body.valid_from,
-      valid_until: body.valid_until,
-      applicable_days: body.applicable_days ?? null,
-      start_time: body.start_time ?? null,
-      end_time: body.end_time ?? null,
+      valid_to: body.valid_to ?? null,
+      applicable_hours_start: body.applicable_hours_start ?? null,
+      applicable_hours_end: body.applicable_hours_end ?? null,
+      new_customers_only: body.new_customers_only ?? false,
+      usage_limit: body.usage_limit ?? null,
       is_active: body.is_active ?? true,
     }
 

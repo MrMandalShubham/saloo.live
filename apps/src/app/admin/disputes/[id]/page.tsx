@@ -59,20 +59,20 @@ export default function AdminDisputeDetailPage() {
     },
   })
 
-  if (isLoading) return <div className="text-white/40 p-8">Loading…</div>
-  if (!dispute) return <div className="text-white/40 p-8">Dispute not found</div>
+  if (isLoading) return <div className="text-saloo-dark/60 p-8">Loading…</div>
+  if (!dispute) return <div className="text-saloo-dark/60 p-8">Dispute not found</div>
 
   const d = dispute
 
   return (
     <div className="space-y-6 max-w-2xl">
       <div className="flex items-center gap-4">
-        <button onClick={() => router.back()} className="text-white/40 hover:text-white transition-colors text-sm">← Back</button>
-        <h1 className="text-white text-xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Dispute — {d.booking_ref}</h1>
+        <button onClick={() => router.back()} className="text-saloo-dark/60 hover:text-saloo-dark transition-colors text-sm">← Back</button>
+        <h1 className="text-saloo-dark text-xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Dispute — {d.booking_ref}</h1>
       </div>
 
       {/* Dispute info */}
-      <div className="bg-white/5 rounded-2xl p-5 border border-white/10 space-y-3">
+      <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-5 border border-white/80 space-y-3">
         <div className="grid grid-cols-2 gap-3 text-sm">
           {[
             { label: 'Customer', value: d.customer_name },
@@ -85,23 +85,23 @@ export default function AdminDisputeDetailPage() {
             { label: 'SLA Deadline', value: d.sla_deadline ? new Date(d.sla_deadline).toLocaleDateString('en-IN') : '—' },
           ].map(row => (
             <div key={row.label}>
-              <p className="text-white/30 text-xs">{row.label}</p>
-              <p className="text-white/80 text-sm font-medium capitalize mt-0.5">{row.value}</p>
+              <p className="text-saloo-dark/50 text-xs">{row.label}</p>
+              <p className="text-saloo-dark/90 text-sm font-medium capitalize mt-0.5">{row.value}</p>
             </div>
           ))}
         </div>
         {d.resolution_note && (
-          <div className="pt-3 border-t border-white/10">
-            <p className="text-white/30 text-xs">Resolution Note</p>
-            <p className="text-white/80 text-sm mt-1">{d.resolution_note}</p>
+          <div className="pt-3 border-t border-white/80">
+            <p className="text-saloo-dark/50 text-xs">Resolution Note</p>
+            <p className="text-saloo-dark/90 text-sm mt-1">{d.resolution_note}</p>
           </div>
         )}
       </div>
 
       {/* Resolution form */}
       {d.status !== 'resolved' && (
-        <div className="bg-white/5 rounded-2xl p-5 border border-white/10 space-y-4">
-          <h2 className="text-white font-semibold">Resolve Dispute</h2>
+        <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-5 border border-white/80 space-y-4">
+          <h2 className="text-saloo-dark font-semibold">Resolve Dispute</h2>
 
           <div className="space-y-2">
             {RESOLUTIONS.map(r => (
@@ -110,36 +110,36 @@ export default function AdminDisputeDetailPage() {
                 onClick={() => setResolution(r.key)}
                 className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
                   resolution === r.key
-                    ? 'border-white/40 bg-white/10 text-white'
-                    : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                    ? 'border-white/40 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark'
+                    : 'border-white/80 bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/80 hover:bg-white/70 backdrop-blur-md shadow-sm'
                 }`}
               >
                 <p className="text-sm font-medium">{r.label}</p>
-                <p className="text-xs text-white/40 mt-0.5">{r.desc}</p>
+                <p className="text-xs text-saloo-dark/60 mt-0.5">{r.desc}</p>
               </button>
             ))}
           </div>
 
           {resolution === 'split' && (
             <div>
-              <label className="text-white/40 text-xs block mb-1">Refund Amount (₹)</label>
+              <label className="text-saloo-dark/60 text-xs block mb-1">Refund Amount (₹)</label>
               <input
                 type="number"
                 value={refundAmount}
                 onChange={e => setRefundAmount(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-white/30"
+                className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm focus:outline-none focus:border-saloo-admin/40"
                 placeholder="Enter amount…"
               />
             </div>
           )}
 
           <div>
-            <label className="text-white/40 text-xs block mb-1">Resolution Note *</label>
+            <label className="text-saloo-dark/60 text-xs block mb-1">Resolution Note *</label>
             <textarea
               value={note}
               onChange={e => setNote(e.target.value)}
               rows={3}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm focus:outline-none focus:border-white/30 resize-none"
+              className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm focus:outline-none focus:border-saloo-admin/40 resize-none"
               placeholder="Explain the decision…"
             />
           </div>

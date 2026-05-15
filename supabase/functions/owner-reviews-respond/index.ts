@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
       .from('reviews')
       .update({
         shop_response: response.trim(),
-        responded_at: new Date().toISOString(),
+        shop_response_at: new Date().toISOString(),
       })
       .eq('id', review_id)
       .eq('shop_id', shop.id)

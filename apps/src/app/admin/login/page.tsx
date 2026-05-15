@@ -33,7 +33,7 @@ export default function AdminLoginPage() {
     window.location.href = '/admin/dashboard'
   }
 
-  const inputCls = 'w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/30 text-sm focus:border-amber-400 focus:bg-white/15 transition-all outline-none'
+  const inputCls = 'w-full bg-white/70 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark placeholder-saloo-dark/40 text-sm focus:border-amber-400 focus:bg-white/15 transition-all outline-none'
 
   return (
     <div className="min-h-screen bg-royal-gradient flex items-center justify-center px-4">
@@ -48,15 +48,15 @@ export default function AdminLoginPage() {
             <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
               <span className="text-2xl">🛡️</span>
             </div>
-            <span className="font-syne text-2xl font-bold text-white tracking-wide">Saloo Admin</span>
+            <span className="font-syne text-2xl font-bold text-saloo-dark tracking-wide">Saloo Admin</span>
           </Link>
-          <p className="text-white/30 text-xs mt-1">Restricted access — authorized personnel only</p>
+          <p className="text-saloo-dark/50 text-xs mt-1">Restricted access — authorized personnel only</p>
         </div>
 
         {/* Card */}
         <div className="bg-white/[0.07] backdrop-blur-sm border border-amber-500/15 rounded-2xl p-6 space-y-4">
           <div>
-            <label className="text-white/60 text-xs font-medium block mb-1.5 uppercase tracking-wide">Email</label>
+            <label className="text-saloo-dark/80 text-xs font-medium block mb-1.5 uppercase tracking-wide">Email</label>
             <input
               type="email" value={email}
               onChange={e => { setEmail(e.target.value); setError('') }}
@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
             />
           </div>
           <div>
-            <label className="text-white/60 text-xs font-medium block mb-1.5 uppercase tracking-wide">Password</label>
+            <label className="text-saloo-dark/80 text-xs font-medium block mb-1.5 uppercase tracking-wide">Password</label>
             <input
               type="password" value={password}
               onChange={e => { setPassword(e.target.value); setError('') }}
@@ -87,7 +87,7 @@ export default function AdminLoginPage() {
         </div>
 
         <p className="text-center">
-          <Link href="/login" className="text-white/20 hover:text-white/40 text-xs transition-colors">
+          <Link href="/login" className="text-saloo-dark/40 hover:text-saloo-dark/60 text-xs transition-colors">
             ← Back to main login
           </Link>
         </p>

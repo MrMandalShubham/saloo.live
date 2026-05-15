@@ -22,10 +22,10 @@ const PERIODS = [
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-      <p className="text-white/40 text-xs font-medium uppercase tracking-wide">{label}</p>
-      <p className="text-white text-2xl font-bold mt-1" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</p>
-      {sub && <p className="text-white/30 text-xs mt-1">{sub}</p>}
+    <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-5 border border-white/80">
+      <p className="text-saloo-dark/60 text-xs font-medium uppercase tracking-wide">{label}</p>
+      <p className="text-saloo-dark text-2xl font-bold mt-1" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</p>
+      {sub && <p className="text-saloo-dark/50 text-xs mt-1">{sub}</p>}
     </div>
   )
 }
@@ -49,8 +49,8 @@ export default function AdminAnalyticsPage() {
     <div className="space-y-8">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-white text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Platform Analytics</h1>
-          <p className="text-white/40 text-sm mt-1">Marketplace performance overview</p>
+          <h1 className="text-saloo-dark text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Platform Analytics</h1>
+          <p className="text-saloo-dark/60 text-sm mt-1">Marketplace performance overview</p>
         </div>
         <div className="flex gap-2">
           {PERIODS.map(p => (
@@ -58,7 +58,7 @@ export default function AdminAnalyticsPage() {
               key={p.key}
               onClick={() => setPeriod(p.key as any)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                period === p.key ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'
+                period === p.key ? 'bg-saloo-admin text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
               }`}
             >
               {p.label}
@@ -77,8 +77,8 @@ export default function AdminAnalyticsPage() {
 
       {/* Revenue chart (bar chart using CSS) */}
       {d?.revenue_by_day && (
-        <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-          <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-4">Revenue by Day</h2>
+        <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-5 border border-white/80">
+          <h2 className="text-saloo-dark/80 text-xs font-medium uppercase tracking-wide mb-4">Revenue by Day</h2>
           <div className="flex items-end gap-1 h-32">
             {(() => {
               const maxRevenue = Math.max(...d.revenue_by_day.map((r: any) => r.revenue), 1)
@@ -100,45 +100,45 @@ export default function AdminAnalyticsPage() {
       {/* Status breakdown + Top cities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Booking status */}
-        <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-          <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-4">Bookings by Status</h2>
+        <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-5 border border-white/80">
+          <h2 className="text-saloo-dark/80 text-xs font-medium uppercase tracking-wide mb-4">Bookings by Status</h2>
           <div className="space-y-2">
             {(d?.bookings_by_status ?? []).map((s: any) => (
               <div key={s.status} className="flex justify-between text-sm">
-                <span className="text-white/60 capitalize">{s.status}</span>
-                <span className="text-white/80 font-medium">{s.count}</span>
+                <span className="text-saloo-dark/80 capitalize">{s.status}</span>
+                <span className="text-saloo-dark/90 font-medium">{s.count}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Top cities */}
-        <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-          <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-4">Top Cities</h2>
+        <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-5 border border-white/80">
+          <h2 className="text-saloo-dark/80 text-xs font-medium uppercase tracking-wide mb-4">Top Cities</h2>
           <div className="space-y-2">
             {(d?.top_cities ?? []).map((c: any) => (
               <div key={c.city} className="flex justify-between text-sm">
-                <span className="text-white/60">{c.city}</span>
-                <span className="text-white/80 font-medium">{c.bookings} bookings</span>
+                <span className="text-saloo-dark/80">{c.city}</span>
+                <span className="text-saloo-dark/90 font-medium">{c.bookings} bookings</span>
               </div>
             ))}
-            {(d?.top_cities ?? []).length === 0 && <p className="text-white/30 text-sm">No data yet</p>}
+            {(d?.top_cities ?? []).length === 0 && <p className="text-saloo-dark/50 text-sm">No data yet</p>}
           </div>
         </div>
       </div>
 
       {/* Top shops */}
       {(d?.top_shops ?? []).length > 0 && (
-        <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-          <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-4">Top Performing Shops</h2>
+        <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-5 border border-white/80">
+          <h2 className="text-saloo-dark/80 text-xs font-medium uppercase tracking-wide mb-4">Top Performing Shops</h2>
           <div className="space-y-2">
             {d.top_shops.map((s: any, i: number) => (
               <div key={i} className="flex justify-between items-center text-sm">
                 <div className="flex items-center gap-3">
-                  <span className="text-white/30 text-xs w-4">{i + 1}</span>
-                  <span className="text-white/80">{s.name}</span>
+                  <span className="text-saloo-dark/50 text-xs w-4">{i + 1}</span>
+                  <span className="text-saloo-dark/90">{s.name}</span>
                 </div>
-                <div className="flex gap-4 text-white/40 text-xs">
+                <div className="flex gap-4 text-saloo-dark/60 text-xs">
                   <span>⭐ {s.rating?.toFixed(1)}</span>
                   <span>{s.bookings} bookings</span>
                 </div>

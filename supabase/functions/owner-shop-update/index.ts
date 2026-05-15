@@ -24,8 +24,9 @@ Deno.serve(async (req) => {
     if (!shop) return error('Shop not found', 404)
 
     const allowed = [
-      'name', 'description', 'phone', 'address', 'city', 'state', 'pincode',
+      'name', 'description', 'phone', 'email', 'address', 'city', 'state', 'pincode',
       'features', 'specialties', 'gst_number', 'social_instagram', 'social_facebook',
+      'auto_confirm_bookings', 'slot_buffer_min', 'advance_percentage', 'photos',
     ]
     const updates: Record<string, unknown> = {}
     for (const key of allowed) {

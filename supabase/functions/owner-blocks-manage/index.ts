@@ -28,11 +28,11 @@ Deno.serve(async (req) => {
         .from('slot_blocks')
         .select('*')
         .eq('shop_id', shop.id)
-        .order('date')
+        .order('block_date')
         .order('start_time')
 
-      if (from) query = query.gte('date', from)
-      if (to)   query = query.lte('date', to)
+      if (from) query = query.gte('block_date', from)
+      if (to)   query = query.lte('block_date', to)
 
       const { data, error: dbErr } = await query
       if (dbErr) throw dbErr
@@ -41,12 +41,21 @@ Deno.serve(async (req) => {
     }
 
     if (req.method === 'POST') {
-      const { barber_id, date, start_time, end_time, reason } = await req.json()
-      if (!date || !start_time || !end_time) return error('date, start_time, end_time required', 400)
+      const { barber_id, block_date, day_of_week, start_time, end_time, reason } = await req.json()
+      if (!start_time || !end_time) return error('start_time, end_time required', 400)
+      if (!block_date && day_of_week === undefined) return error('block_date or day_of_week required', 400)
 
       const { data, error: dbErr } = await supabase
         .from('slot_blocks')
-        .insert({ shop_id: shop.id, barber_id: barber_id ?? null, date, start_time, end_time, reason: reason ?? null })
+        .insert({
+          shop_id: shop.id,
+          barber_id: barber_id ?? null,
+          block_date: block_date ?? null,
+          day_of_week: day_of_week ?? null,
+          start_time,
+          end_time,
+          reason: reason ?? null,
+        })
         .select()
         .single()
 

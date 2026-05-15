@@ -59,13 +59,13 @@ export default function AdminUsersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-white text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>User Management</h1>
-        <p className="text-white/40 text-sm mt-1">{total} users total</p>
+        <h1 className="text-saloo-dark text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>User Management</h1>
+        <p className="text-saloo-dark/60 text-sm mt-1">{total} users total</p>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">
         <input
-          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm placeholder-white/30 focus:outline-none focus:border-white/30"
+          className="flex-1 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40"
           placeholder="Search by name or phone…"
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1) }}
@@ -76,7 +76,7 @@ export default function AdminUsersPage() {
               key={r}
               onClick={() => { setRole(r); setPage(1) }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${
-                role === r ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'
+                role === r ? 'bg-saloo-admin text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
               }`}
             >
               {r === 'shop_owner' ? 'Owner' : r}
@@ -85,12 +85,12 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 overflow-hidden">
+      <div className="rounded-2xl border border-white/80 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/10 bg-white/5">
+            <tr className="border-b border-white/80 bg-white/60 backdrop-blur-md shadow-sm">
               {['User', 'Role', 'Tier', 'Points', 'Bookings', 'No-shows', 'Status', 'Actions'].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-white/40 text-xs font-medium uppercase tracking-wide">{h}</th>
+                <th key={h} className="text-left px-4 py-3 text-saloo-dark/60 text-xs font-medium uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
@@ -98,31 +98,31 @@ export default function AdminUsersPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-white/5">
-                  <td colSpan={8} className="px-4 py-4"><div className="h-4 bg-white/5 rounded animate-pulse" /></td>
+                  <td colSpan={8} className="px-4 py-4"><div className="h-4 bg-white/60 backdrop-blur-md shadow-sm rounded animate-pulse" /></td>
                 </tr>
               ))
             ) : users.length === 0 ? (
-              <tr><td colSpan={8} className="px-4 py-12 text-center text-white/30">No users found</td></tr>
+              <tr><td colSpan={8} className="px-4 py-12 text-center text-saloo-dark/50">No users found</td></tr>
             ) : users.map((u: any) => (
-              <tr key={u.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+              <tr key={u.id} className="border-b border-white/5 hover:bg-white/60 backdrop-blur-md shadow-sm transition-colors">
                 <td className="px-4 py-3">
-                  <p className="text-white font-medium">{u.full_name || '—'}</p>
-                  <p className="text-white/30 text-xs">{u.phone}</p>
+                  <p className="text-saloo-dark font-medium">{u.full_name || '—'}</p>
+                  <p className="text-saloo-dark/50 text-xs">{u.phone}</p>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="px-2 py-0.5 rounded-full text-xs capitalize bg-white/10 text-white/60">
+                  <span className="px-2 py-0.5 rounded-full text-xs capitalize bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80">
                     {u.role === 'shop_owner' ? 'Owner' : u.role}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`text-xs font-medium capitalize ${TIER_COLORS[u.loyalty_tier] ?? 'text-white/40'}`}>
+                  <span className={`text-xs font-medium capitalize ${TIER_COLORS[u.loyalty_tier] ?? 'text-saloo-dark/60'}`}>
                     {u.loyalty_tier}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-white/60">{u.loyalty_points}</td>
-                <td className="px-4 py-3 text-white/60">{u.total_bookings}</td>
+                <td className="px-4 py-3 text-saloo-dark/80">{u.loyalty_points}</td>
+                <td className="px-4 py-3 text-saloo-dark/80">{u.total_bookings}</td>
                 <td className="px-4 py-3">
-                  <span className={u.no_show_count > 2 ? 'text-red-400' : 'text-white/60'}>{u.no_show_count}</span>
+                  <span className={u.no_show_count > 2 ? 'text-red-400' : 'text-saloo-dark/80'}>{u.no_show_count}</span>
                 </td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.is_suspended ? 'text-red-400 bg-red-400/10' : 'text-green-400 bg-green-400/10'}`}>
@@ -135,7 +135,7 @@ export default function AdminUsersPage() {
                       <button
                         onClick={() => updateMutation.mutate({ user_id: u.id, is_suspended: false })}
                         disabled={updateMutation.isPending}
-                        className="px-2 py-1 bg-white/10 text-white/60 rounded-lg text-xs hover:bg-white/20"
+                        className="px-2 py-1 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80 rounded-lg text-xs hover:bg-white/20"
                       >
                         Reinstate
                       </button>
@@ -158,9 +158,9 @@ export default function AdminUsersPage() {
 
       {total > 20 && (
         <div className="flex justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 bg-white/10 text-white/60 rounded-lg text-sm disabled:opacity-40">Prev</button>
-          <span className="px-3 py-1.5 text-white/40 text-sm">Page {page} of {Math.ceil(total / 20)}</span>
-          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 20)} className="px-3 py-1.5 bg-white/10 text-white/60 rounded-lg text-sm disabled:opacity-40">Next</button>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80 rounded-lg text-sm disabled:opacity-40">Prev</button>
+          <span className="px-3 py-1.5 text-saloo-dark/60 text-sm">Page {page} of {Math.ceil(total / 20)}</span>
+          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 20)} className="px-3 py-1.5 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80 rounded-lg text-sm disabled:opacity-40">Next</button>
         </div>
       )}
     </div>

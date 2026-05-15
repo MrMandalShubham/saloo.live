@@ -40,8 +40,8 @@ export default function AdminNotificationsPage() {
   return (
     <div className="space-y-8 max-w-2xl">
       <div>
-        <h1 className="text-white text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Send Notification</h1>
-        <p className="text-white/40 text-sm mt-1">Broadcast push notifications to platform users</p>
+        <h1 className="text-saloo-dark text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Send Notification</h1>
+        <p className="text-saloo-dark/60 text-sm mt-1">Broadcast push notifications to platform users</p>
       </div>
 
       {sent !== null && (
@@ -51,14 +51,14 @@ export default function AdminNotificationsPage() {
             <p className="text-green-400 font-medium text-sm">Notification sent!</p>
             <p className="text-green-400/60 text-xs">Delivered to {sent} users</p>
           </div>
-          <button onClick={() => setSent(null)} className="ml-auto text-white/30 hover:text-white/60 text-lg">×</button>
+          <button onClick={() => setSent(null)} className="ml-auto text-saloo-dark/50 hover:text-saloo-dark/80 text-lg">×</button>
         </div>
       )}
 
-      <div className="bg-white/5 rounded-2xl p-6 border border-white/10 space-y-5">
+      <div className="bg-white/60 backdrop-blur-md shadow-sm rounded-2xl p-6 border border-white/80 space-y-5">
         {/* Target audience */}
         <div>
-          <label className="text-white/40 text-xs font-medium uppercase tracking-wide block mb-3">Target Audience</label>
+          <label className="text-saloo-dark/60 text-xs font-medium uppercase tracking-wide block mb-3">Target Audience</label>
           <div className="space-y-2">
             {TARGETS.map(t => (
               <button
@@ -66,12 +66,12 @@ export default function AdminNotificationsPage() {
                 onClick={() => setTarget(t.key)}
                 className={`w-full text-left px-4 py-3 rounded-xl border transition-colors ${
                   target === t.key
-                    ? 'border-white/40 bg-white/10 text-white'
-                    : 'border-white/10 bg-white/5 text-white/60 hover:bg-white/10'
+                    ? 'border-white/40 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark'
+                    : 'border-white/80 bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/80 hover:bg-white/70 backdrop-blur-md shadow-sm'
                 }`}
               >
                 <p className="text-sm font-medium">{t.label}</p>
-                <p className="text-xs text-white/40 mt-0.5">{t.desc}</p>
+                <p className="text-xs text-saloo-dark/60 mt-0.5">{t.desc}</p>
               </button>
             ))}
           </div>
@@ -79,40 +79,40 @@ export default function AdminNotificationsPage() {
 
         {/* Title */}
         <div>
-          <label className="text-white/40 text-xs font-medium uppercase tracking-wide block mb-2">Title *</label>
+          <label className="text-saloo-dark/60 text-xs font-medium uppercase tracking-wide block mb-2">Title *</label>
           <input
             value={title}
             onChange={e => setTitle(e.target.value)}
             maxLength={65}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white/30"
+            className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2.5 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40"
             placeholder="Notification title…"
           />
-          <p className="text-white/20 text-xs mt-1 text-right">{title.length}/65</p>
+          <p className="text-saloo-dark/40 text-xs mt-1 text-right">{title.length}/65</p>
         </div>
 
         {/* Body */}
         <div>
-          <label className="text-white/40 text-xs font-medium uppercase tracking-wide block mb-2">Message *</label>
+          <label className="text-saloo-dark/60 text-xs font-medium uppercase tracking-wide block mb-2">Message *</label>
           <textarea
             value={body}
             onChange={e => setBody(e.target.value)}
             rows={4}
             maxLength={250}
-            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white/30 resize-none"
+            className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2.5 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40 resize-none"
             placeholder="Notification body…"
           />
-          <p className="text-white/20 text-xs mt-1 text-right">{body.length}/250</p>
+          <p className="text-saloo-dark/40 text-xs mt-1 text-right">{body.length}/250</p>
         </div>
 
         {/* Preview */}
         {(title || body) && (
-          <div className="bg-[#0D0D1A] rounded-xl p-4 border border-white/10">
-            <p className="text-white/30 text-xs mb-2">Preview</p>
+          <div className="bg-[#0D0D1A] rounded-xl p-4 border border-white/80">
+            <p className="text-saloo-dark/50 text-xs mb-2">Preview</p>
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-red-400/20 flex items-center justify-center text-sm flex-shrink-0">🔔</div>
               <div>
-                <p className="text-white text-sm font-medium">{title || 'Title'}</p>
-                <p className="text-white/50 text-xs mt-0.5">{body || 'Message body'}</p>
+                <p className="text-saloo-dark text-sm font-medium">{title || 'Title'}</p>
+                <p className="text-saloo-dark/70 text-xs mt-0.5">{body || 'Message body'}</p>
               </div>
             </div>
           </div>

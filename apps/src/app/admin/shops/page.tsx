@@ -32,7 +32,7 @@ const STATUS_COLORS: Record<string, string> = {
   verified:  'text-green-400 bg-green-400/10',
   pending:   'text-amber-400 bg-amber-400/10',
   suspended: 'text-red-400 bg-red-400/10',
-  rejected:  'text-white/40 bg-white/5',
+  rejected:  'text-saloo-dark/60 bg-white/60 backdrop-blur-md shadow-sm',
 }
 
 type ModalAction = 'suspend' | 'reject'
@@ -94,14 +94,14 @@ export default function AdminShopsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-white text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Shop Management</h1>
-        <p className="text-white/40 text-sm mt-1">{total} shops total</p>
+        <h1 className="text-saloo-dark text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Shop Management</h1>
+        <p className="text-saloo-dark/60 text-sm mt-1">{total} shops total</p>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <input
-          className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-white text-sm placeholder-white/30 focus:outline-none focus:border-white/30"
+          className="flex-1 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40"
           placeholder="Search by name…"
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1) }}
@@ -112,7 +112,7 @@ export default function AdminShopsPage() {
               key={s}
               onClick={() => { setStatus(s); setPage(1) }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${
-                status === s ? 'bg-white/20 text-white' : 'text-white/40 hover:text-white/70'
+                status === s ? 'bg-saloo-admin text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
               }`}
             >
               {s}
@@ -122,12 +122,12 @@ export default function AdminShopsPage() {
       </div>
 
       {/* Table */}
-      <div className="rounded-2xl border border-white/10 overflow-hidden">
+      <div className="rounded-2xl border border-white/80 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-white/10 bg-white/5">
+            <tr className="border-b border-white/80 bg-white/60 backdrop-blur-md shadow-sm">
               {['Shop', 'Owner', 'City', 'Rating', 'Bookings', 'Revenue', 'Status', 'Actions'].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-white/40 text-xs font-medium uppercase tracking-wide">{h}</th>
+                <th key={h} className="text-left px-4 py-3 text-saloo-dark/60 text-xs font-medium uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
@@ -136,34 +136,34 @@ export default function AdminShopsPage() {
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-white/5">
                   <td colSpan={8} className="px-4 py-4">
-                    <div className="h-4 bg-white/5 rounded animate-pulse" />
+                    <div className="h-4 bg-white/60 backdrop-blur-md shadow-sm rounded animate-pulse" />
                   </td>
                 </tr>
               ))
             ) : shops.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-white/30">No shops found</td>
+                <td colSpan={8} className="px-4 py-12 text-center text-saloo-dark/50">No shops found</td>
               </tr>
             ) : shops.map((shop: any) => (
-              <tr key={shop.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+              <tr key={shop.id} className="border-b border-white/5 hover:bg-white/60 backdrop-blur-md shadow-sm transition-colors">
                 <td className="px-4 py-3">
-                  <Link href={`/admin/shops/${shop.id}`} className="text-white font-medium hover:text-gold transition-colors">
+                  <Link href={`/admin/shops/${shop.id}`} className="text-saloo-dark font-medium hover:text-gold transition-colors">
                     {shop.name}
                   </Link>
-                  <p className="text-white/30 text-xs">{new Date(shop.created_at).toLocaleDateString('en-IN')}</p>
+                  <p className="text-saloo-dark/50 text-xs">{new Date(shop.created_at).toLocaleDateString('en-IN')}</p>
                 </td>
                 <td className="px-4 py-3">
-                  <p className="text-white/80 text-xs">{shop.owner_name || '—'}</p>
-                  <p className="text-white/30 text-xs">{shop.owner_phone}</p>
+                  <p className="text-saloo-dark/90 text-xs">{shop.owner_name || '—'}</p>
+                  <p className="text-saloo-dark/50 text-xs">{shop.owner_phone}</p>
                 </td>
-                <td className="px-4 py-3 text-white/60">{shop.city}</td>
-                <td className="px-4 py-3 text-white/60">⭐ {shop.rating?.toFixed(1) ?? '—'}</td>
-                <td className="px-4 py-3 text-white/60">{shop.total_bookings}</td>
-                <td className="px-4 py-3 text-white/60">
+                <td className="px-4 py-3 text-saloo-dark/80">{shop.city}</td>
+                <td className="px-4 py-3 text-saloo-dark/80">⭐ {shop.rating?.toFixed(1) ?? '—'}</td>
+                <td className="px-4 py-3 text-saloo-dark/80">{shop.total_bookings}</td>
+                <td className="px-4 py-3 text-saloo-dark/80">
                   {shop.total_revenue >= 1000 ? `₹${(shop.total_revenue / 1000).toFixed(1)}K` : `₹${shop.total_revenue}`}
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_COLORS[shop.status] ?? 'text-white/40'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${STATUS_COLORS[shop.status] ?? 'text-saloo-dark/60'}`}>
                     {shop.status}
                   </span>
                 </td>
@@ -181,7 +181,7 @@ export default function AdminShopsPage() {
                         <button
                           onClick={() => openModal(shop.id, shop.name, 'reject')}
                           disabled={updateMutation.isPending}
-                          className="px-2 py-1 bg-white/5 text-white/40 rounded-lg text-xs hover:bg-white/10 hover:text-white/60 transition-colors"
+                          className="px-2 py-1 bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 rounded-lg text-xs hover:bg-white/70 backdrop-blur-md shadow-sm hover:text-saloo-dark/80 transition-colors"
                         >
                           Reject
                         </button>
@@ -200,7 +200,7 @@ export default function AdminShopsPage() {
                       <button
                         onClick={() => updateMutation.mutate({ shop_id: shop.id, status: 'verified' })}
                         disabled={updateMutation.isPending}
-                        className="px-2 py-1 bg-white/10 text-white/60 rounded-lg text-xs hover:bg-white/20 transition-colors"
+                        className="px-2 py-1 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80 rounded-lg text-xs hover:bg-white/20 transition-colors"
                       >
                         Reinstate
                       </button>
@@ -209,7 +209,7 @@ export default function AdminShopsPage() {
                       <button
                         onClick={() => updateMutation.mutate({ shop_id: shop.id, status: 'pending' })}
                         disabled={updateMutation.isPending}
-                        className="px-2 py-1 bg-white/5 text-white/40 rounded-lg text-xs hover:bg-white/10 hover:text-white/60 transition-colors"
+                        className="px-2 py-1 bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 rounded-lg text-xs hover:bg-white/70 backdrop-blur-md shadow-sm hover:text-saloo-dark/80 transition-colors"
                       >
                         Restore
                       </button>
@@ -225,9 +225,9 @@ export default function AdminShopsPage() {
       {/* Pagination */}
       {total > 20 && (
         <div className="flex justify-center gap-2">
-          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 bg-white/10 text-white/60 rounded-lg text-sm disabled:opacity-40">Prev</button>
-          <span className="px-3 py-1.5 text-white/40 text-sm">Page {page} of {Math.ceil(total / 20)}</span>
-          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 20)} className="px-3 py-1.5 bg-white/10 text-white/60 rounded-lg text-sm disabled:opacity-40">Next</button>
+          <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} className="px-3 py-1.5 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80 rounded-lg text-sm disabled:opacity-40">Prev</button>
+          <span className="px-3 py-1.5 text-saloo-dark/60 text-sm">Page {page} of {Math.ceil(total / 20)}</span>
+          <button onClick={() => setPage(p => p + 1)} disabled={page >= Math.ceil(total / 20)} className="px-3 py-1.5 bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80 rounded-lg text-sm disabled:opacity-40">Next</button>
         </div>
       )}
 
@@ -235,22 +235,22 @@ export default function AdminShopsPage() {
       {modal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
           <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeModal} />
-          <div className="relative w-full max-w-sm bg-[#111111] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+          <div className="relative w-full max-w-sm bg-[#111111] border border-white/80 rounded-2xl overflow-hidden shadow-2xl">
             <div className={`h-1 w-full ${modal.action === 'suspend' ? 'bg-red-500/60' : 'bg-white/20'}`} />
             <div className="p-6 space-y-4">
               <div>
-                <h3 className="font-syne font-bold text-white text-base">
+                <h3 className="font-syne font-bold text-saloo-dark text-base">
                   {modal.action === 'suspend' ? 'Suspend Shop' : 'Reject Application'}
                 </h3>
-                <p className="text-white/40 text-xs mt-1">
+                <p className="text-saloo-dark/60 text-xs mt-1">
                   {modal.action === 'suspend'
                     ? `Suspending "${modal.shopName}"`
                     : `Rejecting application for "${modal.shopName}"`}
                 </p>
               </div>
               <div>
-                <label className="text-white/50 text-xs font-medium block mb-1.5 uppercase tracking-wide">
-                  Reason <span className="text-white/30 normal-case font-normal">(sent to owner as notification)</span>
+                <label className="text-saloo-dark/70 text-xs font-medium block mb-1.5 uppercase tracking-wide">
+                  Reason <span className="text-saloo-dark/50 normal-case font-normal">(sent to owner as notification)</span>
                 </label>
                 <textarea
                   value={reason}
@@ -259,7 +259,7 @@ export default function AdminShopsPage() {
                     ? 'e.g. Violation of platform terms…'
                     : 'e.g. Incomplete shop information, please reapply…'}
                   rows={3}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-white/30 resize-none"
+                  className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40 resize-none"
                   autoFocus
                 />
               </div>
@@ -270,7 +270,7 @@ export default function AdminShopsPage() {
                   className={`flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 ${
                     modal.action === 'suspend'
                       ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                      : 'bg-white/10 text-white/70 hover:bg-white/15'
+                      : 'bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/70 hover:bg-white/15'
                   }`}
                 >
                   {updateMutation.isPending ? 'Processing…' : modal.action === 'suspend' ? 'Confirm Suspend' : 'Confirm Reject'}
@@ -278,7 +278,7 @@ export default function AdminShopsPage() {
                 <button
                   onClick={closeModal}
                   disabled={updateMutation.isPending}
-                  className="px-4 py-2.5 bg-white/5 text-white/30 hover:text-white/60 rounded-xl text-sm transition-all"
+                  className="px-4 py-2.5 bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/50 hover:text-saloo-dark/80 rounded-xl text-sm transition-all"
                 >
                   Cancel
                 </button>

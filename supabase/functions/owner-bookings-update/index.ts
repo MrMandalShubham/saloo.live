@@ -3,9 +3,9 @@ import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
 import { sendPushNotification } from '../_shared/fcm.ts'
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  pending:    ['confirmed', 'cancelled'],
-  confirmed:  ['in_chair', 'no_show', 'cancelled'],
-  in_chair:   ['completed'],
+  pending_payment: ['confirmed', 'cancelled'],
+  confirmed:       ['in_chair', 'no_show', 'cancelled'],
+  in_chair:        ['completed'],
 }
 
 Deno.serve(async (req) => {
@@ -50,10 +50,10 @@ Deno.serve(async (req) => {
     }
 
     const updates: Record<string, unknown> = { status, updated_at: new Date().toISOString() }
-    if (status === 'completed') updates.completed_at = new Date().toISOString()
     if (status === 'no_show') {
-      // Increment no_show_count on user
-      await supabase.rpc('increment_no_show', { uid: booking.user_id }).catch(() => null)
+      updates.no_show_at = new Date().toISOString()
+      // Atomically increment no_show_count on user
+      await supabase.rpc('increment_no_show_count' as any, { p_user_id: booking.user_id }).catch(() => null)
     }
 
     const { data, error: updateErr } = await supabase

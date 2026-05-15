@@ -13,10 +13,10 @@ async function getDashboard(token: string) {
 
 function StatCard({ label, value, sub, accent }: { label: string; value: string | number; sub?: string; accent?: string }) {
   return (
-    <div className={`rounded-2xl p-5 border ${accent ?? 'bg-white/5 border-white/10'}`}>
-      <p className="text-white/50 text-xs font-medium uppercase tracking-wide">{label}</p>
-      <p className="text-white text-2xl font-bold mt-1" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</p>
-      {sub && <p className="text-white/30 text-xs mt-1">{sub}</p>}
+    <div className={`rounded-2xl p-5 border ${accent ?? 'bg-white shadow-md border-saloo-dark/10'}`}>
+      <p className="text-saloo-dark/70 text-xs font-medium uppercase tracking-wide">{label}</p>
+      <p className="text-saloo-dark text-2xl font-bold mt-1" style={{ fontFamily: 'Syne, sans-serif' }}>{value}</p>
+      {sub && <p className="text-saloo-dark/50 text-xs mt-1">{sub}</p>}
     </div>
   )
 }
@@ -31,8 +31,8 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-white text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Platform Dashboard</h1>
-        <p className="text-white/40 text-sm mt-1">Real-time overview of Saloo marketplace</p>
+        <h1 className="text-saloo-dark text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Platform Dashboard</h1>
+        <p className="text-saloo-dark/60 text-sm mt-1">Real-time overview of Saloo marketplace</p>
       </div>
 
       {/* KPI grid */}
@@ -47,13 +47,13 @@ export default async function AdminDashboardPage() {
         <StatCard
           label="Pending Approvals"
           value={d?.pending_approval ?? '—'}
-          accent={d?.pending_approval > 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-white/5 border-white/10'}
+          accent={d?.pending_approval > 0 ? 'bg-amber-500/10 border-amber-500/30' : 'bg-white shadow-md border-saloo-dark/10'}
         />
         <StatCard
           label="Open Disputes"
           value={d?.open_disputes ?? '—'}
           sub={`${d?.escalated_disputes ?? 0} escalated`}
-          accent={d?.open_disputes > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-white/5 border-white/10'}
+          accent={d?.open_disputes > 0 ? 'bg-red-500/10 border-red-500/30' : 'bg-white shadow-md border-saloo-dark/10'}
         />
         <StatCard label="Completion Rate" value={`${d?.platform_completion_rate ?? 0}%`} />
         <StatCard label="Avg Rating" value={`⭐ ${d?.platform_avg_rating ?? '—'}`} />
@@ -61,7 +61,7 @@ export default async function AdminDashboardPage() {
 
       {/* Quick actions */}
       <div>
-        <h2 className="text-white/60 text-xs font-medium uppercase tracking-wide mb-3">Quick Actions</h2>
+        <h2 className="text-saloo-dark/80 text-xs font-medium uppercase tracking-wide mb-3">Quick Actions</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           {[
             { label: 'Review Pending Shops', href: '/admin/shops?status=pending', emoji: '🏪', urgent: (d?.pending_approval ?? 0) > 0 },
@@ -72,12 +72,12 @@ export default async function AdminDashboardPage() {
             <a
               key={a.href}
               href={a.href}
-              className={`flex items-center gap-3 p-4 rounded-xl border transition-colors hover:bg-white/10 ${
-                a.urgent ? 'border-amber-500/40 bg-amber-500/5' : 'border-white/10 bg-white/5'
+              className={`flex items-center gap-3 p-4 rounded-xl border transition-colors hover:shadow-md hover:bg-white ${
+                a.urgent ? 'border-amber-500/40 bg-amber-500/5' : 'border-saloo-dark/10 bg-white shadow-sm'
               }`}
             >
               <span className="text-2xl">{a.emoji}</span>
-              <span className="text-white/80 text-sm font-medium">{a.label}</span>
+              <span className="text-saloo-dark/90 text-sm font-medium">{a.label}</span>
             </a>
           ))}
         </div>

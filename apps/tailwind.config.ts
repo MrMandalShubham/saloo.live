@@ -33,6 +33,7 @@ const config: Config = {
         'saloo-white':  '#FFFFFF',
         'saloo-creamy': '#F4F4F0',
         'saloo-orange': '#FF7E40',
+        'saloo-admin':  '#0E2930',
 
         // ── Semantic aliases ──────────────────────────────
         background: '#FFF8F0',

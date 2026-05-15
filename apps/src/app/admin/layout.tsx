@@ -17,9 +17,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   if (role !== 'admin' && !isDevBypass) redirect('/home')
 
   return (
-    <div className="min-h-screen bg-[#0D0D1A] flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-zinc-50 flex flex-col lg:flex-row relative overflow-hidden">
+      {/* Subtle aesthetic floating shapes */}
+      <div className="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-saloo-admin/[0.03] rounded-full blur-3xl pointer-events-none" />
+      <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-saloo-admin/[0.03] rounded-full blur-3xl pointer-events-none" />
+
       <AdminNav />
-      <main className="flex-1 lg:ml-56 max-w-7xl px-4 py-6 pb-24 lg:pb-6">
+      <main className="flex-1 lg:ml-56 max-w-7xl px-4 py-6 pb-24 lg:pb-6 relative z-10">
         {children}
       </main>
     </div>
