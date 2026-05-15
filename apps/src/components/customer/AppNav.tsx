@@ -215,7 +215,7 @@ export function AppNav() {
   return (
     <>
       {/* ── Top header ── */}
-      <header className="bg-gradient-to-r from-[#E6F8F5]/90 to-[#CCF1EB]/90 backdrop-blur-2xl sticky top-0 z-50 border-b-[3px] border-saloo-teal/20 shadow-sm">
+      <header className="bg-white/80 backdrop-blur-3xl sticky top-0 z-50 border-b border-zinc-200/50 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 
           {/* Logo */}
@@ -298,7 +298,7 @@ export function AppNav() {
       </header>
 
       {/* ── Mobile bottom nav ── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-[#E6F8F5]/90 to-[#CCF1EB]/90 backdrop-blur-2xl border-t-[3px] border-saloo-teal/20 shadow-glass-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-3xl border-t border-zinc-200/50 shadow-glass-lg">
         <div className="flex">
           {BOTTOM_NAV.map(item => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')

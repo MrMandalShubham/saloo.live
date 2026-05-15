@@ -221,7 +221,7 @@ export function OwnerNav() {
   return (
     <>
       {/* ── Desktop sidebar ── */}
-      <aside className="hidden lg:flex flex-col w-56 min-h-screen bg-gradient-to-b from-[#FFF5F7]/90 to-[#FCEAF0]/90 backdrop-blur-2xl border-r-[3px] border-saloo-pink/20 shadow-glass-lg fixed left-0 top-0 z-40">
+      <aside className="hidden lg:flex flex-col w-56 min-h-screen bg-white/80 backdrop-blur-3xl border-r border-zinc-200/50 shadow-sm fixed left-0 top-0 z-40">
         <div className="px-6 py-6 border-b border-saloo-dark/10">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-saloo-pink/15 border border-saloo-pink/30 flex items-center justify-center">
@@ -288,7 +288,7 @@ export function OwnerNav() {
       <div className="hidden lg:block w-56 flex-shrink-0" />
 
       {/* ── Mobile top bar ── */}
-      <header className="lg:hidden sticky top-0 z-40 bg-gradient-to-r from-[#FFF5F7]/90 to-[#FCEAF0]/90 backdrop-blur-2xl border-b-[3px] border-saloo-pink/20 px-4 h-14 flex items-center justify-between shadow-sm">
+      <header className="lg:hidden sticky top-0 z-40 bg-white/80 backdrop-blur-3xl border-b border-zinc-200/50 px-4 h-14 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-saloo-pink/15 border border-saloo-pink/30 flex items-center justify-center">
             <span className="text-saloo-pink text-[10px]">✂</span>
