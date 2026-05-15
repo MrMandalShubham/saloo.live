@@ -65,7 +65,7 @@ export default function AdminUsersPage() {
 
       <div className="flex flex-col sm:flex-row gap-3">
         <input
-          className="flex-1 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40"
+          className="flex-1 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-gold/40"
           placeholder="Search by name or phone…"
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1) }}
@@ -76,7 +76,7 @@ export default function AdminUsersPage() {
               key={r}
               onClick={() => { setRole(r); setPage(1) }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${
-                role === r ? 'bg-saloo-admin text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
+                role === r ? 'bg-gold text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
               }`}
             >
               {r === 'shop_owner' ? 'Owner' : r}

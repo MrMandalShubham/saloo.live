@@ -52,7 +52,7 @@ export default function AdminDisputesPage() {
             key={s}
             onClick={() => { setStatus(s); setPage(1) }}
             className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${
-              status === s ? 'bg-saloo-admin text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
+              status === s ? 'bg-gold text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
             }`}
           >
             {s}

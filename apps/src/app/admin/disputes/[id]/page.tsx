@@ -127,7 +127,7 @@ export default function AdminDisputeDetailPage() {
                 type="number"
                 value={refundAmount}
                 onChange={e => setRefundAmount(e.target.value)}
-                className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm focus:outline-none focus:border-saloo-admin/40"
+                className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm focus:outline-none focus:border-gold/40"
                 placeholder="Enter amount…"
               />
             </div>
@@ -139,7 +139,7 @@ export default function AdminDisputeDetailPage() {
               value={note}
               onChange={e => setNote(e.target.value)}
               rows={3}
-              className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm focus:outline-none focus:border-saloo-admin/40 resize-none"
+              className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm focus:outline-none focus:border-gold/40 resize-none"
               placeholder="Explain the decision…"
             />
           </div>

@@ -84,7 +84,7 @@ export default function AdminNotificationsPage() {
             value={title}
             onChange={e => setTitle(e.target.value)}
             maxLength={65}
-            className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2.5 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40"
+            className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2.5 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-gold/40"
             placeholder="Notification title…"
           />
           <p className="text-saloo-dark/40 text-xs mt-1 text-right">{title.length}/65</p>
@@ -98,7 +98,7 @@ export default function AdminNotificationsPage() {
             onChange={e => setBody(e.target.value)}
             rows={4}
             maxLength={250}
-            className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2.5 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40 resize-none"
+            className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2.5 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-gold/40 resize-none"
             placeholder="Notification body…"
           />
           <p className="text-saloo-dark/40 text-xs mt-1 text-right">{body.length}/250</p>

@@ -101,7 +101,7 @@ export default function AdminShopsPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-3">
         <input
-          className="flex-1 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40"
+          className="flex-1 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-2 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-gold/40"
           placeholder="Search by name…"
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1) }}
@@ -112,7 +112,7 @@ export default function AdminShopsPage() {
               key={s}
               onClick={() => { setStatus(s); setPage(1) }}
               className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${
-                status === s ? 'bg-saloo-admin text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
+                status === s ? 'bg-gold text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
               }`}
             >
               {s}
@@ -259,7 +259,7 @@ export default function AdminShopsPage() {
                     ? 'e.g. Violation of platform terms…'
                     : 'e.g. Incomplete shop information, please reapply…'}
                   rows={3}
-                  className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40 resize-none"
+                  className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-gold/40 resize-none"
                   autoFocus
                 />
               </div>

@@ -58,7 +58,7 @@ export default function AdminAnalyticsPage() {
               key={p.key}
               onClick={() => setPeriod(p.key as any)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                period === p.key ? 'bg-saloo-admin text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
+                period === p.key ? 'bg-gold text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
               }`}
             >
               {p.label}

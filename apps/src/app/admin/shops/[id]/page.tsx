@@ -197,7 +197,7 @@ export default function AdminShopDetailPage() {
                     ? 'e.g. Violation of platform terms…'
                     : 'e.g. Incomplete shop information, please reapply…'}
                   rows={3}
-                  className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-saloo-admin/40 resize-none"
+                  className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-saloo-dark/40 focus:outline-none focus:border-gold/40 resize-none"
                   autoFocus
                 />
               </div>
