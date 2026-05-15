@@ -15,20 +15,16 @@ function isProtected(pathname: string) {
 
 /**
  * Fast role extraction from the Supabase JWT's app_metadata.
- * We store the user role in the JWT claims via a Postgres hook (see 0007 migration).
- * This avoids a DB round-trip on every request — critical for 1K+ concurrent users.
- * Falls back to RPC call if JWT doesn't contain the role (backward compat).
+ * Role is now only 'customer' or 'admin' — shop ownership is determined
+ * by the shops table, not the role column.
  */
 function getRoleFromJWT(request: NextRequest): string | null {
-  // Supabase stores the session in a cookie like sb-<ref>-auth-token
   const cookies = request.cookies.getAll()
   const authCookie = cookies.find(c => c.name.includes('auth-token'))
   if (!authCookie) return null
 
   try {
-    // The cookie value might be base64 chunks; try to parse
     let tokenValue = authCookie.value
-    // Handle chunked cookies (sb-xxx-auth-token.0, .1, etc.)
     const chunks = cookies
       .filter(c => c.name.startsWith(authCookie.name.replace(/\.\d+$/, '')))
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -36,7 +32,6 @@ function getRoleFromJWT(request: NextRequest): string | null {
       tokenValue = chunks.map(c => c.value).join('')
     }
 
-    // Parse the JSON array [access_token, refresh_token] or the raw JWT
     let accessToken: string
     try {
       const parsed = JSON.parse(decodeURIComponent(tokenValue))
@@ -79,55 +74,60 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  // 0. Developer Bypass (for testing UI without auth)
-  const isDevBypass = request.cookies.get('saloo-dev-bypass')?.value === 'true'
-
-  if (isDevBypass) {
+  // 0. Developer Bypass
+  if (request.cookies.get('saloo-dev-bypass')?.value === 'true') {
     return supabaseResponse
   }
 
-  // 1. Unauthenticated user hitting a protected route → login
+  // 1. Unauthenticated → login
   if (!user && isProtected(pathname)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // 2. Logged-in users on login page → always go to /home
-  const isLoginPage = pathname === '/login' || pathname === '/admin/login'
-  if (user && isLoginPage) {
+  // 2. Logged-in on login page → /home
+  if (user && (pathname === '/login' || pathname === '/admin/login')) {
     const url = request.nextUrl.clone()
     url.pathname = '/home'
     return NextResponse.redirect(url)
   }
 
-  // 3. Role-based access control for owner/admin routes
+  // 3. Access control
   const isOwnerRoute = pathname.startsWith('/owner')
   const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin/login'
 
   if (user && (isOwnerRoute || isAdminRoute)) {
-    let role = getRoleFromJWT(request)
-    if (!role) {
-      const { data } = await supabase.rpc('get_user_role')
-      role = data
-    }
-
     const url = request.nextUrl.clone()
 
-    // /owner/dashboard is open to all authenticated users (page shows shop form or dashboard)
-    // Other /owner/* routes require shop_owner, admin, or an existing shop
-    if (isOwnerRoute && pathname !== '/owner/dashboard' && role !== 'shop_owner' && role !== 'admin') {
-      const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).limit(1).single()
-      if (!shop) {
-        url.pathname = '/open-shop'
+    // /admin/* → must be admin role
+    if (isAdminRoute) {
+      let role = getRoleFromJWT(request)
+      if (!role) {
+        const { data } = await supabase.rpc('get_user_role')
+        role = data
+      }
+      if (role !== 'admin') {
+        url.pathname = '/home'
         return NextResponse.redirect(url)
       }
     }
 
-    // Non-admin hitting /admin/* → home
-    if (isAdminRoute && role !== 'admin') {
-      url.pathname = '/home'
-      return NextResponse.redirect(url)
+    // /owner/* → must have a shop in the shops table (any status) OR be admin
+    if (isOwnerRoute) {
+      let role = getRoleFromJWT(request)
+      if (!role) {
+        const { data } = await supabase.rpc('get_user_role')
+        role = data
+      }
+      // Admins can always access owner routes
+      if (role !== 'admin') {
+        const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).limit(1).single()
+        if (!shop) {
+          url.pathname = '/open-shop'
+          return NextResponse.redirect(url)
+        }
+      }
     }
   }
 

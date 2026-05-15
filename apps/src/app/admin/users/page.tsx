@@ -14,7 +14,7 @@ async function fetchUsers(token: string, role: string, search: string, page: num
   return res.json()
 }
 
-const ROLE_TABS = ['all', 'customer', 'shop_owner', 'admin']
+const ROLE_TABS = ['all', 'customer', 'admin']
 
 const TIER_COLORS: Record<string, string> = {
   bronze: 'text-orange-400',
@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
                 role === r ? 'bg-gold text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
               }`}
             >
-              {r === 'shop_owner' ? 'Owner' : r}
+              {r}
             </button>
           ))}
         </div>
@@ -111,7 +111,7 @@ export default function AdminUsersPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span className="px-2 py-0.5 rounded-full text-xs capitalize bg-white/70 backdrop-blur-md shadow-sm text-saloo-dark/80">
-                    {u.role === 'shop_owner' ? 'Owner' : u.role}
+                    {u.role}
                   </span>
                 </td>
                 <td className="px-4 py-3">

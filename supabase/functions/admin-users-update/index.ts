@@ -18,7 +18,7 @@ serve(async (req) => {
 
     const updates: Record<string, any> = { updated_at: new Date().toISOString() }
     if (newRole !== undefined) {
-      if (!['customer', 'shop_owner', 'admin'].includes(newRole)) throw new Error('Invalid role')
+      if (!['customer', 'admin'].includes(newRole)) throw new Error('Invalid role. Valid roles: customer, admin')
       updates.role = newRole
     }
     if (is_suspended !== undefined) updates.is_suspended = is_suspended

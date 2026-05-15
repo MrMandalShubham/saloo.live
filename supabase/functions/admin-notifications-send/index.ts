@@ -28,8 +28,9 @@ serve(async (req) => {
       const { data: customers } = await admin.from('users').select('id').eq('role', 'customer').eq('is_suspended', false)
       targetUserIds = (customers ?? []).map((u: any) => u.id)
     } else if (target === 'shop_owners') {
-      const { data: owners } = await admin.from('users').select('id').eq('role', 'shop_owner').eq('is_suspended', false)
-      targetUserIds = (owners ?? []).map((u: any) => u.id)
+      // Shop owners are users who own a verified shop (not determined by role)
+      const { data: shops } = await admin.from('shops').select('owner_id').eq('status', 'verified')
+      targetUserIds = [...new Set((shops ?? []).map((s: any) => s.owner_id))]
     }
 
     // Insert notification rows

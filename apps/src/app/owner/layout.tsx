@@ -13,16 +13,18 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   const { data: { user } } = await supabase.auth.getUser()
   if (!user && !isDevBypass) redirect('/login')
 
-  const { data: role } = await supabase.rpc('get_user_role' as any) as { data: string | null }
-  if (role !== 'shop_owner' && role !== 'admin' && !isDevBypass) {
-    // Allow users with a shop (pending/verified) to access owner routes
-    const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user!.id).limit(1).single()
-    if (!shop) redirect('/open-shop')
+  if (user && !isDevBypass) {
+    // Admin can always access owner routes
+    const { data: role } = await supabase.rpc('get_user_role' as any) as { data: string | null }
+    if (role !== 'admin') {
+      // Non-admin must have a shop to access owner routes
+      const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).limit(1).single()
+      if (!shop) redirect('/open-shop')
+    }
   }
 
   return (
     <div className="min-h-screen bg-zinc-50 relative overflow-hidden flex flex-col lg:flex-row selection:bg-saloo-pink/20 selection:text-saloo-dark">
-      {/* Background floating textures - subtle smoky blobs */}
       <div className="fixed top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-blob bg-saloo-dark/[0.03] blur-[80px] animate-blob mix-blend-multiply pointer-events-none z-0" />
       <div className="fixed bottom-[-10%] right-[-5%] w-[600px] h-[600px] rounded-blob bg-saloo-dark/[0.02] blur-[100px] animate-blob mix-blend-multiply animation-delay-2000 pointer-events-none z-0" />
 

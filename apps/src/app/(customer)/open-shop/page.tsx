@@ -36,7 +36,6 @@ export default function OpenShopPage() {
   const router   = useRouter()
   const supabase = createClient()
 
-  const [role, setRole]             = useState<string | null>(null)
   const [shopStatus, setShopStatus] = useState<ShopStatus>('none')
   const [shopName, setShopName]     = useState('')
   const [agreed, setAgreed]         = useState(false)
@@ -52,15 +51,6 @@ export default function OpenShopPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.replace('/login'); return }
-
-      const { data: profile } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-
-      const userRole = profile?.role ?? 'customer'
-      setRole(userRole)
 
       const { data: shop } = await supabase
         .from('shops')
@@ -97,8 +87,8 @@ export default function OpenShopPage() {
     )
   }
 
-  // ── Already a verified shop owner ─────────────────────────────────────────
-  if (role === 'shop_owner' && shopStatus === 'verified') {
+  // ── Shop verified ──────────────────────────────────────────────────────────
+  if (shopStatus === 'verified') {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-6">
         <div className="w-20 h-20 rounded-3xl bg-saloo-teal/10 border-2 border-saloo-teal/25 flex items-center justify-center mx-auto">
@@ -124,7 +114,7 @@ export default function OpenShopPage() {
   }
 
   // ── Application pending ────────────────────────────────────────────────────
-  if (role === 'shop_owner' && shopStatus === 'pending') {
+  if (shopStatus === 'pending') {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-6">
         <div className="w-20 h-20 rounded-3xl bg-amber-50 border-2 border-amber-200 flex items-center justify-center mx-auto">
@@ -147,7 +137,7 @@ export default function OpenShopPage() {
   }
 
   // ── Shop rejected ──────────────────────────────────────────────────────────
-  if (role === 'shop_owner' && shopStatus === 'rejected') {
+  if (shopStatus === 'rejected') {
     return (
       <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-6">
         <div className="w-20 h-20 rounded-3xl bg-red-50 border-2 border-red-100 flex items-center justify-center mx-auto">
@@ -169,12 +159,7 @@ export default function OpenShopPage() {
     )
   }
 
-  // ── Already shop_owner but no shop created yet → show form ─────────────
-  if (role === 'shop_owner' && shopStatus === 'none') {
-    return <ShopForm supabase={supabase} formLoading={formLoading} setFormLoading={setFormLoading} formError={formError} setFormError={setFormError} formSuccess={formSuccess} setFormSuccess={setFormSuccess} />
-  }
-
-  // ── Show shop form after agreeing ─────────────────────────────────────────
+  // ── Show shop form after agreeing to terms ────────────────────────────────
   if (showForm) {
     return <ShopForm supabase={supabase} formLoading={formLoading} setFormLoading={setFormLoading} formError={formError} setFormError={setFormError} formSuccess={formSuccess} setFormSuccess={setFormSuccess} />
   }

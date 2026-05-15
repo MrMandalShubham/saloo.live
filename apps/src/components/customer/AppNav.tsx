@@ -31,6 +31,7 @@ export function AppNav() {
 
   const [profile, setProfile]     = useState<SavedAccount | null>(null)
   const [dbRole, setDbRole]       = useState<string>('customer')
+  const [hasShop, setHasShop]     = useState(false)
   const [others, setOthers]       = useState<SavedAccount[]>([])
   const [popoverOpen, setPopover] = useState(false)
   const [switching, setSwitching] = useState(false)
@@ -54,10 +55,15 @@ export function AppNav() {
         refresh_token: session?.refresh_token ?? '',
       }
 
-      // get_user_role() is SECURITY DEFINER — bypasses RLS, always returns correct role
+      // Get role (customer or admin) and check if user owns a shop
       const { data: role } = await supabase.rpc('get_user_role' as any) as { data: string | null }
       acc.role = role ?? 'customer'
       setDbRole(role ?? 'customer')
+
+      // Check if user has a shop (any status — pending, verified, etc.)
+      const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).limit(1).single()
+      setHasShop(!!shop)
+
       setProfile(acc)
       upsertAccount(acc)
       setOthers(readAccounts().filter(a => a.id !== acc.id))
@@ -89,9 +95,8 @@ export function AppNav() {
       return
     }
     upsertAccount({ ...target, refresh_token: data.session.refresh_token })
-    const { data: profileRow } = await supabase.from('users').select('role').eq('id', data.user!.id).single()
-    const role = profileRow?.role ?? 'customer'
-    router.replace(role === 'shop_owner' ? '/owner/dashboard' : role === 'admin' ? '/admin/dashboard' : '/home')
+    // All users go to /home on account switch
+    router.replace('/home')
     setSwitching(false)
   }
 
@@ -111,10 +116,9 @@ export function AppNav() {
 
   const initial       = profile?.name?.[0]?.toUpperCase() ?? 'U'
   const totalAccounts = 1 + others.length
-  const isOwner       = dbRole === 'shop_owner'
   const isAdmin       = dbRole === 'admin'
 
-  // Desktop nav links — show "Open a Shop" for customers, "Dashboard" for owners
+  // Desktop nav links — show "Owner Dashboard" if user has a shop, else "Open a Shop"
   const desktopNavLinks = [
     { href: '/home',          label: 'Home'     },
     { href: '/search',        label: 'Explore'  },
@@ -122,11 +126,9 @@ export function AppNav() {
     { href: '/notifications', label: 'Alerts'   },
     { href: '/loyalty',       label: 'Rewards'  },
     { href: '/profile',       label: 'Profile'  },
-    ...(isOwner
+    ...(hasShop
       ? [{ href: '/owner/dashboard', label: 'Dashboard' }]
-      : isAdmin
-        ? [{ href: '/admin/dashboard', label: 'Admin' }]
-        : [{ href: '/open-shop', label: 'Open a Shop' }]
+      : [{ href: '/open-shop', label: 'Open a Shop' }]
     ),
   ]
 
@@ -150,10 +152,10 @@ export function AppNav() {
         <div className="mt-2.5">
           <span className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full ${
             isAdmin  ? 'bg-saloo-admin/10 border border-saloo-admin/20 text-saloo-admin' :
-            isOwner  ? 'bg-saloo-pink/10 border border-saloo-pink/20 text-saloo-pink' :
+            hasShop  ? 'bg-saloo-pink/10 border border-saloo-pink/20 text-saloo-pink' :
                        'bg-saloo-teal/15 border border-saloo-teal/30 text-saloo-teal'
           }`}>
-            {isAdmin ? 'Admin' : isOwner ? 'Shop Owner' : 'Customer'}
+            {isAdmin ? 'Admin' : hasShop ? 'Shop Owner' : 'Customer'}
           </span>
         </div>
       </div>
@@ -161,7 +163,7 @@ export function AppNav() {
       {/* Shop owner / open a shop shortcut */}
       {!isAdmin && (
         <div className="px-3 pt-2 pb-1 border-b border-saloo-dark/10">
-          {isOwner ? (
+          {hasShop ? (
             <Link href="/owner/dashboard" onClick={() => setPopover(false)}
               className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-saloo-pink/10 hover:bg-saloo-pink/15 text-saloo-pink text-sm font-medium transition-all">
               <span className="text-base">🏪</span>

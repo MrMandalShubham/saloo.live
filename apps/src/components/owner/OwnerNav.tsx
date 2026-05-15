@@ -77,7 +77,7 @@ export function OwnerNav() {
         id:            session.user.id,
         name:          meta?.full_name ?? meta?.name ?? session.user.email ?? 'Owner',
         email:         session.user.email ?? '',
-        role:          profileRow?.role ?? 'shop_owner',
+        role:          profileRow?.role ?? 'customer',
         refresh_token: session.refresh_token,
       }
       setProfile(acc)
@@ -125,10 +125,7 @@ export function OwnerNav() {
     // Update stored token (Supabase rotates refresh tokens)
     upsertAccount({ ...target, refresh_token: data.session.refresh_token })
 
-    const supabase2 = createClient()
-    const { data: profileRow } = await supabase2.from('users').select('role').eq('id', data.user!.id).single()
-    const role = profileRow?.role ?? 'customer'
-    router.replace(role === 'shop_owner' ? '/owner/dashboard' : role === 'admin' ? '/admin/dashboard' : '/home')
+    router.replace('/home')
     setSwitching(false)
   }
 

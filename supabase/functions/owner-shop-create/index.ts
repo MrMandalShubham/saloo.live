@@ -15,8 +15,7 @@ Deno.serve(async (req) => {
     const supabase = createAdminClient()
 
     // Any authenticated user can submit a shop for approval.
-    // Role is NOT changed here — it gets upgraded to shop_owner
-    // only when an admin approves the shop (status → verified).
+    // No role changes — shop ownership is determined by having a row in shops table.
 
     // Check if user already has a shop
     const { data: existing } = await supabase
