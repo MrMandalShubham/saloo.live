@@ -17,14 +17,14 @@ Deno.serve(async (req) => {
     // Any authenticated user can submit a shop for approval.
     // No role changes — shop ownership is determined by having a row in shops table.
 
-    // Check if user already has a shop
-    const { data: existing } = await supabase
+    // Check if user already has a shop (use .limit(1) instead of .single() to avoid multi-row error)
+    const { data: existingShops } = await supabase
       .from('shops')
       .select('id')
       .eq('owner_id', user.id)
-      .single()
+      .limit(1)
 
-    if (existing) {
+    if (existingShops && existingShops.length > 0) {
       return error('You already have a shop', 409)
     }
 
@@ -83,8 +83,9 @@ Deno.serve(async (req) => {
     }
 
     return json({ data: shop, error: null })
-  } catch (err) {
+  } catch (err: any) {
     console.error('owner-shop-create error:', err)
-    return error('Failed to create shop', 500)
+    const msg = err?.message || err?.details || 'Failed to create shop'
+    return error(msg, 500)
   }
 })
