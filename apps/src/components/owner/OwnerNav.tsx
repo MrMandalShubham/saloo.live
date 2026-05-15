@@ -221,15 +221,15 @@ export function OwnerNav() {
   return (
     <>
       {/* ── Desktop sidebar ── */}
-      <aside className="hidden lg:flex flex-col w-56 min-h-screen bg-white/80 backdrop-blur-3xl border-r border-zinc-200/50 shadow-sm fixed left-0 top-0 z-40">
-        <div className="px-6 py-6 border-b border-saloo-dark/10">
+      <aside className="hidden lg:flex flex-col w-56 min-h-screen bg-[#1A1A1C]/90 backdrop-blur-3xl border-r border-white/10 shadow-glass-sm fixed left-0 top-0 z-40">
+        <div className="px-6 py-6 border-b border-white/10">
           <div className="flex items-center gap-2.5">
             <div className="w-7 h-7 rounded-lg bg-saloo-pink/15 border border-saloo-pink/30 flex items-center justify-center">
               <span className="text-saloo-pink text-xs font-bold">✂</span>
             </div>
-            <span className="font-syne font-bold text-saloo-dark text-lg tracking-wide">Saloo</span>
+            <span className="font-syne font-bold text-white text-lg tracking-wide">Saloo</span>
           </div>
-          <p className="text-saloo-dark/70 text-xs mt-2 tracking-wide font-medium">Owner Portal</p>
+          <p className="text-white/70 text-xs mt-2 tracking-wide font-medium">Owner Portal</p>
         </div>
 
         <nav className="flex-1 py-4 overflow-y-auto flex flex-col">
@@ -239,9 +239,9 @@ export function OwnerNav() {
               return (
                 <Link key={item.href} href={item.href}
                   className={`flex items-center gap-3 px-5 py-2.5 mx-2 rounded-xl text-sm transition-all ${
-                    active ? 'bg-saloo-pink/10 text-saloo-pink border border-saloo-pink/20 shadow-sm' : 'text-saloo-dark/70 hover:text-saloo-dark hover:bg-saloo-dark/5'
+                    active ? 'bg-saloo-pink/15 text-saloo-pink border border-saloo-pink/20 shadow-sm' : 'text-white/70 hover:text-white hover:bg-white/10'
                   }`}>
-                  <span className={`text-base w-5 text-center ${active ? 'text-saloo-pink' : 'text-saloo-dark/50'}`}>{item.icon}</span>
+                  <span className={`text-base w-5 text-center ${active ? 'text-saloo-pink' : 'text-white/50'}`}>{item.icon}</span>
                   <span className="font-medium">{item.label}</span>
                 </Link>
               )
@@ -249,9 +249,9 @@ export function OwnerNav() {
           </div>
 
           {/* Customer view switcher — pinned at bottom of nav */}
-          <div className="px-2 pt-2 pb-1 border-t border-saloo-dark/10 mt-4">
+          <div className="px-2 pt-2 pb-1 border-t border-white/10 mt-4">
             <Link href="/home"
-              className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm text-saloo-dark/70 hover:text-saloo-dark hover:bg-saloo-dark/5 transition-all">
+              className="flex items-center gap-3 px-5 py-2.5 rounded-xl text-sm text-white/70 hover:text-white hover:bg-white/10 transition-all">
               <span className="text-base w-5 text-center">👤</span>
               <span className="font-medium">Customer View</span>
             </Link>
@@ -259,14 +259,14 @@ export function OwnerNav() {
         </nav>
 
         {/* Desktop profile footer — popover opens upward */}
-        <div ref={desktopRef} className="px-4 py-4 border-t border-saloo-dark/5 relative">
+        <div ref={desktopRef} className="px-4 py-4 border-t border-white/10 relative">
           {popoverOpen && (
-            <div className="absolute left-2 right-2 bottom-[calc(100%+6px)] z-50 bg-white/90 backdrop-blur-xl border border-saloo-dark/10 rounded-2xl shadow-glass-lg overflow-hidden">
+            <div className="absolute left-2 right-2 bottom-[calc(100%+6px)] z-50 bg-[#1A1A1C]/90 backdrop-blur-xl border border-white/10 rounded-2xl shadow-glass-lg overflow-hidden">
               <PopoverContent />
             </div>
           )}
           <button onClick={() => setPopover(v => !v)}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-saloo-dark/5 transition-all text-left">
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-white/10 transition-all text-left">
             <div className="relative">
               <Avatar initial={initial} />
               {totalAccounts > 1 && (
@@ -276,10 +276,10 @@ export function OwnerNav() {
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-saloo-dark text-xs font-semibold truncate">{profile?.name ?? '—'}</p>
-              <p className="text-saloo-dark/70 text-[10px] truncate">{profile?.email ?? ''}</p>
+              <p className="text-white text-xs font-semibold truncate">{profile?.name ?? '—'}</p>
+              <p className="text-white/70 text-[10px] truncate">{profile?.email ?? ''}</p>
             </div>
-            <span className={`text-saloo-dark/50 text-xs transition-transform duration-200 ${popoverOpen ? '' : 'rotate-180'}`}>⌃</span>
+            <span className={`text-white/50 text-xs transition-transform duration-200 ${popoverOpen ? '' : 'rotate-180'}`}>⌃</span>
           </button>
         </div>
       </aside>
@@ -288,13 +288,13 @@ export function OwnerNav() {
       <div className="hidden lg:block w-56 flex-shrink-0" />
 
       {/* ── Mobile top bar ── */}
-      <header className="lg:hidden sticky top-0 z-40 bg-white/80 backdrop-blur-3xl border-b border-zinc-200/50 px-4 h-14 flex items-center justify-between shadow-sm">
+      <header className="lg:hidden sticky top-0 z-40 bg-[#1A1A1C]/90 backdrop-blur-3xl border-b border-white/10 px-4 h-14 flex items-center justify-between shadow-glass-sm">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-saloo-pink/15 border border-saloo-pink/30 flex items-center justify-center">
             <span className="text-saloo-pink text-[10px]">✂</span>
           </div>
-          <span className="font-syne font-bold text-saloo-dark text-base">Saloo</span>
-          <span className="text-saloo-dark/70 text-xs ml-1 font-medium">Owner</span>
+          <span className="font-syne font-bold text-white text-base">Saloo</span>
+          <span className="text-white/70 text-xs ml-1 font-medium">Owner</span>
         </div>
 
         {/* Mobile avatar — popover opens DOWNWARD */}
@@ -308,7 +308,7 @@ export function OwnerNav() {
             )}
           </button>
           {popoverOpen && (
-            <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-white/95 backdrop-blur-xl border border-saloo-dark/10 rounded-2xl shadow-glass-lg overflow-hidden">
+            <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-[#1A1A1C]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-glass-lg overflow-hidden">
               <PopoverContent />
             </div>
           )}
@@ -316,13 +316,13 @@ export function OwnerNav() {
       </header>
 
       {/* ── Mobile bottom nav ── */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/60 backdrop-blur-3xl border-t border-white/60 shadow-glass-lg">
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#1A1A1C]/90 backdrop-blur-3xl border-t border-white/10 shadow-glass-lg">
         <div className="flex overflow-x-auto scrollbar-none">
           {NAV_ITEMS.map(item => {
             const active = pathname.startsWith(item.href)
             return (
               <Link key={item.href} href={item.href}
-                className={`flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 ${active ? 'text-saloo-pink' : 'text-saloo-dark/70 hover:text-saloo-dark'}`}>
+                className={`flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 ${active ? 'text-saloo-pink' : 'text-white/70 hover:text-white'}`}>
                 <span className="text-lg leading-none">{item.icon}</span>
                 <span className="text-[10px] font-medium whitespace-nowrap">{item.label}</span>
               </Link>
@@ -330,7 +330,7 @@ export function OwnerNav() {
           })}
           {/* Customer view — always at the end of the scroll strip */}
           <Link href="/home"
-            className="flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 text-saloo-dark/50 hover:text-saloo-dark border-l border-saloo-dark/10">
+            className="flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 text-white/50 hover:text-white border-l border-white/10">
             <span className="text-lg leading-none">👤</span>
             <span className="text-[10px] font-medium whitespace-nowrap">Customer</span>
           </Link>
