@@ -74,10 +74,10 @@ export default async function HomePage() {
     <div className="space-y-6 pb-4">
 
       {/* Greeting Banner */}
-      <div className="bg-gradient-to-br from-[#F2FCFA] via-[#E6F8F5] to-[#CCF1EB] border border-saloo-teal/30 rounded-3xl p-5 sm:p-8 relative overflow-hidden shadow-glass-lg group hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500">
+      <div className="bg-gradient-to-br from-[#33D1C1] to-saloo-teal border border-white/20 rounded-3xl p-5 sm:p-8 relative overflow-hidden shadow-glass-lg group hover:shadow-2xl hover:-translate-y-0.5 transition-all duration-500">
         {/* Decorative orbs */}
-        <div className="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white/60 blur-[40px] pointer-events-none group-hover:bg-white/80 transition-colors duration-700" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 rounded-full bg-saloo-teal/15 blur-[40px] pointer-events-none" />
+        <div className="absolute top-[-20%] right-[-10%] w-64 h-64 rounded-full bg-white/20 blur-[40px] pointer-events-none group-hover:bg-white/30 transition-colors duration-700" />
+        <div className="absolute bottom-[-10%] left-[-10%] w-32 h-32 rounded-full bg-[#00A896]/40 blur-[40px] pointer-events-none" />
 
         <div className="relative z-10 flex items-center gap-4">
           {/* Avatar */}
@@ -85,7 +85,7 @@ export default async function HomePage() {
             {(() => {
               const avatarData = getAvatarById(profile?.avatar_url)
               return (
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-saloo-teal/30 flex items-center justify-center overflow-hidden hover:border-saloo-teal/60 transition-colors"
+                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl border-2 border-white/30 flex items-center justify-center overflow-hidden hover:border-white/60 transition-colors"
                      style={{ backgroundColor: avatarData?.bg ?? 'rgba(255,255,255,0.8)' }}>
                   {avatarData ? (
                     <span className="text-3xl sm:text-4xl">{avatarData.emoji}</span>
@@ -101,19 +101,19 @@ export default async function HomePage() {
 
           {/* Name & greeting */}
           <div className="flex-1 min-w-0">
-            <p className="text-saloo-dark/50 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-0.5">{greeting}</p>
-            <h1 className="font-syne text-2xl sm:text-3xl font-bold text-saloo-dark tracking-tight truncate">{firstName}</h1>
-            <p className="text-saloo-dark/40 text-[10px] sm:text-xs mt-1 font-light">Ready for your next great cut?</p>
+            <p className="text-white/80 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-0.5">{greeting}</p>
+            <h1 className="font-syne text-2xl sm:text-3xl font-bold text-white tracking-tight truncate">{firstName}</h1>
+            <p className="text-white/70 text-[10px] sm:text-xs mt-1 font-light">Ready for your next great cut?</p>
           </div>
 
           {/* Points — compact */}
           {profile && (
             <div className="shrink-0 text-center">
-              <div className="bg-saloo-dark/5 border border-saloo-dark/10 rounded-xl px-3 py-2">
-                <span className="font-syne font-bold text-saloo-teal text-lg leading-none">{profile.loyalty_points ?? 0}</span>
-                <p className="text-saloo-teal/80 text-[8px] uppercase tracking-widest font-bold mt-0.5">pts</p>
+              <div className="bg-white/10 border border-white/20 rounded-xl px-3 py-2">
+                <span className="font-syne font-bold text-white text-lg leading-none">{profile.loyalty_points ?? 0}</span>
+                <p className="text-white/80 text-[8px] uppercase tracking-widest font-bold mt-0.5">pts</p>
               </div>
-              <p className="text-saloo-dark/40 text-[8px] uppercase tracking-wider mt-1 font-semibold">{profile.loyalty_tier}</p>
+              <p className="text-white/70 text-[8px] uppercase tracking-wider mt-1 font-semibold">{profile.loyalty_tier}</p>
             </div>
           )}
         </div>
