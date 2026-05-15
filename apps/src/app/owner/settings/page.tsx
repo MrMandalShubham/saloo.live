@@ -59,7 +59,7 @@ export default function OwnerSettingsPage() {
   if (isLoading || !shop) {
     return (
       <div className="space-y-2 max-w-2xl">
-        {[1, 2, 3, 4].map(i => <div key={i} className="h-14 bg-white/[0.04] border border-white/[0.07] rounded-xl animate-pulse" />)}
+        {[1, 2, 3, 4].map(i => <div key={i} className="h-14 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl animate-pulse" />)}
       </div>
     )
   }
@@ -69,12 +69,12 @@ export default function OwnerSettingsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-syne text-2xl font-bold text-white">Settings</h1>
-          <p className="text-white/30 text-sm mt-0.5">Manage your shop profile</p>
+          <h1 className="font-syne text-2xl font-bold text-saloo-dark">Settings</h1>
+          <p className="text-saloo-dark/50 text-sm mt-0.5">Manage your shop profile</p>
         </div>
         {!editing && (
           <button onClick={() => setEditing(true)}
-            className="px-4 py-2 bg-white/[0.06] border border-white/[0.08] text-white/60 hover:text-white rounded-xl text-sm font-semibold transition-all">
+            className="px-4 py-2 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 text-saloo-dark/80 hover:text-saloo-dark rounded-xl text-sm font-semibold transition-all">
             Edit Profile
           </button>
         )}
@@ -87,8 +87,8 @@ export default function OwnerSettingsPage() {
       )}
 
       {/* Shop Info */}
-      <div className="bg-white/[0.04] border border-white/[0.07] rounded-2xl p-6">
-        <p className="text-white/30 text-xs uppercase tracking-widest mb-5">Shop Info</p>
+      <div className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-6">
+        <p className="text-saloo-dark/50 text-xs uppercase tracking-widest mb-5">Shop Info</p>
 
         {editing && form ? (
           <div className="space-y-4">
@@ -103,11 +103,11 @@ export default function OwnerSettingsPage() {
             <FI label="Instagram" value={form.social_instagram ?? ''} onChange={v => setForm({ ...form, social_instagram: v })} />
             <FI label="GST Number" value={form.gst_number ?? ''} onChange={v => setForm({ ...form, gst_number: v })} />
             <div className="flex gap-3 pt-1">
-              <button onClick={() => setEditing(false)} className="flex-1 py-3 bg-white/[0.06] text-white/40 hover:text-white rounded-xl text-sm transition-colors">Cancel</button>
+              <button onClick={() => setEditing(false)} className="flex-1 py-3 bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 hover:text-saloo-dark rounded-xl text-sm transition-colors">Cancel</button>
               <button
                 onClick={() => updateMutation.mutate(form)}
                 disabled={updateMutation.isPending}
-                className="flex-1 py-3 bg-gold text-navy rounded-xl font-syne font-bold text-sm hover:bg-gold/90 disabled:opacity-40 transition-all"
+                className="flex-1 py-3 bg-saloo-pink text-saloo-cream rounded-xl font-syne font-bold text-sm hover:bg-saloo-pink/90 disabled:opacity-40 transition-all"
               >
                 {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
               </button>
@@ -136,13 +136,13 @@ export default function OwnerSettingsPage() {
 function FI({ label, value, onChange, multiline }: { label: string; value: string; onChange: (v: string) => void; multiline?: boolean; type?: string }) {
   return (
     <div>
-      <label className="text-white/30 text-xs uppercase tracking-wider block mb-2">{label}</label>
+      <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2">{label}</label>
       {multiline ? (
         <textarea value={value} onChange={e => onChange(e.target.value)} rows={3}
-          className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-gold/40 transition-colors resize-none" />
+          className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-white/20 focus:outline-none focus:border-saloo-pink/40 transition-colors resize-none" />
       ) : (
         <input value={value} onChange={e => onChange(e.target.value)}
-          className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-gold/40 transition-colors" />
+          className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-white/20 focus:outline-none focus:border-saloo-pink/40 transition-colors" />
       )}
     </div>
   )
@@ -151,8 +151,8 @@ function FI({ label, value, onChange, multiline }: { label: string; value: strin
 function Row({ label, value, isLast }: { label: string; value: string; isLast?: boolean }) {
   return (
     <div className={`flex justify-between py-3 ${isLast ? '' : 'border-b border-white/[0.05]'}`}>
-      <span className="text-white/30 text-sm">{label}</span>
-      <span className="text-white text-sm font-medium text-right max-w-[60%]">{value}</span>
+      <span className="text-saloo-dark/50 text-sm">{label}</span>
+      <span className="text-saloo-dark text-sm font-medium text-right max-w-[60%]">{value}</span>
     </div>
   )
 }

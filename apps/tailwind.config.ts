@@ -31,6 +31,8 @@ const config: Config = {
         'saloo-dark':   '#1A1A2E',
         'saloo-cream':  '#FFF8F0',
         'saloo-white':  '#FFFFFF',
+        'saloo-creamy': '#F4F4F0',
+        'saloo-orange': '#FF7E40',
 
         // ── Semantic aliases ──────────────────────────────
         background: '#FFF8F0',
@@ -86,6 +88,7 @@ const config: Config = {
         'royal-gradient':     'linear-gradient(135deg, #1A1A2E 0%, #2A2F52 100%)',
         'glass-gradient':     'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
         'glass-dark':         'linear-gradient(135deg, rgba(26,26,46,0.8) 0%, rgba(26,26,46,0.4) 100%)',
+        'owner-gradient':     'linear-gradient(135deg, #D5D5D0 0%, #B5B5B0 100%)',
       },
       boxShadow: {
         luxe:       '0 4px 30px rgba(255, 0, 95, 0.06)',
@@ -94,6 +97,7 @@ const config: Config = {
         'royal-lg': '0 8px 40px rgba(26, 26, 46, 0.18)',
         glass:      '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
         'glass-lg': '0 12px 40px 0 rgba(31, 38, 135, 0.15)',
+        'glass-orange': '0 8px 32px 0 rgba(255, 126, 64, 0.15)',
         gold:       '0 4px 20px rgba(178, 172, 17, 0.25)',
         glow:       '0 0 20px rgba(0, 194, 174, 0.5)',
         'glow-pink':'0 0 20px rgba(255, 0, 95, 0.5)',

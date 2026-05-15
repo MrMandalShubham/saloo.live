@@ -81,12 +81,12 @@ export default function OwnerPromotionsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-syne text-2xl font-bold text-white">Promotions</h1>
-          <p className="text-white/30 text-sm mt-0.5">Create and manage offers</p>
+          <h1 className="font-syne text-2xl font-bold text-saloo-dark">Promotions</h1>
+          <p className="text-saloo-dark/50 text-sm mt-0.5">Create and manage offers</p>
         </div>
         <button
           onClick={() => { setEditId(null); setForm({ ...EMPTY }); setShowForm(!showForm) }}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showForm ? 'bg-white/10 text-white/60 hover:bg-white/15' : 'bg-gold text-navy hover:bg-gold/90'}`}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showForm ? 'bg-white/80 backdrop-blur-md shadow-sm text-saloo-dark/80 hover:bg-white backdrop-blur-md shadow-sm' : 'bg-saloo-pink text-saloo-cream hover:bg-saloo-pink/90'}`}
         >
           {showForm ? 'Cancel' : '+ New Promo'}
         </button>
@@ -94,18 +94,18 @@ export default function OwnerPromotionsPage() {
 
       {/* Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 space-y-5">
-          <h2 className="font-syne font-bold text-white text-lg">{editId ? 'Edit Promotion' : 'New Promotion'}</h2>
+        <form onSubmit={handleSubmit} className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-6 space-y-5">
+          <h2 className="font-syne font-bold text-saloo-dark text-lg">{editId ? 'Edit Promotion' : 'New Promotion'}</h2>
           {err && <p className="text-red-400 text-sm bg-red-400/5 border border-red-400/20 rounded-lg px-3 py-2">{err}</p>}
 
           <FI label="Title" value={form.title} onChange={v => setForm({ ...form, title: v })} />
 
           <div>
-            <label className="text-white/30 text-xs uppercase tracking-wider block mb-2.5">Type</label>
+            <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2.5">Type</label>
             <div className="flex flex-wrap gap-2">
               {PROMO_TYPES.map(t => (
                 <button type="button" key={t.key} onClick={() => setForm({ ...form, type: t.key })}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${form.type === t.key ? 'bg-gold text-navy' : 'bg-white/[0.06] text-white/40 hover:bg-white/10 hover:text-white/70'}`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${form.type === t.key ? 'bg-saloo-pink text-saloo-cream' : 'bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 hover:bg-white/80 backdrop-blur-md shadow-sm hover:text-saloo-dark/70'}`}>
                   {t.label}
                 </button>
               ))}
@@ -121,11 +121,11 @@ export default function OwnerPromotionsPage() {
 
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} className="w-4 h-4 accent-gold rounded" />
-            <span className="text-white/50 text-sm">Active</span>
+            <span className="text-saloo-dark/70 text-sm">Active</span>
           </label>
 
           <button type="submit" disabled={upsertMutation.isPending}
-            className="w-full py-3 bg-gold text-navy rounded-xl font-syne font-bold text-sm hover:bg-gold/90 disabled:opacity-40 transition-all">
+            className="w-full py-3 bg-saloo-pink text-saloo-cream rounded-xl font-syne font-bold text-sm hover:bg-saloo-pink/90 disabled:opacity-40 transition-all">
             {upsertMutation.isPending ? 'Saving…' : editId ? 'Save Changes' : 'Create Promotion'}
           </button>
         </form>
@@ -134,31 +134,31 @@ export default function OwnerPromotionsPage() {
       {/* Promos list */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3].map(i => <div key={i} className="h-24 bg-white/[0.04] border border-white/[0.07] rounded-xl animate-pulse" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-24 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl animate-pulse" />)}
         </div>
       ) : (promos ?? []).length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center mb-3">
-            <span className="text-gold/30 text-xl">%</span>
+          <div className="w-12 h-12 rounded-xl bg-white/60 backdrop-blur-md shadow-sm border border-white/80 flex items-center justify-center mb-3">
+            <span className="text-saloo-pink/30 text-xl">%</span>
           </div>
-          <p className="text-white/25 text-sm">No promotions yet</p>
+          <p className="text-saloo-dark/50 text-sm">No promotions yet</p>
         </div>
       ) : (
         <div className="space-y-2">
           {(promos ?? []).map((p: any) => (
-            <div key={p.id} className="bg-white/[0.04] border border-white/[0.07] rounded-xl px-5 py-4 flex items-start justify-between">
+            <div key={p.id} className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-5 py-4 flex items-start justify-between">
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <p className="text-white font-semibold text-sm">{p.title}</p>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${p.is_active ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/5 text-white/25 border-white/10'}`}>
+                  <p className="text-saloo-dark font-semibold text-sm">{p.title}</p>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full border ${p.is_active ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-white/5 text-saloo-dark/50 border-white/80'}`}>
                     {p.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
-                <p className="text-white/40 text-xs">{PROMO_TYPES.find(t => t.key === p.type)?.label ?? p.type} · {p.discount_value}% off</p>
-                <p className="text-white/20 text-xs mt-0.5">{p.valid_from} — {p.valid_until}</p>
+                <p className="text-saloo-dark/60 text-xs">{PROMO_TYPES.find(t => t.key === p.type)?.label ?? p.type} · {p.discount_value}% off</p>
+                <p className="text-saloo-dark/40 text-xs mt-0.5">{p.valid_from} — {p.valid_until}</p>
               </div>
               <div className="flex gap-2 ml-4 shrink-0">
-                <button onClick={() => openEdit(p)} className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/10 text-white/50 hover:text-white text-xs font-medium rounded-lg transition-all">Edit</button>
+                <button onClick={() => openEdit(p)} className="px-3 py-1.5 bg-white/60 backdrop-blur-md shadow-sm hover:bg-white/80 backdrop-blur-md shadow-sm text-saloo-dark/70 hover:text-saloo-dark text-xs font-medium rounded-lg transition-all">Edit</button>
                 <button onClick={() => { if (window.confirm('Delete this promotion?')) deleteMutation.mutate(p.id) }}
                   className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400/70 hover:text-red-400 text-xs font-medium rounded-lg transition-all">
                   Delete
@@ -175,9 +175,9 @@ export default function OwnerPromotionsPage() {
 function FI({ label, value, onChange, type = 'text', placeholder }: { label: string; value: string; onChange: (v: string) => void; type?: string; placeholder?: string }) {
   return (
     <div>
-      <label className="text-white/30 text-xs uppercase tracking-wider block mb-2">{label}</label>
+      <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2">{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-gold/40 transition-colors" />
+        className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-white/20 focus:outline-none focus:border-saloo-pink/40 transition-colors" />
     </div>
   )
 }

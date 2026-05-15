@@ -50,7 +50,15 @@
       "mcp__Claude_in_Chrome__browser_batch",
       "mcp__Claude_in_Chrome__computer",
       "Bash(gh pr create --base main --title 'Fix Vercel build: add force-dynamic to server pages' --body ' *)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\shubh\\\\Desktop\\\\Saloo\" -Directory -Force)",
+      "Bash(Select-Object Name)",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(findstr name *)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)"
     ]
   }
 }

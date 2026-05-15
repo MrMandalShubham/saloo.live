@@ -81,12 +81,12 @@ export default function OwnerServicesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-syne text-2xl font-bold text-white">Services</h1>
-          <p className="text-white/30 text-sm mt-0.5">Manage your service catalog</p>
+          <h1 className="font-syne text-2xl font-bold text-saloo-dark">Services</h1>
+          <p className="text-saloo-dark/50 text-sm mt-0.5">Manage your service catalog</p>
         </div>
         <button
           onClick={() => { setEditId(null); setForm({ ...EMPTY }); setShowForm(!showForm) }}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showForm ? 'bg-white/10 text-white/60 hover:bg-white/15' : 'bg-gold text-navy hover:bg-gold/90'}`}
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showForm ? 'bg-white/80 backdrop-blur-md shadow-sm text-saloo-dark/80 hover:bg-white backdrop-blur-md shadow-sm' : 'bg-saloo-pink text-saloo-cream hover:bg-saloo-pink/90'}`}
         >
           {showForm ? 'Cancel' : '+ Add Service'}
         </button>
@@ -94,18 +94,18 @@ export default function OwnerServicesPage() {
 
       {/* Form */}
       {showForm && (
-        <form onSubmit={handleSubmit} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 space-y-5">
-          <h2 className="font-syne font-bold text-white text-lg">{editId ? 'Edit Service' : 'New Service'}</h2>
+        <form onSubmit={handleSubmit} className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-6 space-y-5">
+          <h2 className="font-syne font-bold text-saloo-dark text-lg">{editId ? 'Edit Service' : 'New Service'}</h2>
           {err && <p className="text-red-400 text-sm bg-red-400/5 border border-red-400/20 rounded-lg px-3 py-2">{err}</p>}
 
           <FI label="Name" value={form.name} onChange={v => setForm({ ...form, name: v })} />
 
           <div>
-            <label className="text-white/30 text-xs uppercase tracking-wider block mb-2.5">Category</label>
+            <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2.5">Category</label>
             <div className="flex flex-wrap gap-2">
               {CATEGORIES.map(c => (
                 <button type="button" key={c} onClick={() => setForm({ ...form, category: c })}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${form.category === c ? 'bg-gold text-navy' : 'bg-white/[0.06] text-white/40 hover:bg-white/10 hover:text-white/70'}`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${form.category === c ? 'bg-saloo-pink text-saloo-cream' : 'bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 hover:bg-white/80 backdrop-blur-md shadow-sm hover:text-saloo-dark/70'}`}>
                   {c}
                 </button>
               ))}
@@ -113,11 +113,11 @@ export default function OwnerServicesPage() {
           </div>
 
           <div>
-            <label className="text-white/30 text-xs uppercase tracking-wider block mb-2.5">Duration</label>
+            <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2.5">Duration</label>
             <div className="flex flex-wrap gap-2">
               {DURATIONS.map(d => (
                 <button type="button" key={d} onClick={() => setForm({ ...form, duration_min: d })}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${form.duration_min === d ? 'bg-white text-navy' : 'bg-white/[0.06] text-white/40 hover:bg-white/10 hover:text-white/70'}`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${form.duration_min === d ? 'bg-white text-saloo-cream' : 'bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 hover:bg-white/80 backdrop-blur-md shadow-sm hover:text-saloo-dark/70'}`}>
                   {d}m
                 </button>
               ))}
@@ -129,11 +129,11 @@ export default function OwnerServicesPage() {
 
           <label className="flex items-center gap-3 cursor-pointer">
             <input type="checkbox" checked={form.is_addon} onChange={e => setForm({ ...form, is_addon: e.target.checked })} className="w-4 h-4 accent-gold rounded" />
-            <span className="text-white/50 text-sm">This is an add-on service</span>
+            <span className="text-saloo-dark/70 text-sm">This is an add-on service</span>
           </label>
 
           <button type="submit" disabled={upsertMutation.isPending}
-            className="w-full py-3 bg-gold text-navy rounded-xl font-syne font-bold text-sm hover:bg-gold/90 disabled:opacity-40 transition-all">
+            className="w-full py-3 bg-saloo-pink text-saloo-cream rounded-xl font-syne font-bold text-sm hover:bg-saloo-pink/90 disabled:opacity-40 transition-all">
             {upsertMutation.isPending ? 'Saving…' : editId ? 'Save Changes' : 'Add Service'}
           </button>
         </form>
@@ -142,29 +142,29 @@ export default function OwnerServicesPage() {
       {/* Services list */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3].map(i => <div key={i} className="h-16 bg-white/[0.04] border border-white/[0.07] rounded-xl animate-pulse" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-16 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl animate-pulse" />)}
         </div>
       ) : Object.keys(byCategory).length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <p className="text-white/20 text-sm">No services yet. Add your first service.</p>
+          <p className="text-saloo-dark/40 text-sm">No services yet. Add your first service.</p>
         </div>
       ) : (
         Object.entries(byCategory).map(([cat, svcs]) => (
           <div key={cat}>
-            <p className="text-white/25 text-xs uppercase tracking-widest mb-3">{cat}</p>
+            <p className="text-saloo-dark/50 text-xs uppercase tracking-widest mb-3">{cat}</p>
             <div className="space-y-2">
               {svcs.map(s => (
-                <div key={s.id} className="bg-white/[0.04] border border-white/[0.07] rounded-xl px-5 py-4 flex items-center justify-between">
+                <div key={s.id} className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-5 py-4 flex items-center justify-between">
                   <div>
-                    <p className="text-white font-medium text-sm">
+                    <p className="text-saloo-dark font-medium text-sm">
                       {s.name}
-                      {!s.is_active && <span className="text-white/20 text-xs ml-2">(inactive)</span>}
-                      {s.is_addon && <span className="text-gold/50 text-xs ml-2">add-on</span>}
+                      {!s.is_active && <span className="text-saloo-dark/40 text-xs ml-2">(inactive)</span>}
+                      {s.is_addon && <span className="text-saloo-pink/50 text-xs ml-2">add-on</span>}
                     </p>
-                    <p className="text-white/35 text-xs mt-0.5">{s.duration_min}min · {formatINR(s.price)}</p>
+                    <p className="text-saloo-dark/60 text-xs mt-0.5">{s.duration_min}min · {formatINR(s.price)}</p>
                   </div>
                   <div className="flex gap-2">
-                    <button onClick={() => openEdit(s)} className="px-3 py-1.5 bg-white/[0.06] hover:bg-white/10 text-white/50 hover:text-white text-xs font-medium rounded-lg transition-all">Edit</button>
+                    <button onClick={() => openEdit(s)} className="px-3 py-1.5 bg-white/60 backdrop-blur-md shadow-sm hover:bg-white/80 backdrop-blur-md shadow-sm text-saloo-dark/70 hover:text-saloo-dark text-xs font-medium rounded-lg transition-all">Edit</button>
                     <button onClick={() => { if (window.confirm('Remove this service?')) deleteMutation.mutate(s.id) }}
                       className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400/70 hover:text-red-400 text-xs font-medium rounded-lg transition-all">
                       Remove
@@ -183,9 +183,9 @@ export default function OwnerServicesPage() {
 function FI({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
   return (
     <div>
-      <label className="text-white/30 text-xs uppercase tracking-wider block mb-2">{label}</label>
+      <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2">{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)}
-        className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-gold/40 transition-colors" />
+        className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-white/20 focus:outline-none focus:border-saloo-pink/40 transition-colors" />
     </div>
   )
 }

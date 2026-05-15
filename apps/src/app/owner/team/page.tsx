@@ -69,25 +69,25 @@ export default function OwnerTeamPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="font-syne text-2xl font-bold text-white">Team</h1>
-          <p className="text-white/30 text-sm mt-0.5">Manage your barbers</p>
+          <h1 className="font-syne text-2xl font-bold text-saloo-dark">Team</h1>
+          <p className="text-saloo-dark/50 text-sm mt-0.5">Manage your barbers</p>
         </div>
         <button onClick={() => setShowForm(!showForm)}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showForm ? 'bg-white/10 text-white/60 hover:bg-white/15' : 'bg-gold text-navy hover:bg-gold/90'}`}>
+          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showForm ? 'bg-white/80 backdrop-blur-md shadow-sm text-saloo-dark/80 hover:bg-white backdrop-blur-md shadow-sm' : 'bg-saloo-pink text-saloo-cream hover:bg-saloo-pink/90'}`}>
           {showForm ? 'Cancel' : '+ Add Barber'}
         </button>
       </div>
 
       {/* Form */}
       {showForm && (
-        <form onSubmit={handleInvite} className="bg-white/[0.04] border border-white/[0.08] rounded-2xl p-6 space-y-5">
-          <h2 className="font-syne font-bold text-white text-lg">Invite Barber</h2>
+        <form onSubmit={handleInvite} className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-6 space-y-5">
+          <h2 className="font-syne font-bold text-saloo-dark text-lg">Invite Barber</h2>
           {error && <p className="text-red-400 text-sm bg-red-400/5 border border-red-400/20 rounded-lg px-3 py-2">{error}</p>}
           <FI label="Full Name"                      value={form.name}        onChange={v => setForm({ ...form, name: v })} />
           <FI label="Phone (+91…)"                   value={form.phone}       onChange={v => setForm({ ...form, phone: v })} type="tel" />
           <FI label="Specialties (comma separated)"  value={form.specialties} onChange={v => setForm({ ...form, specialties: v })} />
           <button type="submit" disabled={inviteMutation.isPending}
-            className="w-full py-3 bg-gold text-navy rounded-xl font-syne font-bold text-sm hover:bg-gold/90 disabled:opacity-40">
+            className="w-full py-3 bg-saloo-pink text-saloo-cream rounded-xl font-syne font-bold text-sm hover:bg-saloo-pink/90 disabled:opacity-40">
             {inviteMutation.isPending ? 'Inviting…' : 'Send Invite'}
           </button>
         </form>
@@ -96,30 +96,30 @@ export default function OwnerTeamPage() {
       {/* Team list */}
       {isLoading ? (
         <div className="space-y-2">
-          {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white/[0.04] border border-white/[0.07] rounded-xl animate-pulse" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl animate-pulse" />)}
         </div>
       ) : (team ?? []).length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-12 h-12 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center mb-3">
-            <span className="text-white/20 text-xl">◉</span>
+          <div className="w-12 h-12 rounded-xl bg-white/60 backdrop-blur-md shadow-sm border border-white/80 flex items-center justify-center mb-3">
+            <span className="text-saloo-dark/40 text-xl">◉</span>
           </div>
-          <p className="text-white/25 text-sm">No team members yet</p>
+          <p className="text-saloo-dark/50 text-sm">No team members yet</p>
         </div>
       ) : (
         <div className="space-y-2">
           {(team ?? []).map((b: any) => (
-            <div key={b.id} className="bg-white/[0.04] border border-white/[0.07] rounded-xl p-4 flex items-center justify-between">
+            <div key={b.id} className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl p-4 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-xl bg-navy border border-white/10 flex items-center justify-center shrink-0">
-                  <span className="font-syne font-bold text-gold text-sm">{b.name?.[0] ?? '?'}</span>
+                <div className="w-10 h-10 rounded-xl bg-navy border border-white/80 flex items-center justify-center shrink-0">
+                  <span className="font-syne font-bold text-saloo-pink text-sm">{b.name?.[0] ?? '?'}</span>
                 </div>
                 <div>
-                  <p className="text-white font-semibold text-sm">{b.name}</p>
-                  <p className="text-white/35 text-xs">{b.phone}</p>
+                  <p className="text-saloo-dark font-semibold text-sm">{b.name}</p>
+                  <p className="text-saloo-dark/60 text-xs">{b.phone}</p>
                   {b.specialties?.length > 0 && (
-                    <p className="text-gold/60 text-xs mt-0.5">{b.specialties.join(', ')}</p>
+                    <p className="text-saloo-pink/60 text-xs mt-0.5">{b.specialties.join(', ')}</p>
                   )}
-                  <p className="text-white/20 text-xs mt-0.5">★ {b.rating?.toFixed(1) ?? 'N/A'} · {b.invite_status}</p>
+                  <p className="text-saloo-dark/40 text-xs mt-0.5">★ {b.rating?.toFixed(1) ?? 'N/A'} · {b.invite_status}</p>
                 </div>
               </div>
               <button
@@ -144,9 +144,9 @@ export default function OwnerTeamPage() {
 function FI({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
   return (
     <div>
-      <label className="text-white/30 text-xs uppercase tracking-wider block mb-2">{label}</label>
+      <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2">{label}</label>
       <input type={type} value={value} onChange={e => onChange(e.target.value)}
-        className="w-full bg-white/[0.06] border border-white/[0.08] rounded-xl px-4 py-3 text-white text-sm placeholder-white/20 focus:outline-none focus:border-gold/40 transition-colors" />
+        className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm placeholder-white/20 focus:outline-none focus:border-saloo-pink/40 transition-colors" />
     </div>
   )
 }

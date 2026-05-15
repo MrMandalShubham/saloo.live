@@ -70,7 +70,7 @@ export default function OwnerBookingDetailPage() {
   })
 
   if (isLoading) {
-    return <div className="flex items-center justify-center py-20"><p className="text-white/40">Loading…</p></div>
+    return <div className="flex items-center justify-center py-20"><p className="text-saloo-dark/60">Loading…</p></div>
   }
 
   if (!booking) {
@@ -82,8 +82,8 @@ export default function OwnerBookingDetailPage() {
   return (
     <div className="max-w-2xl">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => router.back()} className="text-gold text-xl hover:opacity-70">‹</button>
-        <h1 className="text-2xl font-bold text-white" style={{ fontFamily: 'Syne, sans-serif' }}>{booking.booking_ref}</h1>
+        <button onClick={() => router.back()} className="text-saloo-pink text-xl hover:opacity-70">‹</button>
+        <h1 className="text-2xl font-bold text-saloo-dark" style={{ fontFamily: 'Syne, sans-serif' }}>{booking.booking_ref}</h1>
         <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_COLOR[booking.status] ?? 'text-gray-400 bg-gray-400/10'}`}>
           {booking.status}
         </span>
@@ -111,7 +111,7 @@ export default function OwnerBookingDetailPage() {
         {/* Actions */}
         {actions.length > 0 && (
           <div>
-            <h2 className="text-white font-semibold text-lg mb-3">Actions</h2>
+            <h2 className="text-saloo-dark font-semibold text-lg mb-3">Actions</h2>
             <div className="flex flex-wrap gap-3">
               {actions.map(a => (
                 <button
@@ -136,7 +136,7 @@ export default function OwnerBookingDetailPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white/5 rounded-2xl p-5">
-      <h2 className="text-white font-semibold text-base mb-4">{title}</h2>
+      <h2 className="text-saloo-dark font-semibold text-base mb-4">{title}</h2>
       <div className="space-y-2">{children}</div>
     </div>
   )
@@ -145,8 +145,8 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between py-1.5 border-b border-white/5 last:border-0">
-      <span className="text-white/40 text-sm">{label}</span>
-      <span className="text-white text-sm font-medium text-right max-w-[60%]">{value}</span>
+      <span className="text-saloo-dark/60 text-sm">{label}</span>
+      <span className="text-saloo-dark text-sm font-medium text-right max-w-[60%]">{value}</span>
     </div>
   )
 }
