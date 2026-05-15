@@ -42,13 +42,21 @@ export function ShopSetupForm() {
         body: JSON.stringify(body),
       })
 
-      const json = await res.json()
-      if (!res.ok) { setError(json.error || 'Failed to create shop'); setLoading(false); return }
+      const text = await res.text()
+      let json: any = {}
+      try { json = JSON.parse(text) } catch { /* ignore */ }
+
+      if (!res.ok) {
+        const msg = typeof json.error === 'string' ? json.error : json.error?.message || `Request failed (${res.status})`
+        setError(msg)
+        setLoading(false)
+        return
+      }
 
       window.location.reload()
-    } catch (err) {
+    } catch (err: any) {
       console.error('Shop create error:', err)
-      setError('Something went wrong')
+      setError(err?.message || 'Something went wrong')
       setLoading(false)
     }
   }
