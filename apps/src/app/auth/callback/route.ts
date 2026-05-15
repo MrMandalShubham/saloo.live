@@ -27,17 +27,15 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // Ensure public.users row exists and get the role
-      const { data: role } = await supabase.rpc('ensure_user_profile')
+      // Ensure public.users row exists
+      await supabase.rpc('ensure_user_profile')
 
       const forwardedHost = request.headers.get('x-forwarded-host')
       const base = process.env.NODE_ENV === 'development'
         ? origin
         : forwardedHost ? `https://${forwardedHost}` : origin
 
-      // Redirect to the correct dashboard based on role
-      if (role === 'admin')      return NextResponse.redirect(`${base}/admin/dashboard`)
-      // All users (including shop_owner) land on customer home first
+      // All users (including admin, shop_owner) land on customer home first
       return NextResponse.redirect(`${base}/home`)
     }
   }

@@ -9,18 +9,8 @@ const PROTECTED_PREFIXES = [
   '/open-shop', '/owner', '/admin',
 ]
 
-// Routes only accessible to regular customers (Admins and Owners are redirected to their dashboards)
-const CUSTOMER_ONLY_PREFIXES = [
-  '/home', '/search', '/shop', '/book', '/bookings', '/loyalty', '/open-shop'
-]
-
-
 function isProtected(pathname: string) {
   return PROTECTED_PREFIXES.some(prefix => pathname.startsWith(prefix))
-}
-
-function isCustomerOnly(pathname: string) {
-  return CUSTOMER_ONLY_PREFIXES.some(prefix => pathname.startsWith(prefix))
 }
 
 /**
@@ -103,15 +93,19 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 2. Role-based redirection for logged-in users
+  // 2. Logged-in users on login page → always go to /home
   const isLoginPage = pathname === '/login' || pathname === '/admin/login'
+  if (user && isLoginPage) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/home'
+    return NextResponse.redirect(url)
+  }
+
+  // 3. Role-based access control for owner/admin routes
   const isOwnerRoute = pathname.startsWith('/owner')
   const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin/login'
 
-  const needsRoleCheck = user && (isLoginPage || isOwnerRoute || isAdminRoute || isCustomerOnly(pathname))
-
-  if (needsRoleCheck) {
-    // PERF: Try JWT first (zero DB calls), fall back to RPC
+  if (user && (isOwnerRoute || isAdminRoute)) {
     let role = getRoleFromJWT(request)
     if (!role) {
       const { data } = await supabase.rpc('get_user_role')
@@ -120,29 +114,16 @@ export async function updateSession(request: NextRequest) {
 
     const url = request.nextUrl.clone()
 
-    // Redirect logged-in users away from login page
-    if (isLoginPage) {
-      if (role === 'admin')      { url.pathname = '/admin/dashboard'; return NextResponse.redirect(url) }
-      // All users (including shop_owner) go to customer home
-      url.pathname = '/home';                                          return NextResponse.redirect(url)
-    }
-
-    // Force Admins to their dashboard if they hit customer pages
-    if (isCustomerOnly(pathname)) {
-      if (role === 'admin')      { url.pathname = '/admin/dashboard'; return NextResponse.redirect(url) }
-      // Shop owners and customers can access customer pages
-    }
-
-    // Non-owner/Non-admin hitting /owner/* → Open a Shop page (or their dashboard)
+    // Non-owner/Non-admin hitting /owner/* → Open a Shop page
     if (isOwnerRoute && role !== 'shop_owner' && role !== 'admin') {
       url.pathname = '/open-shop'
       return NextResponse.redirect(url)
     }
 
-    // Non-admin hitting /admin/* → home (or their dashboard)
+    // Non-admin hitting /admin/* → home
     if (isAdminRoute && role !== 'admin') {
-      if (role === 'shop_owner') { url.pathname = '/owner/dashboard'; return NextResponse.redirect(url) }
-      url.pathname = '/home';                                          return NextResponse.redirect(url)
+      url.pathname = '/home'
+      return NextResponse.redirect(url)
     }
   }
 
