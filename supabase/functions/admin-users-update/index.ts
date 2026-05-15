@@ -29,7 +29,7 @@ serve(async (req) => {
     // Audit log
     await admin.from('admin_actions').insert({
       admin_id: user.id,
-      action_type: is_suspended ? 'suspend_user' : newRole ? 'change_role' : 'update_user',
+      action_type: is_suspended === true ? 'suspend_user' : is_suspended === false ? 'user_reinstated' : newRole ? 'change_role' : 'update_user',
       target_type: 'user',
       target_id: user_id,
       details: { role: newRole, is_suspended },

@@ -26,7 +26,7 @@ serve(async (req) => {
       .eq('id', dispute_id)
       .single()
     if (de) throw de
-    if (dispute.status === 'resolved') throw new Error('Dispute already resolved')
+    if (['resolved_refund', 'resolved_no_refund', 'dismissed'].includes(dispute.status)) throw new Error('Dispute already resolved')
 
     // Trigger Razorpay refund if needed
     if (resolution === 'refund_customer' || resolution === 'split') {
@@ -44,14 +44,20 @@ serve(async (req) => {
       }
     }
 
+    // Map resolution to valid dispute status
+    const statusMap: Record<string, string> = {
+      refund_customer: 'resolved_refund',
+      pay_shop: 'resolved_no_refund',
+      split: 'resolved_refund',
+      dismissed: 'dismissed',
+    }
+
     // Update dispute
     await admin.from('disputes').update({
-      status: 'resolved',
+      status: statusMap[resolution] ?? 'dismissed',
       resolution,
       resolution_note,
       resolved_at: new Date().toISOString(),
-      resolved_by: user.id,
-      in_escrow: false,
     }).eq('id', dispute_id)
 
     // Audit log

@@ -16,13 +16,23 @@ serve(async (req) => {
     if (!shop_id || !status) throw new Error('shop_id and status required')
     if (!['verified', 'suspended', 'pending', 'rejected'].includes(status)) throw new Error('Invalid status')
 
-    const { data: shop, error } = await admin
+    // Fetch current shop to capture previous status
+    const { data: existingShop, error: fetchErr } = await admin
+      .from('shops')
+      .select('id, name, owner_id, status')
+      .eq('id', shop_id)
+      .single()
+    if (fetchErr) throw fetchErr
+
+    const previousStatus = existingShop.status
+
+    const { error } = await admin
       .from('shops')
       .update({ status, updated_at: new Date().toISOString() })
       .eq('id', shop_id)
-      .select('id, name, owner_id')
-      .single()
     if (error) throw error
+
+    const shop = existingShop
 
     // Audit log
     await admin.from('admin_actions').insert({
@@ -30,7 +40,7 @@ serve(async (req) => {
       action_type: `${status}_shop`,
       target_type: 'shop',
       target_id: shop_id,
-      details: { previous_status: shop.status, new_status: status, reason: reason ?? null },
+      details: { previous_status: previousStatus, new_status: status, reason: reason ?? null },
     })
 
     // Notify shop owner

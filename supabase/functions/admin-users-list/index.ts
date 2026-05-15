@@ -21,12 +21,12 @@ serve(async (req) => {
 
     let query = admin
       .from('users')
-      .select('id, phone, full_name, role, loyalty_tier, loyalty_points, no_show_count, is_suspended, created_at', { count: 'exact' })
+      .select('id, phone, name, role, loyalty_tier, loyalty_points, no_show_count, is_suspended, created_at', { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
     if (role && role !== 'all') query = query.eq('role', role)
-    if (search) query = query.or(`full_name.ilike.%${search}%,phone.ilike.%${search}%`)
+    if (search) query = query.or(`name.ilike.%${search}%,phone.ilike.%${search}%`)
 
     const { data, count, error } = await query
     if (error) throw error

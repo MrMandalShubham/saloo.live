@@ -52,20 +52,38 @@ serve(async (req) => {
       statusCounts[b.status] = (statusCounts[b.status] ?? 0) + 1
     }
 
-    // Top cities
+    // Top cities - aggregate bookings and revenue per city
     const { data: shopData } = await admin.from('shops').select('city, id').eq('status', 'verified')
-    const cityBookings: Record<string, { bookings: number; revenue: number }> = {}
+    const shopIdToCity: Record<string, string> = {}
     for (const s of shopData ?? []) {
-      if (!cityBookings[s.city]) cityBookings[s.city] = { bookings: 0, revenue: 0 }
+      shopIdToCity[s.id] = s.city
+    }
+    const cityBookings: Record<string, { bookings: number; revenue: number }> = {}
+    // Count bookings per city using bookings data from the period
+    const { data: periodBookings } = await admin.from('bookings').select('shop_id, total_amount').gte('created_at', since)
+    for (const b of periodBookings ?? []) {
+      const city = shopIdToCity[b.shop_id]
+      if (!city) continue
+      if (!cityBookings[city]) cityBookings[city] = { bookings: 0, revenue: 0 }
+      cityBookings[city]!.bookings += 1
+      cityBookings[city]!.revenue += b.total_amount ?? 0
     }
 
-    // Top shops
+    // Top shops - aggregate bookings and revenue per shop
     const { data: topShopsData } = await admin
       .from('shops')
       .select('id, name, rating')
       .eq('status', 'verified')
-      .order('rating', { ascending: false })
-      .limit(5)
+    const shopStats: Record<string, { name: string; bookings: number; revenue: number; rating: number }> = {}
+    for (const s of topShopsData ?? []) {
+      shopStats[s.id] = { name: s.name, bookings: 0, revenue: 0, rating: s.rating ?? 0 }
+    }
+    for (const b of periodBookings ?? []) {
+      if (shopStats[b.shop_id]) {
+        shopStats[b.shop_id]!.bookings += 1
+        shopStats[b.shop_id]!.revenue += b.total_amount ?? 0
+      }
+    }
 
     return new Response(JSON.stringify({
       data: {
@@ -84,12 +102,9 @@ serve(async (req) => {
           .map(([city, v]) => ({ city, ...v }))
           .sort((a, b) => b.bookings - a.bookings)
           .slice(0, 5),
-        top_shops: (topShopsData ?? []).map((s: any) => ({
-          name: s.name,
-          bookings: 0,
-          revenue: 0,
-          rating: s.rating ?? 0,
-        })),
+        top_shops: Object.values(shopStats)
+          .sort((a, b) => b.bookings - a.bookings)
+          .slice(0, 5),
       }
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   } catch (e: any) {

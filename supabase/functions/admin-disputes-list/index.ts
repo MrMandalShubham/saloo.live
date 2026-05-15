@@ -13,7 +13,7 @@ serve(async (req) => {
     if (profile?.role !== 'admin') return new Response(JSON.stringify({ error: { message: 'Forbidden' } }), { status: 403, headers: corsHeaders })
 
     const url = new URL(req.url)
-    const status = url.searchParams.get('status') // open | resolved | escalated | all
+    const status = url.searchParams.get('status') // open | resolved_refund | resolved_no_refund | dismissed | all
     const page = parseInt(url.searchParams.get('page') ?? '1')
     const limit = parseInt(url.searchParams.get('limit') ?? '20')
     const offset = (page - 1) * limit
@@ -21,9 +21,9 @@ serve(async (req) => {
     let query = admin
       .from('disputes')
       .select(`
-        id, reason, status, in_escrow, created_at, sla_deadline, resolution_note,
+        id, reason, status, created_at, sla_deadline, resolution_note,
         booking:bookings(booking_ref, total_amount,
-          customer:users!bookings_user_id_fkey(full_name, phone),
+          customer:users!bookings_user_id_fkey(name, phone),
           shop:shops(name)
         )
       `, { count: 'exact' })
@@ -39,13 +39,12 @@ serve(async (req) => {
       id: d.id,
       reason: d.reason,
       status: d.status,
-      in_escrow: d.in_escrow,
       created_at: d.created_at,
       sla_deadline: d.sla_deadline,
       resolution_note: d.resolution_note,
       booking_ref: d.booking?.booking_ref ?? '',
       amount_at_stake: d.booking?.total_amount ?? 0,
-      customer_name: d.booking?.customer?.full_name ?? d.booking?.customer?.phone ?? '',
+      customer_name: d.booking?.customer?.name ?? d.booking?.customer?.phone ?? '',
       shop_name: d.booking?.shop?.name ?? '',
     }))
 

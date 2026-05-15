@@ -15,7 +15,7 @@ serve(async (req) => {
     const today = new Date().toISOString().split('T')[0]!
     const monthStart = today.slice(0, 7) + '-01'
 
-    const [shops, pendingShops, suspendedShops, users, newUsersToday, bookingsToday, revenueToday, revenueMtd, openDisputes, escalatedDisputes] = await Promise.all([
+    const [shops, pendingShops, suspendedShops, users, newUsersToday, bookingsToday, revenueToday, revenueMtd, openDisputes] = await Promise.all([
       admin.from('shops').select('id', { count: 'exact', head: true }),
       admin.from('shops').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
       admin.from('shops').select('id', { count: 'exact', head: true }).eq('status', 'suspended'),
@@ -25,12 +25,11 @@ serve(async (req) => {
       admin.from('payments').select('amount').gte('created_at', today).eq('status', 'captured'),
       admin.from('payments').select('amount').gte('created_at', monthStart).eq('status', 'captured'),
       admin.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'open'),
-      admin.from('disputes').select('id', { count: 'exact', head: true }).eq('status', 'escalated'),
     ])
 
     const sumRevenue = (rows: any[]) => (rows ?? []).reduce((acc: number, r: any) => acc + (r.amount ?? 0), 0)
     const completedBookings = await admin.from('bookings').select('id', { count: 'exact', head: true }).eq('status', 'completed')
-    const totalBookings = await admin.from('bookings').select('id', { count: 'exact', head: true }).not('status', 'eq', 'pending')
+    const totalBookings = await admin.from('bookings').select('id', { count: 'exact', head: true }).not('status', 'eq', 'pending_payment')
     const avgRating = await admin.from('shops').select('rating').eq('status', 'verified')
     const ratings = (avgRating.data ?? []).map((s: any) => s.rating).filter(Boolean)
     const platformAvgRating = ratings.length > 0 ? ratings.reduce((a: number, b: number) => a + b, 0) / ratings.length : 0
@@ -46,7 +45,6 @@ serve(async (req) => {
         revenue_today: sumRevenue(revenueToday.data ?? []),
         revenue_mtd: sumRevenue(revenueMtd.data ?? []),
         open_disputes: openDisputes.count ?? 0,
-        escalated_disputes: escalatedDisputes.count ?? 0,
         platform_completion_rate: totalBookings.count ? Math.round(((completedBookings.count ?? 0) / totalBookings.count) * 100) : 0,
         platform_avg_rating: Math.round(platformAvgRating * 10) / 10,
       }
