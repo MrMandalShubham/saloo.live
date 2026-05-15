@@ -1,13 +1,13 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 import { createAdminClient, getAuthUser } from '../_shared/supabase-admin.ts'
-import { sendFCMToTopic, sendFCMToTokens } from '../_shared/fcm.ts'
+import { sendPush } from '../_shared/fcm.ts'
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
-    const user = await getAuthUser(req)
-    if (!user) return new Response(JSON.stringify({ error: { message: 'Unauthorized' } }), { status: 401, headers: corsHeaders })
+    const { user, error: authErr } = await getAuthUser(req)
+    if (!user) return new Response(JSON.stringify({ error: { message: authErr ?? 'Unauthorized' } }), { status: 401, headers: corsHeaders })
 
     const admin = createAdminClient()
     const { data: profile } = await admin.from('users').select('role').eq('id', user.id).single()
@@ -36,25 +36,27 @@ serve(async (req) => {
     if (targetUserIds.length > 0) {
       const notifications = targetUserIds.map((uid: string) => ({
         user_id: uid,
-        type: 'system',
+        type: 'system' as const,
         title,
         body,
         is_read: false,
       }))
-      // Batch insert in chunks of 500
       for (let i = 0; i < notifications.length; i += 500) {
         await admin.from('notifications').insert(notifications.slice(i, i + 500))
       }
     }
 
-    // Send FCM push (best-effort)
+    // Send FCM push per token (best-effort)
     try {
-      if (target === 'all') {
-        await sendFCMToTopic('all_users', title, body, payload)
-      } else if (target === 'customers') {
-        await sendFCMToTopic('customers', title, body, payload)
-      } else if (target === 'shop_owners') {
-        await sendFCMToTopic('shop_owners', title, body, payload)
+      const { data: tokenUsers } = await admin
+        .from('users')
+        .select('fcm_token')
+        .in('id', targetUserIds)
+        .not('fcm_token', 'is', null)
+      for (const u of tokenUsers ?? []) {
+        if (u.fcm_token) {
+          await sendPush({ fcmToken: u.fcm_token, title, body, data: payload }).catch(() => null)
+        }
       }
     } catch (_) { /* FCM failure is non-critical */ }
 

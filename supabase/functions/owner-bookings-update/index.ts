@@ -1,6 +1,6 @@
 import { handleCors, json, error } from '../_shared/cors.ts'
 import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
-import { sendPushNotification } from '../_shared/fcm.ts'
+import { sendPush } from '../_shared/fcm.ts'
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   pending_payment: ['confirmed', 'cancelled'],
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
         .eq('id', booking.user_id)
         .single()
       if (customer?.fcm_token) {
-        await sendPushNotification(customer.fcm_token, 'Booking Update', msg).catch(() => null)
+        await sendPush({ fcmToken: customer.fcm_token, title: 'Booking Update', body: msg }).catch(() => null)
       }
     }
 

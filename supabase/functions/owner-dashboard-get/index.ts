@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
       .filter((b: any) => b.status === 'completed')
       .reduce((sum: number, b: any) => sum + (b.total_amount ?? 0), 0)
 
-    const pending_confirmations = bookings.filter((b: any) => b.status === 'pending').length
+    const pending_confirmations = bookings.filter((b: any) => b.status === 'pending_payment').length
 
     // Weekly revenue
     const { data: weeklyData } = await supabase

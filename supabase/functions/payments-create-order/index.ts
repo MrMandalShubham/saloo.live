@@ -30,6 +30,14 @@ Deno.serve(async (req) => {
 
     if (holdErr || !hold) return error('Hold not found or expired', 404)
 
+    // Fetch shop's advance percentage
+    const { data: shop } = await supabase
+      .from('shops')
+      .select('advance_percentage')
+      .eq('id', hold.shop_id)
+      .single()
+    const advancePct = (shop?.advance_percentage ?? 30) / 100
+
     // Fetch services to compute advance amount
     const { data: services } = await supabase
       .from('services')
@@ -37,7 +45,7 @@ Deno.serve(async (req) => {
       .in('id', [...hold.service_ids, ...hold.addon_ids])
 
     const total_amount = services?.reduce((sum, s) => sum + s.price, 0) ?? 0
-    const advance_paise = Math.ceil(total_amount * 0.3) * 100  // in paise
+    const advance_paise = Math.ceil(total_amount * advancePct) * 100  // in paise
 
     // Create Razorpay order
     const order = await createOrder({

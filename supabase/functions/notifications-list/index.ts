@@ -24,11 +24,11 @@ Deno.serve(async (req) => {
       .range(page * limit, page * limit + limit - 1)
 
     if (filter === 'transactional') {
-      query = query.in('type', ['booking_confirmed', 'booking_cancelled', 'reminder', 'no_show', 'dispute'])
+      query = query.in('type', ['booking_confirmed', 'booking_cancelled', 'booking_reminder', 'booking_completed', 'no_show', 'dispute_update'])
     } else if (filter === 'promotions') {
       query = query.in('type', ['promotion', 'review_request'])
     } else if (filter === 'loyalty') {
-      query = query.eq('type', 'loyalty')
+      query = query.in('type', ['loyalty_earned', 'loyalty_redeemed'])
     }
 
     const { data, error: dbErr } = await query

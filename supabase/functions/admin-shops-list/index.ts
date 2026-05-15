@@ -5,8 +5,8 @@ import { createAdminClient, getAuthUser } from '../_shared/supabase-admin.ts'
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
-    const user = await getAuthUser(req)
-    if (!user) return new Response(JSON.stringify({ error: { message: 'Unauthorized' } }), { status: 401, headers: corsHeaders })
+    const { user, error: authErr } = await getAuthUser(req)
+    if (!user) return new Response(JSON.stringify({ error: { message: authErr ?? 'Unauthorized' } }), { status: 401, headers: corsHeaders })
 
     const admin = createAdminClient()
     const { data: profile } = await admin.from('users').select('role').eq('id', user.id).single()
@@ -23,7 +23,7 @@ serve(async (req) => {
       .from('shops')
       .select(`
         id, name, city, status, rating, review_count, created_at,
-        owner:users!shops_owner_id_fkey(full_name, phone)
+        owner:users!shops_owner_id_fkey(name, phone)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
@@ -36,18 +36,17 @@ serve(async (req) => {
 
     // Enrich with booking + revenue counts
     const shopIds = (data ?? []).map((s: any) => s.id)
-    const [bookingCounts, revenueTotals] = await Promise.all([
-      admin.from('bookings').select('shop_id').in('shop_id', shopIds).eq('status', 'completed'),
-      admin.from('payments').select('shop_id, amount').in('shop_id', shopIds).eq('status', 'captured'),
-    ])
+    const { data: completedBookings } = await admin
+      .from('bookings')
+      .select('shop_id, total_amount')
+      .in('shop_id', shopIds)
+      .eq('status', 'completed')
 
     const bookingsByShop: Record<string, number> = {}
-    for (const b of bookingCounts.data ?? []) {
-      bookingsByShop[b.shop_id] = (bookingsByShop[b.shop_id] ?? 0) + 1
-    }
     const revenueByShop: Record<string, number> = {}
-    for (const p of revenueTotals.data ?? []) {
-      revenueByShop[p.shop_id] = (revenueByShop[p.shop_id] ?? 0) + (p.amount ?? 0)
+    for (const b of completedBookings ?? []) {
+      bookingsByShop[b.shop_id] = (bookingsByShop[b.shop_id] ?? 0) + 1
+      revenueByShop[b.shop_id] = (revenueByShop[b.shop_id] ?? 0) + (b.total_amount ?? 0)
     }
 
     const enriched = (data ?? []).map((s: any) => ({
@@ -58,7 +57,7 @@ serve(async (req) => {
       rating: s.rating,
       review_count: s.review_count,
       created_at: s.created_at,
-      owner_name: s.owner?.full_name ?? '',
+      owner_name: s.owner?.name ?? '',
       owner_phone: s.owner?.phone ?? '',
       total_bookings: bookingsByShop[s.id] ?? 0,
       total_revenue: revenueByShop[s.id] ?? 0,

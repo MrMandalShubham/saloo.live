@@ -48,16 +48,15 @@ Deno.serve(async (req) => {
       }
 
       if (refund_amount > 0) {
-        const refund = await createRefund(payment.razorpay_payment_id, refund_amount * 100)
+        const refundResult = await createRefund(payment.razorpay_payment_id, refund_amount * 100)
         await supabase.from('payments').insert({
           booking_id: booking.id,
           user_id: user.id,
           amount: refund_amount,
           type: 'refund',
           status: 'refunded',
-          razorpay_payment_id: payment.razorpay_payment_id,
-          refund_id: refund.id,
-          metadata: { original_payment_id: payment.id },
+          refund_id: refundResult.id,
+          metadata: { original_payment_id: payment.id, razorpay_payment_id: payment.razorpay_payment_id },
         })
       }
     } else {

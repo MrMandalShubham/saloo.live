@@ -5,8 +5,8 @@ import { createAdminClient, getAuthUser } from '../_shared/supabase-admin.ts'
 serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   try {
-    const user = await getAuthUser(req)
-    if (!user) return new Response(JSON.stringify({ error: { message: 'Unauthorized' } }), { status: 401, headers: corsHeaders })
+    const { user, error: authErr } = await getAuthUser(req)
+    if (!user) return new Response(JSON.stringify({ error: { message: authErr ?? 'Unauthorized' } }), { status: 401, headers: corsHeaders })
 
     const admin = createAdminClient()
     const { data: profile } = await admin.from('users').select('role').eq('id', user.id).single()

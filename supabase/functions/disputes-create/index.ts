@@ -42,11 +42,6 @@ Deno.serve(async (req) => {
 
     if (existing) return error('A dispute already exists for this booking', 409)
 
-    // Check 24h window for escrow (only for no-show/same-day disputes)
-    const bookingDate = new Date(booking.date + 'T23:59:59+05:30')
-    const hoursElapsed = (Date.now() - bookingDate.getTime()) / 3600000
-    const payment_in_escrow = hoursElapsed < 24
-
     // Upload photos
     const photoUrls: string[] = []
     for (let i = 0; i < Math.min(photo_base64_list.length, 5); i++) {
@@ -71,7 +66,6 @@ Deno.serve(async (req) => {
         reason,
         description,
         photos: photoUrls,
-        payment_in_escrow,
       })
       .select()
       .single()
@@ -81,7 +75,7 @@ Deno.serve(async (req) => {
     // Save notification
     await supabase.from('notifications').insert({
       user_id: user.id,
-      type: 'dispute',
+      type: 'dispute_update',
       title: 'Dispute Raised',
       body: 'Your dispute has been received. We\'ll resolve it within 5 business days.',
       data: { dispute_id: dispute.id, booking_id },
