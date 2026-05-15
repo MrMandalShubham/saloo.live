@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 export function ShopSetupForm() {
-  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -26,17 +28,16 @@ export function ShopSetupForm() {
     }
 
     try {
-      const { createClient } = await import('@/lib/supabase/client')
       const supabase = createClient()
       const { data: { session } } = await supabase.auth.getSession()
       if (!session) { setError('Not logged in'); setLoading(false); return }
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/owner-shop-create`, {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/owner-shop-create`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${session.access_token}`,
           'Content-Type': 'application/json',
-          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          apikey: SUPABASE_ANON_KEY,
         },
         body: JSON.stringify(body),
       })
@@ -44,8 +45,9 @@ export function ShopSetupForm() {
       const json = await res.json()
       if (!res.ok) { setError(json.error || 'Failed to create shop'); setLoading(false); return }
 
-      router.refresh()
-    } catch {
+      window.location.reload()
+    } catch (err) {
+      console.error('Shop create error:', err)
       setError('Something went wrong')
       setLoading(false)
     }
