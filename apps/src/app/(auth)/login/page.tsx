@@ -45,24 +45,11 @@ function LoginPage() {
       return
     }
 
-    // Get role from DB and route to the correct dashboard
-    let role: string | null = null
-
-    const { data: rpcRole } = await supabase.rpc('ensure_user_profile' as any) as { data: string | null }
-    if (rpcRole) {
-      role = rpcRole
-    } else {
-      // Fallback: read directly from users table
-      const { data: { user: u } } = await supabase.auth.getUser()
-      if (u) {
-        const { data: row } = await supabase.from('users').select('role').eq('id', u.id).single()
-        role = row?.role ?? 'customer'
-      }
-    }
+    // Ensure profile exists
+    try { await supabase.rpc('ensure_user_profile' as any) } catch {}
 
     setLoading(false)
-    if (role === 'admin')      { window.location.href = '/admin/dashboard'; return }
-    // All users (including shop_owner) land on customer home first
+    // All users (including admin, shop_owner) land on customer home first
     window.location.href = '/home'
   }
 

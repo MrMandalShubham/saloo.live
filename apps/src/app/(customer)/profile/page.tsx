@@ -177,6 +177,29 @@ export default function ProfilePage() {
         ))}
       </div>
 
+      {/* Admin Dashboard — only visible to admins */}
+      {profile?.role === 'admin' && (
+        <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
+          <Link
+            href="/admin/dashboard"
+            className="flex items-center gap-4 px-5 py-4 hover:bg-lavender/40 transition-all group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center shrink-0 group-hover:bg-purple-100 transition-colors">
+              <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+              </svg>
+            </div>
+            <div className="flex-1 min-w-0">
+              <span className="font-semibold text-navy text-sm">Admin Dashboard</span>
+              <p className="text-muted text-xs mt-0.5">Manage shops, users & disputes</p>
+            </div>
+            <svg className="w-4 h-4 text-muted group-hover:text-purple-600 group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </Link>
+        </div>
+      )}
+
       {/* Sign out */}
       <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
         <div className="px-5 py-3 border-b border-border/60">
