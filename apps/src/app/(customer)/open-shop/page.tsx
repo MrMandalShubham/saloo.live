@@ -43,6 +43,10 @@ export default function OpenShopPage() {
   const [loading, setLoading]       = useState(false)
   const [upgradeError, setUpgradeError] = useState('')
   const [pageLoading, setPageLoading] = useState(true)
+  const [showForm, setShowForm]     = useState(false)
+  const [formLoading, setFormLoading] = useState(false)
+  const [formError, setFormError]   = useState('')
+  const [formSuccess, setFormSuccess] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -80,23 +84,9 @@ export default function OpenShopPage() {
     if (!agreed) return
     setLoading(true)
     setUpgradeError('')
-
-    const { data: newRole, error } = await supabase.rpc('request_shop_owner' as any) as { data: string | null; error: any }
-
-    if (error) {
-      setLoading(false)
-      setUpgradeError(error.message || 'Something went wrong. Please try again.')
-      return
-    }
-
-    if (newRole !== 'shop_owner') {
-      setLoading(false)
-      setUpgradeError('Role upgrade failed. Please refresh and try again.')
-      return
-    }
-
-    // Full reload so server reads the updated role from DB fresh
-    window.location.href = '/owner/dashboard'
+    // Show shop creation form after agreeing to terms
+    setShowForm(true)
+    setLoading(false)
   }
 
   if (pageLoading) {
@@ -179,26 +169,14 @@ export default function OpenShopPage() {
     )
   }
 
-  // ── Already shop_owner but no shop created yet ────────────────────────────
+  // ── Already shop_owner but no shop created yet → show form ─────────────
   if (role === 'shop_owner' && shopStatus === 'none') {
-    return (
-      <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-6">
-        <div className="w-20 h-20 rounded-3xl bg-saloo-teal/10 border-2 border-saloo-teal/25 flex items-center justify-center mx-auto">
-          <span className="text-4xl">✂</span>
-        </div>
-        <div>
-          <h1 className="font-syne font-bold text-2xl text-ink">Set Up Your Shop</h1>
-          <p className="text-secondary text-sm mt-1">You're ready — fill in your shop details to get started</p>
-        </div>
-        <p className="text-secondary text-sm leading-relaxed">
-          Head to your Owner Dashboard to complete your shop profile. Once submitted, our team will review and verify it.
-        </p>
-        <Link href="/owner/dashboard"
-          className="inline-flex items-center gap-2 bg-saloo-teal text-white font-syne font-bold px-8 py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all active:scale-[0.98]">
-          Owner Dashboard →
-        </Link>
-      </div>
-    )
+    return <ShopForm supabase={supabase} formLoading={formLoading} setFormLoading={setFormLoading} formError={formError} setFormError={setFormError} formSuccess={formSuccess} setFormSuccess={setFormSuccess} />
+  }
+
+  // ── Show shop form after agreeing ─────────────────────────────────────────
+  if (showForm) {
+    return <ShopForm supabase={supabase} formLoading={formLoading} setFormLoading={setFormLoading} formError={formError} setFormError={setFormError} formSuccess={formSuccess} setFormSuccess={setFormSuccess} />
   }
 
   // ── Full landing page for new applicants (role = 'customer') ──────────────
@@ -299,7 +277,7 @@ export default function OpenShopPage() {
           disabled={!agreed || loading}
           className="w-full bg-ink text-white font-syne font-bold py-4 rounded-xl hover:bg-ink/80 disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-[0.98] text-base"
         >
-          {loading ? 'Setting up your account…' : 'Open Owner Dashboard →'}
+          {loading ? 'Setting up…' : 'Continue to Shop Details →'}
         </button>
 
         {upgradeError && (
@@ -309,10 +287,163 @@ export default function OpenShopPage() {
         )}
 
         <p className="text-ink/40 text-xs text-center">
-          You can continue booking as a customer from the Owner Dashboard.
+          You can continue booking as a customer after setting up your shop.
         </p>
       </div>
 
+    </div>
+  )
+}
+
+// ── Shop creation form (used on open-shop page) ────────────────────────────
+function ShopForm({ supabase, formLoading, setFormLoading, formError, setFormError, formSuccess, setFormSuccess }: {
+  supabase: any
+  formLoading: boolean; setFormLoading: (v: boolean) => void
+  formError: string; setFormError: (v: string) => void
+  formSuccess: boolean; setFormSuccess: (v: boolean) => void
+}) {
+  const [submittedName, setSubmittedName] = useState('')
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setFormLoading(true)
+    setFormError('')
+
+    const fd = new FormData(e.currentTarget)
+    const name = (fd.get('name') as string)?.trim()
+    const phone = (fd.get('phone') as string)?.trim()
+    const address = (fd.get('address') as string)?.trim()
+    const city = (fd.get('city') as string)?.trim()
+    const state = (fd.get('state') as string)?.trim()
+    const pincode = (fd.get('pincode') as string)?.trim()
+    const description = (fd.get('description') as string)?.trim()
+    const email = (fd.get('email') as string)?.trim()
+
+    if (!name || !phone || !address || !city || !state || !pincode) {
+      setFormError('Please fill in all required fields.')
+      setFormLoading(false)
+      return
+    }
+    if (!/^\d{6}$/.test(pincode)) {
+      setFormError('Pincode must be exactly 6 digits.')
+      setFormLoading(false)
+      return
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session) {
+        setFormError('Your session has expired. Please log in again.')
+        setFormLoading(false)
+        return
+      }
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/owner-shop-create`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+          apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        },
+        body: JSON.stringify({ name, description, phone, email, address, city, state, pincode }),
+      })
+
+      let json: any = {}
+      try { json = JSON.parse(await res.text()) } catch { /* */ }
+
+      if (!res.ok) {
+        const err = json.error
+        const msg = typeof err === 'string' ? err : err?.message || `Request failed (${res.status})`
+        if (res.status === 409) {
+          // Shop already exists — reload to show correct state
+          window.location.reload()
+          return
+        }
+        setFormError(msg)
+        setFormLoading(false)
+        return
+      }
+
+      setSubmittedName(name)
+      setFormSuccess(true)
+      setFormLoading(false)
+    } catch (err: any) {
+      console.error('Shop create error:', err)
+      setFormError(err?.message || 'Network error. Please check your connection.')
+      setFormLoading(false)
+    }
+  }
+
+  if (formSuccess) {
+    return (
+      <div className="max-w-lg mx-auto py-16 px-4 text-center space-y-6">
+        <div className="w-20 h-20 rounded-3xl bg-green-50 border-2 border-green-200 flex items-center justify-center mx-auto">
+          <span className="text-4xl">✓</span>
+        </div>
+        <div>
+          <h1 className="font-syne font-bold text-2xl text-ink">Application Submitted!</h1>
+          <p className="text-saloo-teal text-sm mt-1 font-semibold">{submittedName}</p>
+        </div>
+        <p className="text-secondary text-sm leading-relaxed">
+          Our team will review your shop application within 2–5 business days.
+          You'll receive a notification once your shop is approved. After approval, you can access the Owner Dashboard to add services, set availability, and manage your team.
+        </p>
+        <Link href="/home"
+          className="inline-flex items-center gap-2 bg-ink text-white font-syne font-semibold px-8 py-4 rounded-2xl hover:bg-ink/80 transition-all active:scale-[0.98]">
+          Back to Home
+        </Link>
+      </div>
+    )
+  }
+
+  return (
+    <div className="max-w-lg mx-auto py-12 px-4">
+      <div className="text-center mb-8">
+        <div className="w-14 h-14 rounded-2xl bg-saloo-teal/10 border border-saloo-teal/20 flex items-center justify-center mx-auto mb-4">
+          <span className="text-2xl">✂</span>
+        </div>
+        <h1 className="font-syne text-2xl font-bold text-ink">Shop Details</h1>
+        <p className="text-secondary text-sm mt-2">Fill in your shop information. Our team will review and approve it.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <FormField label="Shop Name" name="name" placeholder="e.g. Classic Cuts Salon" required />
+        <FormField label="Description" name="description" placeholder="Brief description of your shop" textarea />
+        <FormField label="Phone" name="phone" placeholder="e.g. 9876543210" required type="tel" />
+        <FormField label="Email" name="email" placeholder="shop@example.com" type="email" />
+        <FormField label="Address" name="address" placeholder="Full street address" required />
+        <div className="grid grid-cols-2 gap-3">
+          <FormField label="City" name="city" placeholder="City" required />
+          <FormField label="State" name="state" placeholder="State" required />
+        </div>
+        <FormField label="Pincode" name="pincode" placeholder="6-digit pincode" required />
+
+        {formError && (
+          <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-xl p-3">{formError}</div>
+        )}
+
+        <button type="submit" disabled={formLoading}
+          className="w-full bg-ink text-white font-syne font-bold py-4 rounded-xl hover:bg-ink/80 disabled:opacity-50 transition-all active:scale-[0.98] text-base">
+          {formLoading ? 'Submitting...' : 'Submit for Approval'}
+        </button>
+        <p className="text-ink/40 text-xs text-center">Your shop will be reviewed before going live.</p>
+      </form>
+    </div>
+  )
+}
+
+function FormField({ label, name, placeholder, required, type, textarea }: {
+  label: string; name: string; placeholder: string; required?: boolean; type?: string; textarea?: boolean
+}) {
+  const cls = 'w-full px-4 py-3 rounded-xl bg-white border border-border text-ink text-sm placeholder:text-ink/30 focus:outline-none focus:border-saloo-teal/40 focus:ring-1 focus:ring-saloo-teal/20 transition-all'
+  return (
+    <div>
+      <label className="text-ink/70 text-xs font-medium mb-1 block">{label} {required && <span className="text-red-400">*</span>}</label>
+      {textarea ? (
+        <textarea name={name} placeholder={placeholder} rows={3} className={cls} />
+      ) : (
+        <input name={name} type={type ?? 'text'} placeholder={placeholder} required={required} className={cls} />
+      )}
     </div>
   )
 }

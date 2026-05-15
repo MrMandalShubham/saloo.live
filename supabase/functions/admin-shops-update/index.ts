@@ -43,6 +43,21 @@ serve(async (req) => {
       details: { previous_status: previousStatus, new_status: status, reason: reason ?? null },
     })
 
+    // Update owner's role based on shop status
+    if (status === 'verified') {
+      // Upgrade to shop_owner (only if current role is lower — don't downgrade admin)
+      const { data: ownerProfile } = await admin.from('users').select('role').eq('id', shop.owner_id).single()
+      if (ownerProfile && ownerProfile.role !== 'admin') {
+        await admin.from('users').update({ role: 'shop_owner' }).eq('id', shop.owner_id)
+      }
+    } else if (status === 'rejected' || status === 'suspended') {
+      // Downgrade back to customer (only if they were shop_owner, not admin)
+      const { data: ownerProfile } = await admin.from('users').select('role').eq('id', shop.owner_id).single()
+      if (ownerProfile && ownerProfile.role === 'shop_owner') {
+        await admin.from('users').update({ role: 'customer' }).eq('id', shop.owner_id)
+      }
+    }
+
     // Notify shop owner
     const actionLabel = status === 'verified' ? 'approved' : status === 'suspended' ? 'suspended' : status === 'rejected' ? 'rejected' : 'updated'
     await admin.from('notifications').insert({

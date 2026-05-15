@@ -14,7 +14,11 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   if (!user && !isDevBypass) redirect('/login')
 
   const { data: role } = await supabase.rpc('get_user_role' as any) as { data: string | null }
-  if (role !== 'shop_owner' && role !== 'admin' && !isDevBypass) redirect('/home')
+  if (role !== 'shop_owner' && role !== 'admin' && !isDevBypass) {
+    // Allow users with a shop (pending/verified) to access owner routes
+    const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user!.id).limit(1).single()
+    if (!shop) redirect('/open-shop')
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 relative overflow-hidden flex flex-col lg:flex-row selection:bg-saloo-pink/20 selection:text-saloo-dark">

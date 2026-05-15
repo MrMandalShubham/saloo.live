@@ -114,9 +114,9 @@ export async function updateSession(request: NextRequest) {
 
     const url = request.nextUrl.clone()
 
-    // Non-owner/Non-admin hitting /owner/* → check if they have a shop, else Open a Shop page
-    if (isOwnerRoute && role !== 'shop_owner' && role !== 'admin') {
-      // Check if user owns a shop (covers cases where role wasn't upgraded)
+    // /owner/dashboard is open to all authenticated users (page shows shop form or dashboard)
+    // Other /owner/* routes require shop_owner, admin, or an existing shop
+    if (isOwnerRoute && pathname !== '/owner/dashboard' && role !== 'shop_owner' && role !== 'admin') {
       const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).limit(1).single()
       if (!shop) {
         url.pathname = '/open-shop'
