@@ -215,7 +215,7 @@ export function AppNav() {
   return (
     <>
       {/* ── Top header ── */}
-      <header className="bg-[#1A1A1C]/90 backdrop-blur-3xl sticky top-0 z-50 border-b border-white/10 shadow-glass-sm">
+      <header className="bg-white/80 backdrop-blur-2xl sticky top-0 z-50 border-b-2 border-[#008B7D]/30 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 
           {/* Logo */}
@@ -223,7 +223,7 @@ export function AppNav() {
             <div className="w-8 h-8 rounded-lg bg-saloo-teal/15 border border-saloo-teal/40 flex items-center justify-center group-hover:border-saloo-teal/70 transition-colors">
               <span className="font-syne font-bold text-saloo-teal text-sm">✂</span>
             </div>
-            <span className="font-syne text-xl font-bold text-white tracking-wide">Saloo</span>
+            <span className="font-syne text-xl font-bold text-saloo-dark tracking-wide">Saloo</span>
           </Link>
 
           {/* Desktop nav */}
@@ -240,8 +240,8 @@ export function AppNav() {
                       : isOpenShop
                         ? 'text-saloo-teal/80 hover:text-saloo-teal hover:bg-saloo-teal/10 border border-saloo-teal/20 hover:border-saloo-teal/40'
                         : isDashboard
-                          ? 'text-white/70 hover:text-white hover:bg-white/10'
-                          : 'text-white/60 hover:text-white hover:bg-white/10'
+                          ? 'text-saloo-dark/70 hover:text-saloo-dark hover:bg-saloo-dark/5'
+                          : 'text-saloo-dark/60 hover:text-saloo-dark hover:bg-saloo-dark/5'
                   }`}>
                   {link.label}
                 </Link>
@@ -266,7 +266,7 @@ export function AppNav() {
               </div>
             </button>
             {popoverOpen && (
-              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-[#1A1A1C]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-glass-lg overflow-hidden">
+              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-white/95 backdrop-blur-xl border border-saloo-dark/10 rounded-2xl shadow-glass-lg overflow-hidden">
                 <PopoverContent />
               </div>
             )}
@@ -289,7 +289,7 @@ export function AppNav() {
               </div>
             </button>
             {popoverOpen && (
-              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-[#1A1A1C]/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-glass-lg overflow-hidden">
+              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-white/95 backdrop-blur-xl border border-saloo-dark/10 rounded-2xl shadow-glass-lg overflow-hidden">
                 <PopoverContent />
               </div>
             )}
@@ -298,14 +298,14 @@ export function AppNav() {
       </header>
 
       {/* ── Mobile bottom nav ── */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-[#1A1A1C]/90 backdrop-blur-3xl border-t border-white/10 shadow-glass-lg">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-2xl border-t-2 border-[#008B7D]/30 shadow-glass-lg">
         <div className="flex">
           {BOTTOM_NAV.map(item => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link key={item.href} href={item.href}
                 className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 ${
-                  active ? 'text-saloo-teal' : 'text-white/50 hover:text-white'
+                  active ? 'text-saloo-teal' : 'text-saloo-dark/50 hover:text-saloo-dark'
                 }`}>
                 <span className={`text-xl font-syne leading-none transition-all ${active ? 'scale-110' : ''}`}>
                   {item.icon}
