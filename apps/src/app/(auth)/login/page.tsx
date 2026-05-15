@@ -189,51 +189,7 @@ function LoginPage() {
 
         </div>
 
-        {/* Admin portal — subtle, not in main flow */}
-        <p className="text-center mt-6">
-          <Link
-            href="/admin/login"
-            className="text-white/20 hover:text-white/40 text-xs transition-colors"
-          >
-            Admin Portal →
-          </Link>
-        </p>
-
-        <div className="bg-white/[0.07] backdrop-blur-sm border border-white/15 rounded-2xl p-6 space-y-5">
-          <p className="text-white/30 text-[10px] uppercase tracking-widest text-center font-bold">Demo Access (No Auth)</p>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { label: 'User',  role: 'customer',   icon: '👤', path: '/home' },
-              { label: 'Owner', role: 'shop_owner', icon: '🏪', path: '/owner/dashboard' },
-              { label: 'Admin', role: 'admin',      icon: '🛡️', path: '/admin/dashboard' },
-            ].map(d => (
-              <button
-                key={d.role}
-                onClick={() => {
-                  document.cookie = "saloo-dev-bypass=true; path=/";
-                  document.cookie = `saloo-dev-role=${d.role}; path=/`;
-                  window.location.href = d.path;
-                }}
-                className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-gold/30 transition-all active:scale-95"
-              >
-                <span className="text-lg">{d.icon}</span>
-                <span className="text-[10px] text-white/50 font-medium uppercase tracking-tighter">{d.label}</span>
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => {
-              document.cookie = "saloo-dev-bypass=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-              document.cookie = "saloo-dev-role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
-              window.location.reload();
-            }}
-            className="w-full text-white/20 hover:text-white/40 text-[10px] uppercase tracking-widest transition-colors py-1"
-          >
-            Clear Bypass
-          </button>
-        </div>
-
-        <p className="text-center text-white/20 text-xs mt-3">
+        <p className="text-center text-white/20 text-xs mt-6">
           By continuing, you agree to our Terms &amp; Privacy Policy.
         </p>
       </div>
