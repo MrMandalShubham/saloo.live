@@ -123,8 +123,10 @@ export function AppNav() {
     { href: '/loyalty',       label: 'Rewards'  },
     { href: '/profile',       label: 'Profile'  },
     ...(isOwner
-      ? [{ href: '/owner/dashboard', label: 'Owner Dashboard' }]
-      : [{ href: '/open-shop', label: 'Open a Shop' }]
+      ? [{ href: '/owner/dashboard', label: 'Dashboard' }]
+      : isAdmin
+        ? [{ href: '/admin/dashboard', label: 'Admin' }]
+        : [{ href: '/open-shop', label: 'Open a Shop' }]
     ),
   ]
 
@@ -157,21 +159,23 @@ export function AppNav() {
       </div>
 
       {/* Shop owner / open a shop shortcut */}
-      <div className="px-3 pt-2 pb-1 border-b border-saloo-dark/10">
-        {isOwner ? (
-          <Link href="/owner/dashboard" onClick={() => setPopover(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-saloo-pink/10 hover:bg-saloo-pink/15 text-saloo-pink text-sm font-medium transition-all">
-            <span className="text-base">🏪</span>
-            Owner Dashboard
-          </Link>
-        ) : (
-          <Link href="/open-shop" onClick={() => setPopover(false)}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-saloo-dark/5 hover:bg-saloo-dark/10 text-saloo-dark/70 hover:text-saloo-dark text-sm transition-all">
-            <span className="text-base">✂</span>
-            Open a Shop
-          </Link>
-        )}
-      </div>
+      {!isAdmin && (
+        <div className="px-3 pt-2 pb-1 border-b border-saloo-dark/10">
+          {isOwner ? (
+            <Link href="/owner/dashboard" onClick={() => setPopover(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-saloo-pink/10 hover:bg-saloo-pink/15 text-saloo-pink text-sm font-medium transition-all">
+              <span className="text-base">🏪</span>
+              Owner Dashboard
+            </Link>
+          ) : (
+            <Link href="/open-shop" onClick={() => setPopover(false)}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-saloo-dark/5 hover:bg-saloo-dark/10 text-saloo-dark/70 hover:text-saloo-dark text-sm transition-all">
+              <span className="text-base">✂</span>
+              Open a Shop
+            </Link>
+          )}
+        </div>
+      )}
 
       {others.length > 0 && (
         <div className="border-b border-saloo-dark/10">
@@ -300,10 +304,10 @@ export function AppNav() {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link key={item.href} href={item.href}
-                className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 transition-all active:scale-95 ${
+                className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 ${
                   active ? 'text-saloo-teal' : 'text-saloo-dark/50 hover:text-saloo-dark'
                 }`}>
-                <span className={`text-[26px] font-syne leading-none transition-all ${active ? 'scale-110' : ''}`}>
+                <span className={`text-xl font-syne leading-none transition-all ${active ? 'scale-110' : ''}`}>
                   {item.icon}
                 </span>
                 <span className={`text-[10px] font-medium leading-none ${active ? 'text-saloo-teal' : ''}`}>
