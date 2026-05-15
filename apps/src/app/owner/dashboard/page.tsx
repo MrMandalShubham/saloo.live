@@ -114,7 +114,17 @@ export default async function OwnerDashboardPage() {
     )
   }
 
-  const data = await getDashboardData(shop.id, supabase)
+  let data
+  try {
+    data = await getDashboardData(shop.id, supabase)
+  } catch (err) {
+    console.error('getDashboardData error:', err)
+    data = {
+      today_bookings: 0, today_revenue: 0, pending_confirmations: 0,
+      weekly_revenue: 0, active_disputes: 0, avg_rating: 0, total_reviews: 0,
+      upcoming_today: [],
+    }
+  }
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
