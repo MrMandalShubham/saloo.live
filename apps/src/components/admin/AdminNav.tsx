@@ -68,16 +68,24 @@ export function AdminNav() {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/60 backdrop-blur-3xl border-t border-white/60 shadow-glass-lg flex justify-around py-2">
-        {NAV_ITEMS.slice(0, 5).map(item => {
-          const active = pathname.startsWith(item.href)
-          return (
-            <Link key={item.href} href={item.href} className={`flex flex-col items-center py-2 gap-0.5 transition-all active:scale-95 shrink-0 px-2 ${active ? 'text-saloo-admin' : 'text-saloo-dark/70 hover:text-saloo-dark'}`}>
-              <span className={`text-xl ${active ? 'opacity-100' : 'opacity-60 grayscale'}`}>{item.emoji}</span>
-              <span className={`text-[10px] font-medium ${active ? 'text-saloo-admin' : 'text-saloo-dark/50'}`}>{item.label}</span>
-            </Link>
-          )
-        })}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/60 backdrop-blur-3xl border-t border-white/60 shadow-glass-lg">
+        <div className="flex overflow-x-auto scrollbar-none">
+          {NAV_ITEMS.map(item => {
+            const active = pathname.startsWith(item.href)
+            return (
+              <Link key={item.href} href={item.href} className={`flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 ${active ? 'text-saloo-admin' : 'text-saloo-dark/70 hover:text-saloo-dark'}`}>
+                <span className={`text-xl ${active ? 'opacity-100' : 'opacity-60 grayscale'}`}>{item.emoji}</span>
+                <span className={`text-[10px] font-medium whitespace-nowrap ${active ? 'text-saloo-admin' : 'text-saloo-dark/50'}`}>{item.label}</span>
+              </Link>
+            )
+          })}
+          {/* Customer view — always at the end of the scroll strip */}
+          <Link href="/home"
+            className="flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 text-saloo-dark/50 hover:text-saloo-dark border-l border-saloo-dark/10">
+            <span className="text-xl opacity-60 grayscale">👤</span>
+            <span className="text-[10px] font-medium whitespace-nowrap">Customer</span>
+          </Link>
+        </div>
       </nav>
     </>
   )
