@@ -312,16 +312,6 @@ export function AppNav() {
               </Link>
             )
           })}
-          {/* Owner Dashboard / Open a Shop — at the end of scroll strip */}
-          <Link href={isOwner ? '/owner/dashboard' : '/open-shop'}
-            className={`flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 border-l border-saloo-dark/10 ${
-              pathname.startsWith('/owner') || pathname === '/open-shop' ? 'text-saloo-teal' : 'text-saloo-dark/50 hover:text-saloo-dark'
-            }`}>
-            <span className="text-2xl leading-none">🏪</span>
-            <span className="text-[10px] font-medium leading-none whitespace-nowrap">
-              {isOwner ? 'My Shop' : 'Open Shop'}
-            </span>
-          </Link>
         </div>
       </div>
     </>
