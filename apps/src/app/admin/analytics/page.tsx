@@ -8,7 +8,7 @@ const BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 async function fetchAnalytics(token: string, period: string) {
   const res = await fetch(`${BASE}/functions/v1/admin-analytics-get?period=${period}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
   })
   const { data } = await res.json()
   return data

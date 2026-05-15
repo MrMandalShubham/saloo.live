@@ -9,7 +9,7 @@ const BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 async function fetchUsers(token: string, role: string, search: string, page: number) {
   const params = new URLSearchParams({ role, search, page: String(page), limit: '20' })
   const res = await fetch(`${BASE}/functions/v1/admin-users-list?${params}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
   })
   return res.json()
 }
@@ -43,7 +43,7 @@ export default function AdminUsersPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE}/functions/v1/admin-users-update`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json', apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
         body: JSON.stringify(payload),
       })
       const json = await res.json()

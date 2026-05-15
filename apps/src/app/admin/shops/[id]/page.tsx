@@ -30,7 +30,7 @@ export default function AdminShopDetailPage() {
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE}/functions/v1/owner-shop-get`, {
-        headers: { Authorization: `Bearer ${session!.access_token}`, 'X-Shop-Id': id },
+        headers: { Authorization: `Bearer ${session!.access_token}`, 'X-Shop-Id': id, apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
       })
       const { data } = await res.json()
       return data
@@ -42,7 +42,7 @@ export default function AdminShopDetailPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE}/functions/v1/admin-shops-update`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json', apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
         body: JSON.stringify({ shop_id: id, status, reason }),
       })
       const json = await res.json()

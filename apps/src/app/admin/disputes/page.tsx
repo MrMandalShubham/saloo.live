@@ -10,7 +10,7 @@ const BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 async function fetchDisputes(token: string, status: string, page: number) {
   const params = new URLSearchParams({ status, page: String(page), limit: '20' })
   const res = await fetch(`${BASE}/functions/v1/admin-disputes-list?${params}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}`, apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
   })
   return res.json()
 }

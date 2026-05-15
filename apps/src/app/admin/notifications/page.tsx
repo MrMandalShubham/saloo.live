@@ -24,7 +24,7 @@ export default function AdminNotificationsPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE}/functions/v1/admin-notifications-send`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json', apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
         body: JSON.stringify({ title, body, target }),
       })
       const json = await res.json()

@@ -29,7 +29,7 @@ export default function AdminDisputeDetailPage() {
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE}/functions/v1/admin-disputes-list?status=all&limit=200`, {
-        headers: { Authorization: `Bearer ${session!.access_token}` },
+        headers: { Authorization: `Bearer ${session!.access_token}`, apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
       })
       const { data } = await res.json()
       return (data ?? []).find((d: any) => d.id === id) ?? null
@@ -41,7 +41,7 @@ export default function AdminDisputeDetailPage() {
       const { data: { session } } = await supabase.auth.getSession()
       const res = await fetch(`${BASE}/functions/v1/admin-disputes-resolve`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json', apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
         body: JSON.stringify({
           dispute_id: id,
           resolution,
