@@ -323,7 +323,7 @@ export function OwnerNav() {
             return (
               <Link key={item.href} href={item.href}
                 className={`flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 ${active ? 'text-saloo-pink' : 'text-saloo-dark/70 hover:text-saloo-dark'}`}>
-                <span className="text-lg leading-none">{item.icon}</span>
+                <span className="text-2xl font-syne leading-none">{item.icon}</span>
                 <span className="text-[10px] font-medium whitespace-nowrap">{item.label}</span>
               </Link>
             )
@@ -331,7 +331,7 @@ export function OwnerNav() {
           {/* Customer view — always at the end of the scroll strip */}
           <Link href="/home"
             className="flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 text-saloo-dark/50 hover:text-saloo-dark border-l border-saloo-dark/10">
-            <span className="text-lg leading-none">👤</span>
+            <span className="text-2xl font-syne leading-none">◷</span>
             <span className="text-[10px] font-medium whitespace-nowrap">Customer</span>
           </Link>
         </div>
