@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
 const OPEN_HOURS  = ['06:00','07:00','08:00','09:00','10:00','11:00','12:00']
 const CLOSE_HOURS = ['17:00','18:00','19:00','20:00','21:00','22:00','23:00']
@@ -19,37 +20,43 @@ export default function OwnerAvailabilityPage() {
   const qc = useQueryClient()
   const [hours, setHours] = useState<HourRow[] | null>(null)
   const [saved, setSaved] = useState(false)
+  const initialized = useRef(false)
 
-  useQuery({
+  const { data: shopData } = useQuery({
     queryKey: ['owner-shop'],
     queryFn: async () => {
       const { data: { session } } = await createClient().auth.getSession()
-      const res = await fetch(`${BASE_URL}/functions/v1/owner-shop-get`, { headers: { Authorization: `Bearer ${session!.access_token}` } })
+      const res = await fetch(`${BASE_URL}/functions/v1/owner-shop-get`, {
+        headers: { Authorization: `Bearer ${session!.access_token}`, apikey: ANON_KEY },
+      })
       const { data } = await res.json()
       return data
     },
-    onSuccess: (data: any) => {
-      if (!hours) {
-        const filled = makeDefaults()
-        for (const h of (data?.hours ?? [])) {
-          const idx = filled.findIndex(f => f.day_of_week === h.day_of_week)
-          if (idx >= 0) filled[idx] = { ...h }
-        }
-        setHours(filled)
+  })
+
+  // Populate hours from fetched data (replaces deprecated onSuccess)
+  useEffect(() => {
+    if (shopData && !initialized.current) {
+      initialized.current = true
+      const filled = makeDefaults()
+      for (const h of (shopData?.hours ?? [])) {
+        const idx = filled.findIndex((f: HourRow) => f.day_of_week === h.day_of_week)
+        if (idx >= 0) filled[idx] = { day_of_week: h.day_of_week, open_time: h.open_time, close_time: h.close_time, is_closed: h.is_closed }
       }
-    },
-  } as any)
+      setHours(filled)
+    }
+  }, [shopData])
 
   const saveMutation = useMutation({
     mutationFn: async (h: HourRow[]) => {
       const { data: { session } } = await createClient().auth.getSession()
       const res = await fetch(`${BASE_URL}/functions/v1/owner-shop-hours-update`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json' },
+        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json', apikey: ANON_KEY },
         body: JSON.stringify({ hours: h, breaks: [] }),
       })
       const json = await res.json()
-      if (json.error) throw new Error(json.error.message)
+      if (json.error) throw new Error(json.error.message ?? json.error)
     },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['owner-shop'] }); setSaved(true); setTimeout(() => setSaved(false), 3000) },
   })
