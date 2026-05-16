@@ -103,7 +103,7 @@ export default function EditProfilePage() {
           phone: phone.trim() || null,
           avatar_url: avatarUrl,
           date_of_birth: dateOfBirth || null,
-          gender: gender || null,
+          gender: (gender || null) as "male" | "female" | "other" | "prefer_not_to_say" | null,
           address: address.trim() || null,
           city: city.trim() || null,
           pincode: pincode.trim() || null,
