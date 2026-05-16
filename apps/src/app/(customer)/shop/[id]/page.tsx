@@ -209,7 +209,7 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
       )}
 
       {/* Book CTA */}
-      <div className="fixed bottom-0 left-0 right-0 md:static md:mt-0 bg-white/80 backdrop-blur-lg border-t md:border md:rounded-2xl border-border/60 p-4 z-40 shadow-royal-lg md:shadow-sm">
+      <div className="fixed bottom-[68px] left-0 right-0 md:static md:bottom-0 md:mt-0 bg-white/80 backdrop-blur-lg border-t md:border md:rounded-2xl border-border/60 p-4 z-40 shadow-royal-lg md:shadow-sm">
         <Link
           href={`/book/${shop.id}`}
           className="block w-full bg-saloo-teal text-navy font-syne font-bold text-center py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all hover:shadow-gold text-lg tracking-tight"
