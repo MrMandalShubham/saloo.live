@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
       return error('name, category, duration_min, price are required', 400)
     }
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       shop_id: shop.id,
       name: body.name,
       category: body.category,
@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
       is_addon: body.is_addon ?? false,
       is_active: body.is_active ?? true,
     }
+    if (body.image_url !== undefined) payload.image_url = body.image_url || null
 
     let data, dbErr
     if (body.id) {

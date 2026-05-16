@@ -247,6 +247,7 @@ export type Database = {
           duration_min: number
           price: number
           description: string | null
+          image_url: string | null
           is_active: boolean
           is_addon: boolean
           sort_order: number
@@ -261,6 +262,7 @@ export type Database = {
           duration_min: number
           price: number
           description?: string | null
+          image_url?: string | null
           is_active?: boolean
           is_addon?: boolean
           sort_order?: number

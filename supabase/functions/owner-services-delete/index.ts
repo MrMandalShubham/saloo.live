@@ -11,8 +11,13 @@ Deno.serve(async (req) => {
   if (req.method !== 'DELETE' && req.method !== 'POST') return error('Method not allowed', 405)
 
   try {
-    const url = new URL(req.url)
-    const serviceId = url.pathname.split('/').pop()
+    // Accept service_id from body or URL path
+    let serviceId: string | undefined
+    try { const body = await req.json(); serviceId = body.service_id } catch {}
+    if (!serviceId) {
+      const url = new URL(req.url)
+      serviceId = url.pathname.split('/').pop()
+    }
     if (!serviceId) return error('Service ID required', 400)
 
     const supabase = createAdminClient()
