@@ -9,12 +9,23 @@ import { formatINR, formatDistance } from '@saloo/lib'
 async function fetchNearbyShops() {
   const supabase = createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  const res = await fetch(
-    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-nearby?lat=22.7196&lng=75.8577&radius=10000&limit=12`,
-    { headers: { Authorization: `Bearer ${session?.access_token}` } }
+  const apikey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
+
+  // Try nearby first (requires shops to have location set)
+  const nearbyRes = await fetch(
+    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-nearby?lat=22.7196&lng=75.8577&radius_km=50&limit=12`,
+    { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey } }
   )
-  const json = await res.json()
-  return json.data ?? []
+  const nearbyJson = await nearbyRes.json()
+  if (nearbyJson.data?.length > 0) return nearbyJson.data
+
+  // Fallback: fetch all verified shops via search (for shops without location)
+  const searchRes = await fetch(
+    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-search?q=&city=&limit=12`,
+    { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey } }
+  )
+  const searchJson = await searchRes.json()
+  return searchJson.data ?? []
 }
 
 export function ShopsGrid() {
@@ -75,13 +86,13 @@ export function ShopsGrid() {
                 </div>
               </div>
             )}
-            {shop.open_now !== undefined && (
+            {(shop.open_now !== undefined || shop.is_open_now !== undefined) && (
               <span className={`absolute top-2.5 right-2.5 text-[11px] px-2.5 py-1 rounded-pill font-semibold backdrop-blur-sm ${
-                shop.open_now
+                (shop.open_now || shop.is_open_now)
                   ? 'bg-emerald-500/90 text-white'
                   : 'bg-black/50 text-white/70'
               }`}>
-                {shop.open_now ? 'Open' : 'Closed'}
+                {(shop.open_now || shop.is_open_now) ? 'Open' : 'Closed'}
               </span>
             )}
           </div>
@@ -89,19 +100,21 @@ export function ShopsGrid() {
             <h3 className="font-syne font-bold text-navy truncate">{shop.name}</h3>
             <div className="flex items-center justify-between mt-0.5">
               <p className="text-xs text-muted truncate flex-1">{shop.address}</p>
-              {shop.distance_m != null && (
-                <span className="text-xs text-muted ml-2 shrink-0 font-medium">{formatDistance(shop.distance_m)}</span>
+              {(shop.distance_m != null || shop.distance_km != null) && (
+                <span className="text-xs text-muted ml-2 shrink-0 font-medium">
+                  {shop.distance_km != null ? `${Number(shop.distance_km).toFixed(1)} km` : formatDistance(shop.distance_m)}
+                </span>
               )}
             </div>
             <div className="flex items-center gap-3 mt-2.5 pt-2.5 border-t border-border">
-              {shop.avg_rating > 0 && (
+              {(shop.rating ?? shop.avg_rating) > 0 && (
                 <span className="text-xs font-semibold text-navy flex items-center gap-1">
                   <span className="text-saloo-teal">★</span>
-                  {shop.avg_rating.toFixed(1)}
-                  <span className="text-muted font-normal">({shop.total_reviews})</span>
+                  {Number(shop.rating ?? shop.avg_rating).toFixed(1)}
+                  <span className="text-muted font-normal">({shop.review_count ?? shop.total_reviews ?? 0})</span>
                 </span>
               )}
-              {shop.min_price > 0 && (
+              {(shop.min_price ?? 0) > 0 && (
                 <span className="text-xs text-muted ml-auto">from <span className="font-semibold text-secondary">{formatINR(shop.min_price)}</span></span>
               )}
             </div>

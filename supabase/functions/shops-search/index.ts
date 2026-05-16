@@ -12,8 +12,6 @@ Deno.serve(async (req) => {
     const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '20'), 50)
     const page = parseInt(url.searchParams.get('page') ?? '0')
 
-    if (!q && !city) return error('q or city is required', 400)
-
     const supabase = createAdminClient()
 
     let query = supabase
@@ -25,8 +23,6 @@ Deno.serve(async (req) => {
       .range(page * limit, page * limit + limit - 1)
 
     if (city) query = query.ilike('city', `%${city}%`)
-
-    // pg_trgm similarity search on name
     if (q) query = query.ilike('name', `%${q}%`)
 
     const { data, error: dbErr } = await query

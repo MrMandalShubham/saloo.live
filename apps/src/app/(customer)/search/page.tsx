@@ -13,18 +13,21 @@ async function searchShops(q: string, filters: { openNow: boolean; features: str
   const supabase = createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
+  const apikey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
+
   const params = new URLSearchParams({
-    lat: '22.7196', lng: '75.8577', radius: '20000', limit: '20',
+    lat: '22.7196', lng: '75.8577', radius_km: '50', limit: '20',
     ...(q && { q }),
     ...(filters.openNow && { open_now: 'true' }),
     ...(filters.features.length && { features: filters.features.join(',') }),
-    sort: filters.sort,
+    sort_by: filters.sort === 'distance' ? 'nearest' : filters.sort,
   })
 
+  // Use search for text queries (works without PostGIS), nearby for geo queries
   const fn = q ? 'shops-search' : 'shops-nearby'
   const res = await fetch(
     `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/${fn}?${params}`,
-    { headers: { Authorization: `Bearer ${session?.access_token}` } }
+    { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey } }
   )
   const json = await res.json()
   return json.data ?? []
@@ -215,11 +218,11 @@ export default function SearchPage() {
                   </div>
                 )}
                 <span className={`absolute top-3 right-3 text-[11px] px-2.5 py-1 rounded-xl font-bold backdrop-blur-md ${
-                  shop.open_now
+                  (shop.open_now || shop.is_open_now)
                     ? 'bg-emerald-500/90 text-white shadow-sm'
                     : 'bg-black/50 text-white/70'
                 }`}>
-                  {shop.open_now ? 'Open' : 'Closed'}
+                  {(shop.open_now || shop.is_open_now) ? 'Open' : 'Closed'}
                 </span>
               </div>
               <div className="p-4">
@@ -230,21 +233,23 @@ export default function SearchPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                   </svg>
                   <p className="text-xs text-muted truncate flex-1">{shop.address}</p>
-                  {shop.distance_m != null && (
-                    <span className="text-[11px] text-navy font-bold bg-lavender px-2 py-0.5 rounded-lg shrink-0">{formatDistance(shop.distance_m)}</span>
+                  {(shop.distance_m != null || shop.distance_km != null) && (
+                    <span className="text-[11px] text-navy font-bold bg-lavender px-2 py-0.5 rounded-lg shrink-0">
+                      {shop.distance_km != null ? `${Number(shop.distance_km).toFixed(1)} km` : formatDistance(shop.distance_m)}
+                    </span>
                   )}
                 </div>
                 <div className="flex items-center gap-3 mt-3 pt-3 border-t border-border/60">
-                  {shop.avg_rating > 0 && (
+                  {(shop.rating ?? shop.avg_rating) > 0 && (
                     <span className="text-xs font-semibold text-navy flex items-center gap-1">
                       <svg className="w-3.5 h-3.5 text-saloo-teal" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
                       </svg>
-                      {shop.avg_rating.toFixed(1)}
-                      <span className="text-muted font-normal">({shop.total_reviews})</span>
+                      {Number(shop.rating ?? shop.avg_rating).toFixed(1)}
+                      <span className="text-muted font-normal">({shop.review_count ?? shop.total_reviews ?? 0})</span>
                     </span>
                   )}
-                  {shop.min_price > 0 && (
+                  {(shop.min_price ?? 0) > 0 && (
                     <span className="text-xs text-muted ml-auto">from <span className="font-bold text-saloo-teal">{formatINR(shop.min_price)}</span></span>
                   )}
                 </div>

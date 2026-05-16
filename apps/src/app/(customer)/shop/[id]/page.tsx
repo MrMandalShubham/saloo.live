@@ -13,7 +13,7 @@ async function fetchShop(id: string) {
 
   const res = await fetch(
     `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-get/${id}`,
-    { headers: { Authorization: `Bearer ${session?.access_token ?? ''}` }, next: { revalidate: 60 } }
+    { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? '' }, next: { revalidate: 60 } }
   )
   const json = await res.json()
   return json.data ?? null
@@ -22,9 +22,10 @@ async function fetchShop(id: string) {
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
   const shop = await fetchShop(params.id)
   if (!shop) return {}
+  const rating = shop.rating ?? shop.avg_rating ?? 0
   return {
     title: `${shop.name} — Saloo`,
-    description: `Book a haircut at ${shop.name} on Saloo. ${shop.avg_rating > 0 ? `Rated ${shop.avg_rating.toFixed(1)}★.` : ''} ${shop.address}`,
+    description: `Book a haircut at ${shop.name} on Saloo. ${rating > 0 ? `Rated ${Number(rating).toFixed(1)}★.` : ''} ${shop.address}`,
   }
 }
 
@@ -38,7 +39,9 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
 
   const services = (shop.services ?? []).filter((s: any) => !s.is_addon)
   const addons = (shop.services ?? []).filter((s: any) => s.is_addon)
-  const reviews = (shop.reviews ?? []).slice(0, 5)
+  const reviews = (shop.latest_reviews ?? shop.reviews ?? []).slice(0, 5)
+  const shopRating = shop.rating ?? shop.avg_rating ?? 0
+  const shopReviewCount = shop.review_count ?? shop.total_reviews ?? 0
 
   return (
     <div className="max-w-4xl mx-auto space-y-5 pb-24 md:pb-6">
@@ -68,19 +71,19 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
           </div>
         </div>
         <div className="absolute top-4 right-4 flex gap-2">
-          {shop.avg_rating > 0 && (
+          {shopRating > 0 && (
             <span className="bg-black/40 backdrop-blur-md text-white text-sm px-3 py-1.5 rounded-xl font-semibold flex items-center gap-1.5 shadow-sm">
               <svg className="w-3.5 h-3.5 text-saloo-teal" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
               </svg>
-              {shop.avg_rating.toFixed(1)}
-              <span className="text-white/60 font-normal">({shop.total_reviews})</span>
+              {Number(shopRating).toFixed(1)}
+              <span className="text-white/60 font-normal">({shopReviewCount})</span>
             </span>
           )}
           <span className={`text-sm px-3 py-1.5 rounded-xl font-bold backdrop-blur-md shadow-sm ${
-            shop.is_open ? 'bg-emerald-500/90 text-white' : 'bg-black/40 text-white/70'
+            shop.is_open || shop.is_open_now ? 'bg-emerald-500/90 text-white' : 'bg-black/40 text-white/70'
           }`}>
-            {shop.is_open ? 'Open Now' : 'Closed'}
+            {shop.is_open || shop.is_open_now ? 'Open Now' : 'Closed'}
           </span>
         </div>
       </div>
