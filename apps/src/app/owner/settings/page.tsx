@@ -84,7 +84,9 @@ export default function OwnerSettingsPage() {
     setUploading(true); setErr('')
     try {
       const ext = file.name.split('.').pop()
-      const path = `shops/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+      const shopId = form?.id ?? shop?.id
+      if (!shopId) { setErr('Shop not found'); return }
+      const path = `${shopId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
       const { error: upErr } = await supabase.storage.from('shop-photos').upload(path, file, { upsert: true })
       if (upErr) throw upErr
       const { data: { publicUrl } } = supabase.storage.from('shop-photos').getPublicUrl(path)
