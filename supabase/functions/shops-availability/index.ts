@@ -27,11 +27,13 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url)
-    const shopId = url.pathname.split('/')[url.pathname.split('/').length - 2]
+    // Support both /shops-availability/{shopId}?date=... and ?shop_id=...&date=...
+    const pathParts = url.pathname.split('/').filter(Boolean)
+    const shopId = url.searchParams.get('shop_id') ?? pathParts[pathParts.length - 1]
     const date = url.searchParams.get('date')  // YYYY-MM-DD
     const barberId = url.searchParams.get('barber_id')
 
-    if (!shopId || !date) return error('shop_id and date are required', 400)
+    if (!shopId || shopId === 'shops-availability' || !date) return error('shop_id and date are required', 400)
 
     const parsedDate = new Date(date + 'T00:00:00')
     const dayOfWeek = parsedDate.getDay()

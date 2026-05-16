@@ -7,27 +7,30 @@ import { createClient } from '@/lib/supabase/client'
 import { formatINR, formatDate, formatTime, next7Days } from '@saloo/lib'
 import Script from 'next/script'
 
+const BASE = process.env['NEXT_PUBLIC_SUPABASE_URL']
+const ANON = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
 const STEPS = ['Service', 'Barber', 'Date & Time', 'Review & Pay'] as const
 
+async function getSession() {
+  const { data: { session } } = await createClient().auth.getSession()
+  return session
+}
+
 async function fetchShop(id: string) {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  const res = await fetch(
-    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-get/${id}`,
-    { headers: { Authorization: `Bearer ${session?.access_token}` } }
-  )
+  const session = await getSession()
+  const res = await fetch(`${BASE}/functions/v1/shops-get/${id}`, {
+    headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: ANON },
+  })
   const json = await res.json()
   return json.data
 }
 
 async function fetchAvailability(shopId: string, date: string, barberId?: string) {
-  const supabase = createClient()
-  const { data: { session } } = await supabase.auth.getSession()
-  const params = new URLSearchParams({ shop_id: shopId, date, ...(barberId && { barber_id: barberId }) })
-  const res = await fetch(
-    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-availability?${params}`,
-    { headers: { Authorization: `Bearer ${session?.access_token}` } }
-  )
+  const session = await getSession()
+  const params = new URLSearchParams({ date, ...(barberId && { barber_id: barberId }) })
+  const res = await fetch(`${BASE}/functions/v1/shops-availability/${shopId}?${params}`, {
+    headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: ANON },
+  })
   const json = await res.json()
   return json.data?.slots ?? []
 }
@@ -35,22 +38,22 @@ async function fetchAvailability(shopId: string, date: string, barberId?: string
 export default function BookingFlowPage() {
   const { shopId } = useParams<{ shopId: string }>()
   const router = useRouter()
-  const supabase = createClient()
 
   const [step, setStep] = useState(0)
   const [selectedServices, setSelectedServices] = useState<any[]>([])
   const [selectedBarber, setSelectedBarber] = useState<any>(null)
   const [selectedDate, setSelectedDate] = useState('')
-  const [selectedSlot, setSelectedSlot] = useState('')
+  const [selectedSlot, setSelectedSlot] = useState<any>(null) // full slot object
   const [instructions, setInstructions] = useState('')
   const [holding, setHolding] = useState(false)
   const [paying, setPaying] = useState(false)
   const [holdData, setHoldData] = useState<any>(null)
+  const [err, setErr] = useState('')
 
   const { data: shop } = useQuery({ queryKey: ['shop', shopId], queryFn: () => fetchShop(shopId) })
   const days = next7Days()
 
-  const { data: slots = [] } = useQuery({
+  const { data: slots = [], isLoading: slotsLoading } = useQuery({
     queryKey: ['availability', shopId, selectedDate, selectedBarber?.id],
     queryFn: () => fetchAvailability(shopId, selectedDate, selectedBarber?.id),
     enabled: !!selectedDate && step >= 2,
@@ -58,7 +61,9 @@ export default function BookingFlowPage() {
 
   const services = (shop?.services ?? []).filter((s: any) => !s.is_addon)
   const addons = (shop?.services ?? []).filter((s: any) => s.is_addon)
-  const total = selectedServices.reduce((sum: number, s: any) => sum + s.price, 0)
+  const barbers = shop?.barbers ?? []
+  const total = selectedServices.reduce((sum: number, s: any) => sum + Number(s.price), 0)
+  const totalDuration = selectedServices.filter((s: any) => !s.is_addon).reduce((sum: number, s: any) => sum + s.duration_min, 0)
 
   const toggleService = (svc: any) =>
     setSelectedServices(prev => prev.find(s => s.id === svc.id)
@@ -67,48 +72,55 @@ export default function BookingFlowPage() {
     )
 
   const handleHold = async () => {
-    setHolding(true)
+    if (!selectedSlot) return
+    setHolding(true); setErr('')
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const res = await fetch(
-        `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/bookings-hold`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            shop_id: shopId,
-            barber_id: selectedBarber?.id,
-            service_ids: selectedServices.map(s => s.id),
-            date: selectedDate,
-            start_time: selectedSlot,
-          }),
-        }
-      )
+      const session = await getSession()
+      // If "Any barber", pick the first available barber from the slot
+      let barberId = selectedBarber?.id
+      if (!barberId) {
+        const available = selectedSlot.available_barbers
+        if (!available?.length) throw new Error('No barbers available for this slot')
+        barberId = available[0]
+      }
+
+      const mainIds = selectedServices.filter(s => !s.is_addon).map((s: any) => s.id)
+      const addonIds = selectedServices.filter(s => s.is_addon).map((s: any) => s.id)
+
+      const res = await fetch(`${BASE}/functions/v1/bookings-hold`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json', apikey: ANON },
+        body: JSON.stringify({
+          shop_id: shopId,
+          barber_id: barberId,
+          service_ids: mainIds,
+          addon_ids: addonIds,
+          date: selectedDate,
+          start_time: selectedSlot.start_time,
+        }),
+      })
       const json = await res.json()
-      if (json.error) throw new Error(json.error.message)
-      setHoldData(json.data)
+      if (json.error) throw new Error(json.error.message ?? json.error)
+      setHoldData({ ...json.data, barber_id: barberId })
       setStep(3)
     } catch (e: any) {
-      alert(e.message)
+      setErr(e.message)
     } finally {
       setHolding(false)
     }
   }
 
   const handlePay = async () => {
-    setPaying(true)
+    setPaying(true); setErr('')
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      const orderRes = await fetch(
-        `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/payments-create-order`,
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({ hold_id: holdData.hold_id }),
-        }
-      )
+      const session = await getSession()
+      const orderRes = await fetch(`${BASE}/functions/v1/payments-create-order`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json', apikey: ANON },
+        body: JSON.stringify({ hold_id: holdData.hold_id }),
+      })
       const orderData = await orderRes.json()
-      if (orderData.error) throw new Error(orderData.error.message)
+      if (orderData.error) throw new Error(orderData.error.message ?? orderData.error)
 
       const { razorpay_order_id, amount, key_id } = orderData.data
 
@@ -138,83 +150,89 @@ export default function BookingFlowPage() {
       })
       rzp.open()
     } catch (e: any) {
-      alert(e.message)
+      setErr(e.message)
     } finally {
       setPaying(false)
     }
   }
 
   const confirmBooking = async (orderId: string, paymentId: string, sig: string, token?: string) => {
-    const { data: { session } } = await supabase.auth.getSession()
-    const res = await fetch(
-      `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/payments-verify`,
-      {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${session?.access_token ?? token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          hold_id: holdData.hold_id,
-          razorpay_order_id: orderId,
-          razorpay_payment_id: paymentId,
-          razorpay_signature: sig,
-          instructions: instructions || undefined,
-        }),
-      }
-    )
+    const session = await getSession()
+    const res = await fetch(`${BASE}/functions/v1/payments-verify`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session?.access_token ?? token}`, 'Content-Type': 'application/json', apikey: ANON },
+      body: JSON.stringify({
+        hold_id: holdData.hold_id,
+        razorpay_order_id: orderId,
+        razorpay_payment_id: paymentId,
+        razorpay_signature: sig,
+        instructions: instructions || undefined,
+      }),
+    })
     const json = await res.json()
-    if (json.error) throw new Error(json.error.message)
+    if (json.error) throw new Error(json.error.message ?? json.error)
     router.push(`/book/${shopId}/confirmation`)
   }
+
+  // Find barber name by ID
+  const getBarberName = (id: string) => barbers.find((b: any) => b.id === id)?.name ?? 'Assigned Barber'
 
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
 
-      <div className="max-w-2xl mx-auto space-y-6 pb-20 md:pb-6">
-        {/* Progress */}
-        <div className="flex items-center gap-2">
+      <div className="max-w-2xl mx-auto space-y-6 pb-24 md:pb-6">
+        {/* Progress steps */}
+        <div className="flex items-center gap-1">
           {STEPS.map((s, i) => (
-            <div key={s} className="flex-1 flex flex-col items-center gap-1">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                i < step ? 'bg-success text-white' : i === step ? 'bg-saloo-teal text-navy' : 'bg-gray-200 text-gray-500'
-              }`}>
-                {i < step ? '✓' : i + 1}
+            <div key={s} className="flex-1">
+              <div className="flex items-center gap-1.5">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                  i < step ? 'bg-green-500 text-white' : i === step ? 'bg-saloo-teal text-navy' : 'bg-gray-200 text-gray-500'
+                }`}>
+                  {i < step ? '✓' : i + 1}
+                </div>
+                <span className="text-[10px] text-gray-500 hidden sm:block truncate">{s}</span>
               </div>
-              <span className="text-[10px] text-gray-500 hidden sm:block">{s}</span>
+              <div className={`h-1 rounded-full mt-2 ${i < step ? 'bg-green-500' : i === step ? 'bg-saloo-teal' : 'bg-gray-200'}`} />
             </div>
           ))}
         </div>
 
-        {/* Step 0: Services */}
+        {err && (
+          <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-600 text-sm">{err}</div>
+        )}
+
+        {/* ═══ STEP 0: Services ═══ */}
         {step === 0 && (
-          <div className="bg-white rounded-card p-6 space-y-4">
+          <div className="bg-white rounded-2xl border border-border p-6 space-y-4 shadow-sm">
             <h2 className="font-syne font-bold text-xl text-navy">Choose Services</h2>
-            <div className="divide-y divide-border">
-              {services.map((svc: any) => {
-                const selected = selectedServices.some(s => s.id === svc.id)
-                return (
-                  <button
-                    key={svc.id}
-                    onClick={() => toggleService(svc)}
-                    className={`w-full flex items-center justify-between py-3 text-left transition-colors ${
-                      selected ? 'text-navy' : 'text-gray-700'
-                    }`}
-                  >
-                    <div>
-                      <p className="font-medium">{svc.name}</p>
-                      <p className="text-sm text-gray-400">{svc.duration_min} min</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-syne font-bold">{formatINR(svc.price)}</span>
-                      <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
-                        selected ? 'bg-saloo-teal border-saloo-teal' : 'border-gray-300'
-                      }`}>
-                        {selected && <span className="text-white text-xs">✓</span>}
+            {services.length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-8">No services available</p>
+            ) : (
+              <div className="divide-y divide-border">
+                {services.map((svc: any) => {
+                  const selected = selectedServices.some(s => s.id === svc.id)
+                  return (
+                    <button key={svc.id} onClick={() => toggleService(svc)}
+                      className={`w-full flex items-center justify-between py-3.5 text-left transition-colors ${selected ? 'text-navy' : 'text-gray-700'}`}>
+                      <div>
+                        <p className="font-medium">{svc.name}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">{svc.duration_min} min</p>
                       </div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-syne font-bold">{formatINR(svc.price)}</span>
+                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                          selected ? 'bg-saloo-teal border-saloo-teal' : 'border-gray-300'
+                        }`}>
+                          {selected && <span className="text-white text-xs">✓</span>}
+                        </div>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
             {addons.length > 0 && (
               <div className="border-t border-border pt-4">
                 <p className="text-xs text-gray-400 uppercase font-semibold tracking-wide mb-3">Add-ons</p>
@@ -222,11 +240,8 @@ export default function BookingFlowPage() {
                   {addons.map((a: any) => {
                     const selected = selectedServices.some(s => s.id === a.id)
                     return (
-                      <button
-                        key={a.id}
-                        onClick={() => toggleService(a)}
-                        className="w-full flex items-center justify-between py-2 text-left"
-                      >
+                      <button key={a.id} onClick={() => toggleService(a)}
+                        className="w-full flex items-center justify-between py-2.5 text-left">
                         <p className="text-sm text-gray-600">+ {a.name}</p>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-700">+{formatINR(a.price)}</span>
@@ -242,128 +257,155 @@ export default function BookingFlowPage() {
                 </div>
               </div>
             )}
-            <button
-              onClick={() => setStep(1)}
-              disabled={selectedServices.length === 0}
-              className="w-full bg-saloo-teal text-navy font-syne font-bold py-3 rounded-xl disabled:opacity-40 hover:bg-saloo-teal/90 transition-colors"
-            >
+            {/* Summary */}
+            {selectedServices.length > 0 && (
+              <div className="bg-saloo-teal/5 rounded-xl p-3 flex justify-between items-center text-sm">
+                <span className="text-gray-600">{selectedServices.length} service{selectedServices.length > 1 ? 's' : ''} · ~{totalDuration} min</span>
+                <span className="font-syne font-bold text-navy">{formatINR(total)}</span>
+              </div>
+            )}
+            <button onClick={() => setStep(1)} disabled={selectedServices.length === 0}
+              className="w-full bg-saloo-teal text-navy font-syne font-bold py-3.5 rounded-xl disabled:opacity-40 hover:bg-saloo-teal/90 transition-colors">
               Continue — {formatINR(total)}
             </button>
           </div>
         )}
 
-        {/* Step 1: Barber */}
+        {/* ═══ STEP 1: Barber ═══ */}
         {step === 1 && (
-          <div className="bg-white rounded-card p-6 space-y-4">
+          <div className="bg-white rounded-2xl border border-border p-6 space-y-4 shadow-sm">
             <h2 className="font-syne font-bold text-xl text-navy">Choose Barber</h2>
-            <button
-              onClick={() => { setSelectedBarber(null); setStep(2) }}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                !selectedBarber ? 'border-saloo-teal bg-saloo-teal/5' : 'border-border hover:border-saloo-teal/50'
-              }`}
-            >
+            <button onClick={() => { setSelectedBarber(null); setSelectedDate(''); setSelectedSlot(null); setStep(2) }}
+              className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-saloo-teal/30 bg-saloo-teal/5 hover:bg-saloo-teal/10 transition-colors">
               <div className="w-12 h-12 rounded-full bg-saloo-teal/20 flex items-center justify-center text-xl">⚡</div>
               <div className="text-left">
-                <p className="font-medium text-navy">Any (Fastest)</p>
-                <p className="text-sm text-gray-400">Best available barber</p>
+                <p className="font-semibold text-navy">Any Available</p>
+                <p className="text-sm text-gray-400">First available barber</p>
               </div>
             </button>
-            {(shop?.barbers ?? []).map((b: any) => (
-              <button
-                key={b.id}
-                onClick={() => { setSelectedBarber(b); setStep(2) }}
-                className={`w-full flex items-center gap-3 p-3 rounded-xl border transition-colors ${
-                  selectedBarber?.id === b.id ? 'border-saloo-teal bg-saloo-teal/5' : 'border-border hover:border-saloo-teal/50'
-                }`}
-              >
+            {barbers.length === 0 && (
+              <p className="text-gray-400 text-sm text-center py-4">No barbers added yet</p>
+            )}
+            {barbers.map((b: any) => (
+              <button key={b.id}
+                onClick={() => { setSelectedBarber(b); setSelectedDate(''); setSelectedSlot(null); setStep(2) }}
+                className="w-full flex items-center gap-3 p-4 rounded-xl border border-border hover:border-saloo-teal/50 transition-colors">
                 <div className="w-12 h-12 rounded-full bg-saloo-teal/20 flex items-center justify-center text-xl">✂️</div>
                 <div className="text-left flex-1">
-                  <p className="font-medium text-navy">{b.name}</p>
-                  {b.avg_rating > 0 && <p className="text-sm text-gray-400">⭐ {b.avg_rating.toFixed(1)}</p>}
+                  <p className="font-semibold text-navy">{b.name}</p>
+                  {(b.rating ?? b.avg_rating) > 0 && <p className="text-sm text-gray-400">⭐ {Number(b.rating ?? b.avg_rating).toFixed(1)}</p>}
                 </div>
               </button>
             ))}
-            <button onClick={() => setStep(0)} className="text-sm text-gray-500 hover:text-navy underline">
-              ← Back
+            <button onClick={() => setStep(0)} className="text-sm text-gray-500 hover:text-navy transition-colors">
+              ← Back to services
             </button>
           </div>
         )}
 
-        {/* Step 2: Date & Time */}
+        {/* ═══ STEP 2: Date & Time ═══ */}
         {step === 2 && (
-          <div className="bg-white rounded-card p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-border p-6 space-y-5 shadow-sm">
             <h2 className="font-syne font-bold text-xl text-navy">Select Date & Time</h2>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {days.map(d => (
-                <button
-                  key={d}
-                  onClick={() => { setSelectedDate(d); setSelectedSlot('') }}
-                  className={`shrink-0 flex flex-col items-center px-4 py-3 rounded-xl border font-medium transition-colors ${
-                    selectedDate === d ? 'bg-saloo-teal border-saloo-teal text-navy' : 'bg-white border-border text-gray-600 hover:border-saloo-teal/50'
-                  }`}
-                >
-                  <span className="text-xs">{new Date(d).toLocaleDateString('en-IN', { weekday: 'short' })}</span>
-                  <span className="text-lg font-syne font-bold">{new Date(d).getDate()}</span>
-                  <span className="text-xs">{new Date(d).toLocaleDateString('en-IN', { month: 'short' })}</span>
-                </button>
-              ))}
+
+            {/* Date picker */}
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+              {days.map((d: string) => {
+                const dt = new Date(d)
+                return (
+                  <button key={d}
+                    onClick={() => { setSelectedDate(d); setSelectedSlot(null) }}
+                    className={`shrink-0 flex flex-col items-center px-4 py-3 rounded-xl border font-medium transition-all ${
+                      selectedDate === d ? 'bg-saloo-teal border-saloo-teal text-navy shadow-sm' : 'bg-white border-border text-gray-600 hover:border-saloo-teal/50'
+                    }`}>
+                    <span className="text-xs">{dt.toLocaleDateString('en-IN', { weekday: 'short' })}</span>
+                    <span className="text-lg font-syne font-bold">{dt.getDate()}</span>
+                    <span className="text-xs">{dt.toLocaleDateString('en-IN', { month: 'short' })}</span>
+                  </button>
+                )
+              })}
             </div>
+
+            {/* Time slots */}
             {selectedDate && (
               <div>
-                <p className="text-sm font-semibold text-gray-700 mb-3">Available Slots</p>
-                {slots.length === 0 ? (
-                  <p className="text-gray-400 text-sm text-center py-4">No slots available for this day.</p>
-                ) : (
+                <p className="text-sm font-semibold text-gray-700 mb-3">
+                  Available Slots
+                  {selectedBarber && <span className="font-normal text-gray-400"> · {selectedBarber.name}</span>}
+                </p>
+                {slotsLoading ? (
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                    {slots.map((s: any) => (
-                      <button
-                        key={s.start_time}
-                        disabled={!s.available}
-                        onClick={() => setSelectedSlot(s.start_time)}
-                        className={`py-2 px-1 rounded-lg text-xs font-medium border transition-colors ${
-                          selectedSlot === s.start_time
-                            ? 'bg-saloo-teal border-saloo-teal text-navy'
-                            : !s.available
-                              ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed'
-                              : 'bg-white border-border text-gray-700 hover:border-saloo-teal/50'
-                        }`}
-                      >
-                        {formatTime(s.start_time)}
-                      </button>
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <div key={i} className="h-10 bg-gray-100 rounded-lg animate-pulse" />
                     ))}
                   </div>
+                ) : slots.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-400 text-sm">No slots available for this day</p>
+                    <p className="text-gray-300 text-xs mt-1">Try another date or barber</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                    {slots.map((s: any) => {
+                      const available = s.is_available ?? s.available
+                      const isSelected = selectedSlot?.start_time === s.start_time
+                      return (
+                        <button key={s.start_time} disabled={!available}
+                          onClick={() => setSelectedSlot(s)}
+                          className={`py-2.5 px-1 rounded-xl text-xs font-medium border transition-all relative ${
+                            isSelected
+                              ? 'bg-saloo-teal border-saloo-teal text-navy shadow-sm'
+                              : !available
+                                ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed line-through'
+                                : s.is_popular
+                                  ? 'bg-amber-50 border-amber-200 text-amber-700 hover:border-saloo-teal/50'
+                                  : 'bg-white border-border text-gray-700 hover:border-saloo-teal/50'
+                          }`}>
+                          {formatTime(s.start_time)}
+                          {s.is_popular && available && !isSelected && (
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full" />
+                          )}
+                        </button>
+                      )
+                    })}
+                  </div>
+                )}
+                {slots.some((s: any) => s.is_popular && (s.is_available ?? s.available)) && (
+                  <p className="text-[10px] text-amber-500 mt-2 flex items-center gap-1">
+                    <span className="w-2 h-2 bg-amber-400 rounded-full inline-block" /> Popular hours — book early
+                  </p>
                 )}
               </div>
             )}
+
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="flex-1 border border-border py-3 rounded-xl text-sm font-medium text-gray-600 hover:border-saloo-teal/50">
+              <button onClick={() => setStep(1)}
+                className="flex-1 border border-border py-3 rounded-xl text-sm font-medium text-gray-600 hover:border-saloo-teal/50 transition-colors">
                 ← Back
               </button>
-              <button
-                onClick={handleHold}
-                disabled={!selectedDate || !selectedSlot || holding}
-                className="flex-1 bg-saloo-teal text-navy font-syne font-bold py-3 rounded-xl disabled:opacity-40 hover:bg-saloo-teal/90 transition-colors"
-              >
-                {holding ? 'Holding...' : 'Hold Slot →'}
+              <button onClick={handleHold} disabled={!selectedDate || !selectedSlot || holding}
+                className="flex-1 bg-saloo-teal text-navy font-syne font-bold py-3 rounded-xl disabled:opacity-40 hover:bg-saloo-teal/90 transition-colors">
+                {holding ? 'Reserving...' : 'Hold Slot →'}
               </button>
             </div>
           </div>
         )}
 
-        {/* Step 3: Review & Pay */}
+        {/* ═══ STEP 3: Review & Pay ═══ */}
         {step === 3 && holdData && (
           <div className="space-y-4">
-            {/* Timer */}
-            <SlotTimer expiresAt={holdData.expires_at} onExpire={() => router.push(`/shop/${shopId}`)} />
+            <SlotTimer expiresAt={holdData.expires_at} onExpire={() => { setErr('Slot hold expired. Please try again.'); setStep(2); setHoldData(null); setSelectedSlot(null) }} />
 
-            <div className="bg-white rounded-card p-6 space-y-4">
+            <div className="bg-white rounded-2xl border border-border p-6 space-y-5 shadow-sm">
               <h2 className="font-syne font-bold text-xl text-navy">Review & Pay</h2>
-              <div className="space-y-2">
+
+              <div className="space-y-2.5">
                 {[
                   { label: 'Shop', value: shop?.name },
-                  { label: 'Barber', value: selectedBarber?.name ?? 'Any (Fastest)' },
+                  { label: 'Barber', value: selectedBarber?.name ?? getBarberName(holdData.barber_id) },
                   { label: 'Date', value: formatDate(selectedDate) },
-                  { label: 'Time', value: formatTime(selectedSlot) },
+                  { label: 'Time', value: `${formatTime(selectedSlot?.start_time)} – ${formatTime(holdData.end_time)}` },
+                  { label: 'Duration', value: `${holdData.total_duration_min} min` },
                   { label: 'Services', value: selectedServices.map(s => s.name).join(', ') },
                 ].map(row => (
                   <div key={row.label} className="flex justify-between text-sm">
@@ -372,40 +414,36 @@ export default function BookingFlowPage() {
                   </div>
                 ))}
               </div>
+
               <div className="border-t border-border pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Service total</span>
                   <span className="font-medium">{formatINR(holdData.total_amount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-500">Advance (30%)</span>
-                  <span className="font-syne font-bold text-saloo-teal">{formatINR(holdData.advance_amount)}</span>
+                  <span className="text-sm text-gray-500">Advance ({shop?.advance_percentage ?? 30}%)</span>
+                  <span className="font-syne font-bold text-saloo-teal text-lg">{formatINR(holdData.advance_amount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-400">Due at shop</span>
+                  <span className="text-gray-400">Pay at shop</span>
                   <span className="text-gray-600">{formatINR(holdData.total_amount - holdData.advance_amount)}</span>
                 </div>
               </div>
+
               <div>
-                <label className="text-sm font-medium text-gray-700 block mb-1">Instructions (optional)</label>
-                <textarea
-                  value={instructions}
-                  onChange={e => setInstructions(e.target.value)}
-                  placeholder="Any special requests for your barber..."
-                  rows={3}
-                  maxLength={300}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gold/50 resize-none"
-                />
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">Special Instructions <span className="font-normal text-gray-400">(optional)</span></label>
+                <textarea value={instructions} onChange={e => setInstructions(e.target.value)}
+                  placeholder="Any specific style, reference, or request for your barber..."
+                  rows={3} maxLength={300}
+                  className="w-full border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-saloo-teal/50 resize-none transition-colors" />
               </div>
-              <button
-                onClick={handlePay}
-                disabled={paying}
-                className="w-full bg-saloo-teal text-navy font-syne font-bold py-4 rounded-xl hover:bg-saloo-teal/90 transition-colors disabled:opacity-50"
-              >
-                {paying ? 'Processing...' : `Pay ${formatINR(holdData.advance_amount)} Now →`}
+
+              <button onClick={handlePay} disabled={paying}
+                className="w-full bg-saloo-teal text-navy font-syne font-bold py-4 rounded-xl hover:bg-saloo-teal/90 transition-colors disabled:opacity-50 text-lg">
+                {paying ? 'Processing...' : `Pay ${formatINR(holdData.advance_amount)} Now`}
               </button>
               <p className="text-center text-xs text-gray-400">
-                Powered by Razorpay · 100% secure · PCI-DSS compliant
+                Powered by Razorpay · 100% secure
               </p>
             </div>
           </div>
@@ -430,15 +468,18 @@ function SlotTimer({ expiresAt, onExpire }: { expiresAt: string; onExpire: () =>
 
   const m = Math.floor(timeLeft / 60)
   const s = timeLeft % 60
+  const urgent = timeLeft < 60
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-card p-4 flex items-center gap-3">
+    <div className={`rounded-xl p-4 flex items-center gap-3 border ${urgent ? 'bg-red-50 border-red-200' : 'bg-amber-50 border-amber-200'}`}>
       <span className="text-2xl">⏱</span>
       <div>
-        <p className="font-semibold text-amber-800 text-sm">
+        <p className={`font-bold text-sm ${urgent ? 'text-red-700' : 'text-amber-800'}`}>
           Slot reserved — {String(m).padStart(2, '0')}:{String(s).padStart(2, '0')}
         </p>
-        <p className="text-amber-600 text-xs">Complete payment to confirm your booking</p>
+        <p className={`text-xs ${urgent ? 'text-red-500' : 'text-amber-600'}`}>
+          {urgent ? 'Hurry! Your hold is about to expire' : 'Complete payment to confirm your booking'}
+        </p>
       </div>
     </div>
   )
