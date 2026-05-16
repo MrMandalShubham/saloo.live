@@ -73,7 +73,7 @@ export default function AdminDisputesPage() {
             href={`/admin/disputes/${d.id}`}
             className="block bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-4 hover:bg-white/70 backdrop-blur-md shadow-sm transition-colors"
           >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-saloo-dark font-medium text-sm">{d.booking_ref}</span>

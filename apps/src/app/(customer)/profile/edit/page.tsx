@@ -40,7 +40,6 @@ export default function EditProfilePage() {
   const [city, setCity] = useState('')
   const [pincode, setPincode] = useState('')
   const [preferredLanguage, setPreferredLanguage] = useState('en')
-  const [referralCode, setReferralCode] = useState('')
 
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -72,7 +71,7 @@ export default function EditProfilePage() {
         setCity(p.city ?? '')
         setPincode(p.pincode ?? '')
         setPreferredLanguage(p.preferred_language ?? 'en')
-        setReferralCode(p.referral_code ?? '')
+
       } else {
         setEmail(user.email ?? '')
       }
@@ -109,7 +108,7 @@ export default function EditProfilePage() {
           city: city.trim() || null,
           pincode: pincode.trim() || null,
           preferred_language: preferredLanguage,
-        } as any)
+        })
         .eq('id', userId)
 
       if (updateErr) {
@@ -273,22 +272,6 @@ export default function EditProfilePage() {
           </select>
         </div>
 
-        {referralCode && (
-          <div className="space-y-1.5">
-            <label className={labelCls}>Your Referral Code</label>
-            <div className="flex gap-2">
-              <input value={referralCode} readOnly
-                className={inputCls + ' bg-lavender/50 font-mono font-bold tracking-widest'} />
-              <button
-                onClick={() => { navigator.clipboard.writeText(referralCode) }}
-                className="px-4 py-3 bg-saloo-teal/10 text-saloo-teal text-sm font-semibold rounded-xl hover:bg-saloo-teal/20 transition-colors shrink-0"
-              >
-                Copy
-              </button>
-            </div>
-            <p className="text-xs text-muted">Share this code with friends to earn rewards</p>
-          </div>
-        )}
       </div>
 
       {/* Error / Success */}

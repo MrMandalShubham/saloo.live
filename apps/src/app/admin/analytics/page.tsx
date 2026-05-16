@@ -47,7 +47,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
         <div>
           <h1 className="text-saloo-dark text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Platform Analytics</h1>
           <p className="text-saloo-dark/60 text-sm mt-1">Marketplace performance overview</p>

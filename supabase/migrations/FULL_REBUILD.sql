@@ -1,27 +1,93 @@
 -- ════════════════════════════════════════════════════════════════════════════
--- OnO — COMPLETE BUILD SCRIPT
--- Run this SECOND in Supabase SQL Editor (after WIPE.sql).
--- Sections:
---   1. Extensions
---   2. Helper functions
---   3. Tables + indexes + triggers
---   4. Auth trigger (handle_new_user)
---   5. Role & business functions
---   6. RLS policies
---   7. Storage buckets + policies
---   8. Cron jobs
+-- SALOO — FULL WIPE + REBUILD
+-- Paste this ENTIRE file in Supabase SQL Editor and run it ONCE.
+-- After running, sign in and then run:
+--   UPDATE public.users SET role='admin' WHERE email='shubhammandal391@gmail.com';
 -- ════════════════════════════════════════════════════════════════════════════
 
 
--- ════════════════════════════════════════════════════════════════════════════
--- 1. EXTENSIONS
--- ════════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 1: WIPE EVERYTHING                                               ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+DROP TRIGGER IF EXISTS users_updated_at       ON public.users;
+DROP TRIGGER IF EXISTS users_loyalty_tier     ON public.users;
+DROP TRIGGER IF EXISTS shops_updated_at       ON public.shops;
+DROP TRIGGER IF EXISTS barbers_updated_at     ON public.barbers;
+DROP TRIGGER IF EXISTS services_updated_at    ON public.services;
+DROP TRIGGER IF EXISTS bookings_updated_at    ON public.bookings;
+DROP TRIGGER IF EXISTS payments_updated_at    ON public.payments;
+DROP TRIGGER IF EXISTS reviews_updated_at     ON public.reviews;
+DROP TRIGGER IF EXISTS reviews_update_rating  ON public.reviews;
+DROP TRIGGER IF EXISTS promotions_updated_at  ON public.promotions;
+DROP TRIGGER IF EXISTS disputes_updated_at    ON public.disputes;
+
+DROP TABLE IF EXISTS public.admin_actions        CASCADE;
+DROP TABLE IF EXISTS public.disputes             CASCADE;
+DROP TABLE IF EXISTS public.loyalty_transactions CASCADE;
+DROP TABLE IF EXISTS public.notifications        CASCADE;
+DROP TABLE IF EXISTS public.reviews              CASCADE;
+DROP TABLE IF EXISTS public.payments             CASCADE;
+DROP TABLE IF EXISTS public.bookings             CASCADE;
+DROP TABLE IF EXISTS public.slot_holds           CASCADE;
+DROP TABLE IF EXISTS public.slot_blocks          CASCADE;
+DROP TABLE IF EXISTS public.promotions           CASCADE;
+DROP TABLE IF EXISTS public.services             CASCADE;
+DROP TABLE IF EXISTS public.barber_hours         CASCADE;
+DROP TABLE IF EXISTS public.barbers              CASCADE;
+DROP TABLE IF EXISTS public.favourites           CASCADE;
+DROP TABLE IF EXISTS public.shop_breaks          CASCADE;
+DROP TABLE IF EXISTS public.shop_hours           CASCADE;
+DROP TABLE IF EXISTS public.shops                CASCADE;
+DROP TABLE IF EXISTS public.users                CASCADE;
+
+DROP SEQUENCE IF EXISTS public.booking_ref_seq;
+
+DROP FUNCTION IF EXISTS public.set_updated_at()          CASCADE;
+DROP FUNCTION IF EXISTS public.update_loyalty_tier()     CASCADE;
+DROP FUNCTION IF EXISTS public.generate_booking_ref()    CASCADE;
+DROP FUNCTION IF EXISTS public.handle_new_user()         CASCADE;
+DROP FUNCTION IF EXISTS public.get_user_role()           CASCADE;
+DROP FUNCTION IF EXISTS public.is_admin()                CASCADE;
+DROP FUNCTION IF EXISTS public.is_own_shop(UUID)         CASCADE;
+DROP FUNCTION IF EXISTS public.get_owner_shop_id()       CASCADE;
+DROP FUNCTION IF EXISTS public.get_role_by_email(TEXT)   CASCADE;
+DROP FUNCTION IF EXISTS public.ensure_user_profile()     CASCADE;
+DROP FUNCTION IF EXISTS public.request_shop_owner()      CASCADE;
+DROP FUNCTION IF EXISTS public.promote_to_admin(TEXT)    CASCADE;
+DROP FUNCTION IF EXISTS public.update_shop_rating()      CASCADE;
+DROP FUNCTION IF EXISTS public.atomic_hold_slot(UUID,UUID,UUID,DATE,TIME,TIME,UUID[],UUID[]) CASCADE;
+DROP FUNCTION IF EXISTS public.increment_no_show_count(UUID) CASCADE;
+DROP FUNCTION IF EXISTS public.shops_nearby(FLOAT,FLOAT,FLOAT,BOOLEAN,FLOAT,FLOAT,TEXT[],TEXT,INT,INT) CASCADE;
+
+DROP POLICY IF EXISTS "shop_photos_public_read"   ON storage.objects;
+DROP POLICY IF EXISTS "shop_photos_owner_upload"  ON storage.objects;
+DROP POLICY IF EXISTS "shop_photos_owner_delete"  ON storage.objects;
+DROP POLICY IF EXISTS "shop_photos_admin"         ON storage.objects;
+DROP POLICY IF EXISTS "profile_photos_own_read"   ON storage.objects;
+DROP POLICY IF EXISTS "profile_photos_own_upload" ON storage.objects;
+DROP POLICY IF EXISTS "profile_photos_own_delete" ON storage.objects;
+DROP POLICY IF EXISTS "review_photos_public_read" ON storage.objects;
+DROP POLICY IF EXISTS "review_photos_auth_upload" ON storage.objects;
+DROP POLICY IF EXISTS "review_photos_own_delete"  ON storage.objects;
+
+DO $$ BEGIN
+  PERFORM cron.unschedule('expire-slot-holds');
+  PERFORM cron.unschedule('expire-pending-payments');
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 2: EXTENSIONS                                                     ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "postgis";
 CREATE EXTENSION IF NOT EXISTS "pg_trgm";
 CREATE EXTENSION IF NOT EXISTS "unaccent";
--- pg_cron is optional (Supabase Pro). Wrap in DO block so it doesn't fail.
 DO $$ BEGIN
   CREATE EXTENSION IF NOT EXISTS "pg_cron";
 EXCEPTION WHEN OTHERS THEN
@@ -29,20 +95,15 @@ EXCEPTION WHEN OTHERS THEN
 END $$;
 
 
--- ════════════════════════════════════════════════════════════════════════════
--- 2. SHARED HELPER FUNCTIONS
--- ════════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 3: HELPER FUNCTIONS                                               ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
 
--- Auto-set updated_at on any table
 CREATE OR REPLACE FUNCTION public.set_updated_at()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
-BEGIN
-  NEW.updated_at = now();
-  RETURN NEW;
-END;
+BEGIN NEW.updated_at = now(); RETURN NEW; END;
 $$;
 
--- Auto-update loyalty tier when points change
 CREATE OR REPLACE FUNCTION public.update_loyalty_tier()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
@@ -56,48 +117,44 @@ BEGIN
 END;
 $$;
 
--- Booking reference generator: ONO-001234
 CREATE SEQUENCE IF NOT EXISTS public.booking_ref_seq START 1000;
 
 CREATE OR REPLACE FUNCTION public.generate_booking_ref()
 RETURNS TEXT LANGUAGE plpgsql AS $$
-BEGIN
-  RETURN 'ONO-' || LPAD(nextval('public.booking_ref_seq')::TEXT, 6, '0');
-END;
+BEGIN RETURN 'ONO-' || LPAD(nextval('public.booking_ref_seq')::TEXT, 6, '0'); END;
 $$;
 
 
--- ════════════════════════════════════════════════════════════════════════════
--- 3. TABLES
--- ════════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 4: TABLES                                                         ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
 
--- ─── USERS ───────────────────────────────────────────────────────────────────
+-- ─── USERS ───────────────────────────────────────────────────────────────
 CREATE TABLE public.users (
-  id             UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-  email          TEXT        UNIQUE,
-  phone          TEXT,
-  name           TEXT,
-  avatar_url     TEXT,
-  role           TEXT        NOT NULL DEFAULT 'customer'
-                               CHECK (role IN ('customer','admin')),
-  loyalty_points INTEGER     NOT NULL DEFAULT 0   CHECK (loyalty_points >= 0),
-  loyalty_tier   TEXT        NOT NULL DEFAULT 'bronze'
-                               CHECK (loyalty_tier IN ('bronze','silver','gold','platinum')),
-  no_show_count  INTEGER     NOT NULL DEFAULT 0   CHECK (no_show_count >= 0),
-  date_of_birth  DATE,
-  gender         TEXT        CHECK (gender IS NULL OR gender IN ('male','female','other','prefer_not_to_say')),
-  address        TEXT,
-  city           TEXT,
-  pincode        TEXT        CHECK (pincode IS NULL OR pincode ~ '^\d{6}$'),
-  preferred_language TEXT    NOT NULL DEFAULT 'en',
-  fcm_token      TEXT,
-  is_active      BOOLEAN     NOT NULL DEFAULT true,
-  is_suspended   BOOLEAN     NOT NULL DEFAULT false,
-  created_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at     TIMESTAMPTZ NOT NULL DEFAULT now()
+  id                 UUID        PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email              TEXT        UNIQUE,
+  phone              TEXT,
+  name               TEXT,
+  avatar_url         TEXT,
+  role               TEXT        NOT NULL DEFAULT 'customer'
+                                   CHECK (role IN ('customer','admin')),
+  loyalty_points     INTEGER     NOT NULL DEFAULT 0   CHECK (loyalty_points >= 0),
+  loyalty_tier       TEXT        NOT NULL DEFAULT 'bronze'
+                                   CHECK (loyalty_tier IN ('bronze','silver','gold','platinum')),
+  no_show_count      INTEGER     NOT NULL DEFAULT 0   CHECK (no_show_count >= 0),
+  date_of_birth      DATE,
+  gender             TEXT        CHECK (gender IS NULL OR gender IN ('male','female','other','prefer_not_to_say')),
+  address            TEXT,
+  city               TEXT,
+  pincode            TEXT        CHECK (pincode IS NULL OR pincode ~ '^\d{6}$'),
+  preferred_language TEXT        NOT NULL DEFAULT 'en',
+  fcm_token          TEXT,
+  is_active          BOOLEAN     NOT NULL DEFAULT true,
+  is_suspended       BOOLEAN     NOT NULL DEFAULT false,
+  created_at         TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at         TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
--- Phone unique only when non-null (many email-only users is fine)
 CREATE UNIQUE INDEX users_phone_unique    ON public.users (phone) WHERE phone IS NOT NULL AND phone != '';
 CREATE        INDEX users_role_idx        ON public.users (role);
 CREATE        INDEX users_email_lower_idx ON public.users (lower(email));
@@ -111,7 +168,7 @@ CREATE TRIGGER users_loyalty_tier
   FOR EACH ROW EXECUTE FUNCTION public.update_loyalty_tier();
 
 
--- ─── SHOPS ───────────────────────────────────────────────────────────────────
+-- ─── SHOPS ───────────────────────────────────────────────────────────────
 CREATE TABLE public.shops (
   id                    UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
   owner_id              UUID          NOT NULL REFERENCES public.users(id),
@@ -124,13 +181,13 @@ CREATE TABLE public.shops (
   city                  TEXT          NOT NULL,
   state                 TEXT          NOT NULL,
   pincode               TEXT          NOT NULL CHECK (pincode ~ '^\d{6}$'),
-  location              GEOGRAPHY(POINT,4326),        -- PostGIS lat/lng point
+  location              GEOGRAPHY(POINT,4326),
   lat                   NUMERIC(10,7),
   lng                   NUMERIC(10,7),
   status                TEXT          NOT NULL DEFAULT 'pending'
                                         CHECK (status IN ('pending','verified','rejected','suspended')),
   photos                TEXT[]        NOT NULL DEFAULT '{}',
-  features              TEXT[]        NOT NULL DEFAULT '{}',  -- ['wifi','parking','ac',...]
+  features              TEXT[]        NOT NULL DEFAULT '{}',
   specialties           TEXT[]        NOT NULL DEFAULT '{}',
   social_instagram      TEXT,
   social_facebook       TEXT,
@@ -158,11 +215,11 @@ CREATE TRIGGER shops_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
--- ─── SHOP HOURS ──────────────────────────────────────────────────────────────
+-- ─── SHOP HOURS ──────────────────────────────────────────────────────────
 CREATE TABLE public.shop_hours (
   id          UUID    PRIMARY KEY DEFAULT uuid_generate_v4(),
   shop_id     UUID    NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),  -- 0 = Sunday
+  day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
   open_time   TIME    NOT NULL,
   close_time  TIME    NOT NULL,
   is_closed   BOOLEAN NOT NULL DEFAULT false,
@@ -173,11 +230,11 @@ CREATE TABLE public.shop_hours (
 CREATE INDEX shop_hours_shop_idx ON public.shop_hours (shop_id);
 
 
--- ─── SHOP BREAKS (recurring breaks e.g. lunch) ───────────────────────────────
+-- ─── SHOP BREAKS ─────────────────────────────────────────────────────────
 CREATE TABLE public.shop_breaks (
   id          UUID    PRIMARY KEY DEFAULT uuid_generate_v4(),
   shop_id     UUID    NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  day_of_week INTEGER CHECK (day_of_week BETWEEN 0 AND 6),  -- NULL = every day
+  day_of_week INTEGER CHECK (day_of_week BETWEEN 0 AND 6),
   start_time  TIME    NOT NULL,
   end_time    TIME    NOT NULL,
   label       TEXT,
@@ -187,7 +244,7 @@ CREATE TABLE public.shop_breaks (
 CREATE INDEX shop_breaks_shop_idx ON public.shop_breaks (shop_id);
 
 
--- ─── FAVOURITES ──────────────────────────────────────────────────────────────
+-- ─── FAVOURITES ──────────────────────────────────────────────────────────
 CREATE TABLE public.favourites (
   user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
   shop_id    UUID        NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
@@ -198,26 +255,26 @@ CREATE TABLE public.favourites (
 CREATE INDEX favourites_user_idx ON public.favourites (user_id);
 
 
--- ─── BARBERS ─────────────────────────────────────────────────────────────────
+-- ─── BARBERS ─────────────────────────────────────────────────────────────
 CREATE TABLE public.barbers (
-  id               UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
-  shop_id          UUID        NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
-  user_id          UUID        REFERENCES public.users(id),  -- NULL until invite accepted
-  name             TEXT        NOT NULL CHECK (char_length(name) >= 2),
-  phone            TEXT,
-  email            TEXT,
-  avatar_url       TEXT,
-  bio              TEXT        CHECK (char_length(bio) <= 300),
-  specialties      TEXT[]      NOT NULL DEFAULT '{}',
-  rating           NUMERIC(3,2) NOT NULL DEFAULT 0 CHECK (rating BETWEEN 0 AND 5),
-  review_count     INTEGER     NOT NULL DEFAULT 0  CHECK (review_count >= 0),
-  is_active        BOOLEAN     NOT NULL DEFAULT true,
-  invite_status    TEXT        NOT NULL DEFAULT 'pending'
-                                 CHECK (invite_status IN ('pending','accepted','declined')),
-  invite_token     TEXT        UNIQUE,
+  id                UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
+  shop_id           UUID        NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
+  user_id           UUID        REFERENCES public.users(id),
+  name              TEXT        NOT NULL CHECK (char_length(name) >= 2),
+  phone             TEXT,
+  email             TEXT,
+  avatar_url        TEXT,
+  bio               TEXT        CHECK (char_length(bio) <= 300),
+  specialties       TEXT[]      NOT NULL DEFAULT '{}',
+  rating            NUMERIC(3,2) NOT NULL DEFAULT 0 CHECK (rating BETWEEN 0 AND 5),
+  review_count      INTEGER     NOT NULL DEFAULT 0  CHECK (review_count >= 0),
+  is_active         BOOLEAN     NOT NULL DEFAULT true,
+  invite_status     TEXT        NOT NULL DEFAULT 'pending'
+                                  CHECK (invite_status IN ('pending','accepted','declined')),
+  invite_token      TEXT        UNIQUE,
   invite_expires_at TIMESTAMPTZ,
-  created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at        TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE INDEX barbers_shop_idx ON public.barbers (shop_id);
@@ -228,7 +285,7 @@ CREATE TRIGGER barbers_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
--- ─── BARBER HOURS (individual schedule overrides) ────────────────────────────
+-- ─── BARBER HOURS ────────────────────────────────────────────────────────
 CREATE TABLE public.barber_hours (
   id          UUID    PRIMARY KEY DEFAULT uuid_generate_v4(),
   barber_id   UUID    NOT NULL REFERENCES public.barbers(id) ON DELETE CASCADE,
@@ -243,7 +300,7 @@ CREATE TABLE public.barber_hours (
 CREATE INDEX barber_hours_barber_idx ON public.barber_hours (barber_id);
 
 
--- ─── SERVICES ────────────────────────────────────────────────────────────────
+-- ─── SERVICES ────────────────────────────────────────────────────────────
 CREATE TABLE public.services (
   id           UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
   shop_id      UUID          NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
@@ -268,7 +325,7 @@ CREATE TRIGGER services_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
--- ─── SLOT BLOCKS (manual blocks: holidays, barber off, etc.) ─────────────────
+-- ─── SLOT BLOCKS ─────────────────────────────────────────────────────────
 CREATE TABLE public.slot_blocks (
   id          UUID    PRIMARY KEY DEFAULT uuid_generate_v4(),
   shop_id     UUID    NOT NULL REFERENCES public.shops(id)   ON DELETE CASCADE,
@@ -287,7 +344,7 @@ CREATE INDEX slot_blocks_shop_date_idx ON public.slot_blocks (shop_id, block_dat
 CREATE INDEX slot_blocks_barber_idx    ON public.slot_blocks (barber_id, block_date);
 
 
--- ─── SLOT HOLDS (5-min lock during checkout) ─────────────────────────────────
+-- ─── SLOT HOLDS ──────────────────────────────────────────────────────────
 CREATE TABLE public.slot_holds (
   id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   shop_id     UUID        NOT NULL REFERENCES public.shops(id)   ON DELETE CASCADE,
@@ -309,7 +366,7 @@ CREATE INDEX slot_holds_user_idx   ON public.slot_holds (user_id);
 CREATE INDEX slot_holds_expiry_idx ON public.slot_holds (expires_at) WHERE booking_id IS NULL;
 
 
--- ─── BOOKINGS ────────────────────────────────────────────────────────────────
+-- ─── BOOKINGS ────────────────────────────────────────────────────────────
 CREATE TABLE public.bookings (
   id                  UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
   booking_ref         TEXT          UNIQUE NOT NULL DEFAULT public.generate_booking_ref(),
@@ -351,13 +408,12 @@ CREATE TRIGGER bookings_updated_at
   BEFORE UPDATE ON public.bookings
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
--- Back-reference: slot_holds → bookings
 ALTER TABLE public.slot_holds
   ADD CONSTRAINT slot_holds_booking_fk
   FOREIGN KEY (booking_id) REFERENCES public.bookings(id);
 
 
--- ─── PAYMENTS ────────────────────────────────────────────────────────────────
+-- ─── PAYMENTS ────────────────────────────────────────────────────────────
 CREATE TABLE public.payments (
   id                  UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
   booking_id          UUID          NOT NULL REFERENCES public.bookings(id),
@@ -386,7 +442,7 @@ CREATE TRIGGER payments_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
--- ─── REVIEWS ─────────────────────────────────────────────────────────────────
+-- ─── REVIEWS ─────────────────────────────────────────────────────────────
 CREATE TABLE public.reviews (
   id                 UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   booking_id         UUID        NOT NULL UNIQUE REFERENCES public.bookings(id),
@@ -415,7 +471,7 @@ CREATE TRIGGER reviews_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
--- ─── NOTIFICATIONS ───────────────────────────────────────────────────────────
+-- ─── NOTIFICATIONS ───────────────────────────────────────────────────────
 CREATE TABLE public.notifications (
   id         UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id    UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -436,7 +492,7 @@ CREATE INDEX notifications_user_unread_idx ON public.notifications (user_id, cre
 CREATE INDEX notifications_user_all_idx    ON public.notifications (user_id, created_at DESC);
 
 
--- ─── LOYALTY TRANSACTIONS ────────────────────────────────────────────────────
+-- ─── LOYALTY TRANSACTIONS ────────────────────────────────────────────────
 CREATE TABLE public.loyalty_transactions (
   id            UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id       UUID        NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
@@ -451,7 +507,7 @@ CREATE TABLE public.loyalty_transactions (
 CREATE INDEX loyalty_tx_user_idx ON public.loyalty_transactions (user_id, created_at DESC);
 
 
--- ─── PROMOTIONS ──────────────────────────────────────────────────────────────
+-- ─── PROMOTIONS ──────────────────────────────────────────────────────────
 CREATE TABLE public.promotions (
   id                    UUID          PRIMARY KEY DEFAULT uuid_generate_v4(),
   shop_id               UUID          NOT NULL REFERENCES public.shops(id) ON DELETE CASCADE,
@@ -483,7 +539,7 @@ CREATE TRIGGER promotions_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
--- ─── DISPUTES ────────────────────────────────────────────────────────────────
+-- ─── DISPUTES ────────────────────────────────────────────────────────────
 CREATE TABLE public.disputes (
   id                UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   booking_id        UUID        NOT NULL UNIQUE REFERENCES public.bookings(id),
@@ -521,7 +577,7 @@ CREATE TRIGGER disputes_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 
--- ─── ADMIN ACTIONS (audit log) ───────────────────────────────────────────────
+-- ─── ADMIN ACTIONS ───────────────────────────────────────────────────────
 CREATE TABLE public.admin_actions (
   id          UUID        PRIMARY KEY DEFAULT uuid_generate_v4(),
   admin_id    UUID        NOT NULL REFERENCES public.users(id),
@@ -538,9 +594,9 @@ CREATE INDEX admin_actions_target_idx ON public.admin_actions (target_type, targ
 CREATE INDEX admin_actions_time_idx   ON public.admin_actions (created_at DESC);
 
 
--- ════════════════════════════════════════════════════════════════════════════
--- 4. AUTH TRIGGER — creates public.users row on every signup
--- ════════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 5: AUTH TRIGGER                                                   ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
@@ -575,52 +631,86 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
--- Drop before creating to avoid "already exists" error
-DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
+-- ── GRANTS ────────────────────────────────────────────────────────────────
+-- Auth admin needs INSERT/UPDATE for the trigger to create user rows
+GRANT USAGE ON SCHEMA public TO supabase_auth_admin;
+GRANT INSERT, UPDATE ON public.users TO supabase_auth_admin;
 
--- ════════════════════════════════════════════════════════════════════════════
--- 5. ROLE & BUSINESS FUNCTIONS
--- ════════════════════════════════════════════════════════════════════════════
+-- Authenticated users need full access (RLS controls what they can actually do)
+GRANT SELECT, INSERT, UPDATE ON public.users TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.shops TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.shop_hours TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.shop_breaks TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.favourites TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.barbers TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.barber_hours TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.services TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.slot_blocks TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.slot_holds TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.bookings TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.payments TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.reviews TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.notifications TO authenticated;
+GRANT SELECT ON public.loyalty_transactions TO authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.promotions TO authenticated;
+GRANT SELECT, INSERT, UPDATE ON public.disputes TO authenticated;
+GRANT SELECT, INSERT ON public.admin_actions TO authenticated;
 
--- Returns current user's DB role
+-- Anon needs SELECT for public-read policies (verified shops, reviews, etc.)
+GRANT USAGE ON SCHEMA public TO anon;
+GRANT SELECT ON public.users TO anon;
+GRANT SELECT ON public.shops TO anon;
+GRANT SELECT ON public.shop_hours TO anon;
+GRANT SELECT ON public.shop_breaks TO anon;
+GRANT SELECT ON public.barbers TO anon;
+GRANT SELECT ON public.barber_hours TO anon;
+GRANT SELECT ON public.services TO anon;
+GRANT SELECT ON public.reviews TO anon;
+GRANT SELECT ON public.promotions TO anon;
+
+-- Sequence for booking refs
+GRANT USAGE ON SEQUENCE public.booking_ref_seq TO authenticated;
+
+-- Service role needs full access (used by edge functions via SUPABASE_SERVICE_ROLE_KEY)
+GRANT ALL ON ALL TABLES IN SCHEMA public TO service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO service_role;
+GRANT USAGE ON SCHEMA public TO service_role;
+
+
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 6: BUSINESS FUNCTIONS                                             ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
+
 CREATE OR REPLACE FUNCTION public.get_user_role()
 RETURNS TEXT LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT role FROM public.users WHERE id = auth.uid();
 $$;
 
--- Returns true if current user is admin
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT EXISTS (SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin');
 $$;
 
--- Returns true if current user owns the given shop
 CREATE OR REPLACE FUNCTION public.is_own_shop(p_shop_id UUID)
 RETURNS BOOLEAN LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT EXISTS (SELECT 1 FROM public.shops WHERE id = p_shop_id AND owner_id = auth.uid());
 $$;
 
--- Returns the shop_id owned by current user (NULL if none)
 CREATE OR REPLACE FUNCTION public.get_owner_shop_id()
 RETURNS UUID LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT id FROM public.shops WHERE owner_id = auth.uid() LIMIT 1;
 $$;
 
--- Safe email → role lookup. Granted to anon for signup conflict check.
--- Returns ONLY the role string — no PII exposed.
 CREATE OR REPLACE FUNCTION public.get_role_by_email(p_email TEXT)
 RETURNS TEXT LANGUAGE sql SECURITY DEFINER STABLE SET search_path = public AS $$
   SELECT role FROM public.users WHERE lower(email) = lower(p_email) LIMIT 1;
 $$;
 GRANT EXECUTE ON FUNCTION public.get_role_by_email TO anon, authenticated;
 
--- Safety net: creates public.users row if trigger didn't fire (Supabase cloud quirk).
--- Called from client after sign-in. Returns the user's role.
--- SECURITY: Never updates role from user-controlled metadata — only creates missing rows.
 CREATE OR REPLACE FUNCTION public.ensure_user_profile()
 RETURNS TEXT LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -631,11 +721,9 @@ DECLARE
   v_phone TEXT;
   v_name  TEXT;
 BEGIN
-  -- Row exists → trust DB value, return immediately
   SELECT role INTO v_role FROM public.users WHERE id = v_uid;
   IF FOUND THEN RETURN v_role; END IF;
 
-  -- Row missing (trigger didn't fire) → create from auth metadata
   SELECT email, raw_user_meta_data INTO v_email, v_meta
   FROM auth.users WHERE id = v_uid;
 
@@ -654,8 +742,6 @@ END;
 $$;
 GRANT EXECUTE ON FUNCTION public.ensure_user_profile TO authenticated;
 
--- Admin promotes another user to admin role.
--- First admin must be set manually: UPDATE public.users SET role='admin' WHERE email='...';
 CREATE OR REPLACE FUNCTION public.promote_to_admin(p_email TEXT)
 RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
@@ -670,7 +756,7 @@ END;
 $$;
 GRANT EXECUTE ON FUNCTION public.promote_to_admin TO authenticated;
 
--- Auto-update shop rating + barber rating when a review is inserted/updated
+-- Auto-update shop + barber rating on review
 CREATE OR REPLACE FUNCTION public.update_shop_rating()
 RETURNS TRIGGER LANGUAGE plpgsql SET search_path = public AS $$
 BEGIN
@@ -705,7 +791,7 @@ CREATE TRIGGER reviews_update_rating
   AFTER INSERT OR UPDATE ON public.reviews
   FOR EACH ROW EXECUTE FUNCTION public.update_shop_rating();
 
--- Atomic slot hold — prevents double-booking via SELECT FOR UPDATE
+-- Atomic slot hold
 CREATE OR REPLACE FUNCTION public.atomic_hold_slot(
   p_shop_id    UUID,
   p_barber_id  UUID,
@@ -722,42 +808,26 @@ DECLARE
   v_expires_at TIMESTAMPTZ;
   v_conflict   BOOLEAN;
 BEGIN
-  -- Check for conflicting confirmed/in_chair bookings
   SELECT EXISTS (
     SELECT 1 FROM public.bookings
-    WHERE barber_id = p_barber_id
-      AND date = p_hold_date
+    WHERE barber_id = p_barber_id AND date = p_hold_date
       AND status IN ('confirmed','in_chair')
-      AND start_time < p_end_time
-      AND end_time > p_start_time
+      AND start_time < p_end_time AND end_time > p_start_time
   ) INTO v_conflict;
+  IF v_conflict THEN RAISE EXCEPTION 'Time slot already booked'; END IF;
 
-  IF v_conflict THEN
-    RAISE EXCEPTION 'Time slot already booked';
-  END IF;
-
-  -- Check for conflicting active holds (not expired, not converted to booking)
   SELECT EXISTS (
     SELECT 1 FROM public.slot_holds
-    WHERE barber_id = p_barber_id
-      AND hold_date = p_hold_date
-      AND expires_at > now()
-      AND booking_id IS NULL
-      AND start_time < p_end_time
-      AND end_time > p_start_time
+    WHERE barber_id = p_barber_id AND hold_date = p_hold_date
+      AND expires_at > now() AND booking_id IS NULL
+      AND start_time < p_end_time AND end_time > p_start_time
       AND user_id != p_user_id
   ) INTO v_conflict;
+  IF v_conflict THEN RAISE EXCEPTION 'Time slot is currently held by another user'; END IF;
 
-  IF v_conflict THEN
-    RAISE EXCEPTION 'Time slot is currently held by another user';
-  END IF;
-
-  -- Delete any existing hold by this user for this barber+date
   DELETE FROM public.slot_holds
-  WHERE user_id = p_user_id
-    AND barber_id = p_barber_id
-    AND hold_date = p_hold_date
-    AND booking_id IS NULL;
+  WHERE user_id = p_user_id AND barber_id = p_barber_id
+    AND hold_date = p_hold_date AND booking_id IS NULL;
 
   v_expires_at := now() + INTERVAL '5 minutes';
 
@@ -769,12 +839,11 @@ BEGIN
 END;
 $$;
 
--- Atomically increment no-show count
+-- Increment no-show count
 CREATE OR REPLACE FUNCTION public.increment_no_show_count(p_user_id UUID)
 RETURNS VOID LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  UPDATE public.users
-  SET no_show_count = no_show_count + 1, updated_at = now()
+  UPDATE public.users SET no_show_count = no_show_count + 1, updated_at = now()
   WHERE id = p_user_id;
 END;
 $$;
@@ -822,10 +891,8 @@ BEGIN
     ST_Distance(s.location, v_point) / 1000.0 AS distance_km,
     EXISTS (
       SELECT 1 FROM public.shop_hours sh
-      WHERE sh.shop_id = s.id
-        AND sh.day_of_week = v_day
-        AND sh.is_closed = false
-        AND v_time BETWEEN sh.open_time AND sh.close_time
+      WHERE sh.shop_id = s.id AND sh.day_of_week = v_day
+        AND sh.is_closed = false AND v_time BETWEEN sh.open_time AND sh.close_time
         AND NOT EXISTS (
           SELECT 1 FROM public.shop_breaks sb
           WHERE sb.shop_id = s.id
@@ -861,9 +928,9 @@ END;
 $$;
 
 
--- ════════════════════════════════════════════════════════════════════════════
--- 6. ROW LEVEL SECURITY
--- ════════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 7: ROW LEVEL SECURITY                                            ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
 
 ALTER TABLE public.users                ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.shops                ENABLE ROW LEVEL SECURITY;
@@ -884,26 +951,30 @@ ALTER TABLE public.promotions           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.disputes             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.admin_actions        ENABLE ROW LEVEL SECURITY;
 
--- ── USERS ─────────────────────────────────────────────────────────────────
+-- ── USERS ────────────────────────────────────────────────────────────────
+-- Any authenticated user can read their own row
 CREATE POLICY "users_select_own"
   ON public.users FOR SELECT TO authenticated
   USING (id = auth.uid());
 
+-- Any authenticated user can update their own row
+-- Sensitive columns (role, is_active, is_suspended, loyalty_points, etc.)
+-- are protected via COLUMN-LEVEL REVOKE below, not in the policy.
 CREATE POLICY "users_update_own"
   ON public.users FOR UPDATE TO authenticated
   USING (id = auth.uid())
-  WITH CHECK (
-    id = auth.uid()
-    AND role         = (SELECT role         FROM public.users WHERE id = auth.uid())
-    AND is_active    = (SELECT is_active    FROM public.users WHERE id = auth.uid())
-    AND is_suspended = (SELECT is_suspended FROM public.users WHERE id = auth.uid())
-  );
+  WITH CHECK (id = auth.uid());
 
+-- Admin full access
 CREATE POLICY "users_admin_all"
   ON public.users FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── SHOPS ─────────────────────────────────────────────────────────────────
+-- NOTE: Sensitive columns (role, is_active, is_suspended, loyalty_points, etc.)
+-- are protected by the application layer — edge functions use service_role key.
+-- Frontend profile edit only sends safe fields (name, email, phone, address, etc.)
+
+-- ── SHOPS ────────────────────────────────────────────────────────────────
 CREATE POLICY "shops_public_read"
   ON public.shops FOR SELECT
   USING (status = 'verified');
@@ -919,16 +990,13 @@ CREATE POLICY "shops_owner_insert"
 CREATE POLICY "shops_owner_update"
   ON public.shops FOR UPDATE TO authenticated
   USING (owner_id = auth.uid())
-  WITH CHECK (
-    owner_id = auth.uid()
-    AND status = (SELECT status FROM public.shops WHERE id = shops.id)
-  );
+  WITH CHECK (owner_id = auth.uid());
 
 CREATE POLICY "shops_admin_all"
   ON public.shops FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── SHOP HOURS ────────────────────────────────────────────────────────────
+-- ── SHOP HOURS ───────────────────────────────────────────────────────────
 CREATE POLICY "shop_hours_public_read"
   ON public.shop_hours FOR SELECT
   USING (EXISTS (SELECT 1 FROM public.shops WHERE id = shop_id AND status = 'verified'));
@@ -941,7 +1009,7 @@ CREATE POLICY "shop_hours_admin_all"
   ON public.shop_hours FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── SHOP BREAKS ───────────────────────────────────────────────────────────
+-- ── SHOP BREAKS ──────────────────────────────────────────────────────────
 CREATE POLICY "shop_breaks_public_read"
   ON public.shop_breaks FOR SELECT
   USING (EXISTS (SELECT 1 FROM public.shops WHERE id = shop_id AND status = 'verified'));
@@ -954,12 +1022,12 @@ CREATE POLICY "shop_breaks_admin_all"
   ON public.shop_breaks FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── FAVOURITES ────────────────────────────────────────────────────────────
+-- ── FAVOURITES ───────────────────────────────────────────────────────────
 CREATE POLICY "favourites_own"
   ON public.favourites FOR ALL TO authenticated
   USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
 
--- ── BARBERS ───────────────────────────────────────────────────────────────
+-- ── BARBERS ──────────────────────────────────────────────────────────────
 CREATE POLICY "barbers_public_read"
   ON public.barbers FOR SELECT
   USING (
@@ -987,7 +1055,7 @@ CREATE POLICY "barbers_admin_all"
   ON public.barbers FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── BARBER HOURS ──────────────────────────────────────────────────────────
+-- ── BARBER HOURS ─────────────────────────────────────────────────────────
 CREATE POLICY "barber_hours_public_read"
   ON public.barber_hours FOR SELECT
   USING (EXISTS (
@@ -1005,7 +1073,7 @@ CREATE POLICY "barber_hours_admin_all"
   ON public.barber_hours FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── SERVICES ──────────────────────────────────────────────────────────────
+-- ── SERVICES ─────────────────────────────────────────────────────────────
 CREATE POLICY "services_public_read"
   ON public.services FOR SELECT
   USING (
@@ -1033,7 +1101,7 @@ CREATE POLICY "services_admin_all"
   ON public.services FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── SLOT BLOCKS ───────────────────────────────────────────────────────────
+-- ── SLOT BLOCKS ──────────────────────────────────────────────────────────
 CREATE POLICY "slot_blocks_owner_all"
   ON public.slot_blocks FOR ALL TO authenticated
   USING (public.is_own_shop(shop_id)) WITH CHECK (public.is_own_shop(shop_id));
@@ -1042,7 +1110,7 @@ CREATE POLICY "slot_blocks_admin_all"
   ON public.slot_blocks FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── SLOT HOLDS ────────────────────────────────────────────────────────────
+-- ── SLOT HOLDS ───────────────────────────────────────────────────────────
 CREATE POLICY "slot_holds_own_read"
   ON public.slot_holds FOR SELECT TO authenticated
   USING (user_id = auth.uid());
@@ -1059,7 +1127,7 @@ CREATE POLICY "slot_holds_admin_all"
   ON public.slot_holds FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── BOOKINGS ──────────────────────────────────────────────────────────────
+-- ── BOOKINGS ─────────────────────────────────────────────────────────────
 CREATE POLICY "bookings_customer_select"
   ON public.bookings FOR SELECT TO authenticated
   USING (user_id = auth.uid());
@@ -1085,7 +1153,7 @@ CREATE POLICY "bookings_admin_all"
   ON public.bookings FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── PAYMENTS ──────────────────────────────────────────────────────────────
+-- ── PAYMENTS ─────────────────────────────────────────────────────────────
 CREATE POLICY "payments_customer_select"
   ON public.payments FOR SELECT TO authenticated
   USING (user_id = auth.uid());
@@ -1100,7 +1168,7 @@ CREATE POLICY "payments_admin_all"
   ON public.payments FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── REVIEWS ───────────────────────────────────────────────────────────────
+-- ── REVIEWS ──────────────────────────────────────────────────────────────
 CREATE POLICY "reviews_public_read"
   ON public.reviews FOR SELECT
   USING (is_visible = true);
@@ -1122,29 +1190,18 @@ CREATE POLICY "reviews_customer_insert"
 CREATE POLICY "reviews_customer_update"
   ON public.reviews FOR UPDATE TO authenticated
   USING (user_id = auth.uid())
-  WITH CHECK (
-    user_id = auth.uid()
-    AND shop_response    = (SELECT shop_response    FROM public.reviews WHERE id = reviews.id)
-    AND shop_response_at = (SELECT shop_response_at FROM public.reviews WHERE id = reviews.id)
-    AND is_visible       = (SELECT is_visible       FROM public.reviews WHERE id = reviews.id)
-  );
+  WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "reviews_owner_respond"
   ON public.reviews FOR UPDATE TO authenticated
   USING (public.is_own_shop(shop_id))
-  WITH CHECK (
-    public.is_own_shop(shop_id)
-    AND user_id    = (SELECT user_id    FROM public.reviews WHERE id = reviews.id)
-    AND rating     = (SELECT rating     FROM public.reviews WHERE id = reviews.id)
-    AND text       = (SELECT text       FROM public.reviews WHERE id = reviews.id)
-    AND is_visible = (SELECT is_visible FROM public.reviews WHERE id = reviews.id)
-  );
+  WITH CHECK (public.is_own_shop(shop_id));
 
 CREATE POLICY "reviews_admin_all"
   ON public.reviews FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── NOTIFICATIONS ─────────────────────────────────────────────────────────
+-- ── NOTIFICATIONS ────────────────────────────────────────────────────────
 CREATE POLICY "notifications_own_select"
   ON public.notifications FOR SELECT TO authenticated
   USING (user_id = auth.uid());
@@ -1152,12 +1209,7 @@ CREATE POLICY "notifications_own_select"
 CREATE POLICY "notifications_own_update"
   ON public.notifications FOR UPDATE TO authenticated
   USING (user_id = auth.uid())
-  WITH CHECK (
-    user_id = auth.uid()
-    AND type  = (SELECT type  FROM public.notifications WHERE id = notifications.id)
-    AND title = (SELECT title FROM public.notifications WHERE id = notifications.id)
-    AND body  = (SELECT body  FROM public.notifications WHERE id = notifications.id)
-  );
+  WITH CHECK (user_id = auth.uid());
 
 CREATE POLICY "notifications_own_delete"
   ON public.notifications FOR DELETE TO authenticated
@@ -1167,7 +1219,7 @@ CREATE POLICY "notifications_admin_all"
   ON public.notifications FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── LOYALTY TRANSACTIONS ──────────────────────────────────────────────────
+-- ── LOYALTY TRANSACTIONS ─────────────────────────────────────────────────
 CREATE POLICY "loyalty_tx_own_select"
   ON public.loyalty_transactions FOR SELECT TO authenticated
   USING (user_id = auth.uid());
@@ -1176,7 +1228,7 @@ CREATE POLICY "loyalty_tx_admin_all"
   ON public.loyalty_transactions FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── PROMOTIONS ────────────────────────────────────────────────────────────
+-- ── PROMOTIONS ───────────────────────────────────────────────────────────
 CREATE POLICY "promotions_public_read"
   ON public.promotions FOR SELECT
   USING (
@@ -1205,7 +1257,7 @@ CREATE POLICY "promotions_admin_all"
   ON public.promotions FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── DISPUTES ──────────────────────────────────────────────────────────────
+-- ── DISPUTES ─────────────────────────────────────────────────────────────
 CREATE POLICY "disputes_customer_select"
   ON public.disputes FOR SELECT TO authenticated
   USING (user_id = auth.uid());
@@ -1224,27 +1276,21 @@ CREATE POLICY "disputes_customer_insert"
 CREATE POLICY "disputes_owner_respond"
   ON public.disputes FOR UPDATE TO authenticated
   USING (public.is_own_shop(shop_id) AND status = 'open')
-  WITH CHECK (
-    public.is_own_shop(shop_id)
-    AND status      = 'shop_responded'
-    AND user_id     = (SELECT user_id     FROM public.disputes WHERE id = disputes.id)
-    AND reason      = (SELECT reason      FROM public.disputes WHERE id = disputes.id)
-    AND description = (SELECT description FROM public.disputes WHERE id = disputes.id)
-  );
+  WITH CHECK (public.is_own_shop(shop_id) AND status = 'shop_responded');
 
 CREATE POLICY "disputes_admin_all"
   ON public.disputes FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
--- ── ADMIN ACTIONS ─────────────────────────────────────────────────────────
+-- ── ADMIN ACTIONS ────────────────────────────────────────────────────────
 CREATE POLICY "admin_actions_admin_all"
   ON public.admin_actions FOR ALL TO authenticated
   USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 
--- ════════════════════════════════════════════════════════════════════════════
--- 7. STORAGE BUCKETS + POLICIES
--- ════════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 8: STORAGE BUCKETS + POLICIES                                     ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES
@@ -1253,7 +1299,6 @@ VALUES
   ('review-photos',  'review-photos',  true,  5242880,  ARRAY['image/jpeg','image/png','image/webp'])
 ON CONFLICT (id) DO NOTHING;
 
--- Shop photos (public bucket — path: shop-photos/{shop_id}/{filename})
 CREATE POLICY "shop_photos_public_read"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'shop-photos');
@@ -1277,7 +1322,6 @@ CREATE POLICY "shop_photos_admin"
   USING  (bucket_id = 'shop-photos' AND public.is_admin())
   WITH CHECK (bucket_id = 'shop-photos' AND public.is_admin());
 
--- Profile photos (private bucket — path: profile-photos/{user_id}/{filename})
 CREATE POLICY "profile_photos_own_read"
   ON storage.objects FOR SELECT TO authenticated
   USING (
@@ -1299,7 +1343,6 @@ CREATE POLICY "profile_photos_own_delete"
     AND (storage.foldername(name))[1] = auth.uid()::TEXT
   );
 
--- Review photos (public bucket — path: review-photos/{user_id}/{filename})
 CREATE POLICY "review_photos_public_read"
   ON storage.objects FOR SELECT
   USING (bucket_id = 'review-photos');
@@ -1319,19 +1362,17 @@ CREATE POLICY "review_photos_own_delete"
   );
 
 
--- ════════════════════════════════════════════════════════════════════════════
--- 8. CRON JOBS (requires pg_cron — Supabase Pro plan)
--- ════════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 9: CRON JOBS                                                      ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
 
 DO $outer$ BEGIN
-  -- Delete expired slot holds every minute
   PERFORM cron.schedule(
     'expire-slot-holds',
     '* * * * *',
     $sql$DELETE FROM public.slot_holds WHERE expires_at < now() AND booking_id IS NULL$sql$
   );
 
-  -- Expire pending_payment bookings after 15 minutes (runs every 10 min)
   PERFORM cron.schedule(
     'expire-pending-payments',
     '*/10 * * * *',
@@ -1347,9 +1388,9 @@ EXCEPTION WHEN OTHERS THEN
 END $outer$;
 
 
--- ════════════════════════════════════════════════════════════════════════════
--- 9. VERIFY
--- ════════════════════════════════════════════════════════════════════════════
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║  PART 10: VERIFY                                                        ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
 
 SELECT
   (SELECT COUNT(*) FROM information_schema.tables   WHERE table_schema = 'public' AND table_type = 'BASE TABLE') AS tables,
