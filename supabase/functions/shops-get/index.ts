@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
       await Promise.all([
         supabase.from('shop_hours').select('*').eq('shop_id', shopId).order('day_of_week'),
         supabase.from('shop_breaks').select('*').eq('shop_id', shopId),
-        supabase.from('barbers').select('*, barber_hours(*)').eq('shop_id', shopId).eq('is_active', true),
+        supabase.from('barbers').select('*, barber_hours(*), portfolio:barber_portfolio(*), barber_services(service_id)').eq('shop_id', shopId).eq('is_active', true),
         supabase.from('services').select('*').eq('shop_id', shopId).eq('is_active', true).order('sort_order'),
         supabase.from('promotions').select('*').eq('shop_id', shopId).eq('is_active', true),
         supabase.from('reviews')

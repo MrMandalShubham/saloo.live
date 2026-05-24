@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
     const { data, error: dbErr } = await supabase
       .from('barbers')
-      .select('*, hours:barber_hours(*)')
+      .select('*, hours:barber_hours(*), portfolio:barber_portfolio(*), barber_services(service_id)')
       .eq('shop_id', shop.id)
       .order('created_at')
 

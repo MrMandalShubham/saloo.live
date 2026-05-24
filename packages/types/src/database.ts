@@ -193,6 +193,10 @@ export type Database = {
           invite_status: 'pending' | 'accepted' | 'declined'
           invite_token: string | null
           invite_expires_at: string | null
+          experience_years: number
+          languages: string[]
+          instagram_handle: string | null
+          experience_level: 'junior' | 'mid' | 'senior' | 'master'
           created_at: string
           updated_at: string
         }
@@ -212,10 +216,48 @@ export type Database = {
           invite_status?: 'pending' | 'accepted' | 'declined'
           invite_token?: string | null
           invite_expires_at?: string | null
+          experience_years?: number
+          languages?: string[]
+          instagram_handle?: string | null
+          experience_level?: 'junior' | 'mid' | 'senior' | 'master'
           created_at?: string
           updated_at?: string
         }
         Update: Partial<Database['public']['Tables']['barbers']['Insert']>
+        Relationships: []
+      }
+      barber_portfolio: {
+        Row: {
+          id: string
+          barber_id: string
+          image_url: string
+          caption: string | null
+          is_before_after: boolean
+          sort_order: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          barber_id: string
+          image_url: string
+          caption?: string | null
+          is_before_after?: boolean
+          sort_order?: number
+          created_at?: string
+        }
+        Update: Partial<Database['public']['Tables']['barber_portfolio']['Insert']>
+        Relationships: []
+      }
+      barber_services: {
+        Row: {
+          barber_id: string
+          service_id: string
+        }
+        Insert: {
+          barber_id: string
+          service_id: string
+        }
+        Update: Partial<Database['public']['Tables']['barber_services']['Insert']>
         Relationships: []
       }
       barber_hours: {
