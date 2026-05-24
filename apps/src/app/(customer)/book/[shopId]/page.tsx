@@ -32,7 +32,7 @@ async function fetchAvailability(shopId: string, date: string, barberId?: string
     headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: ANON },
   })
   const json = await res.json()
-  return json.data?.slots ?? []
+  return { slots: json.data?.slots ?? [], is_closed: json.data?.is_closed ?? false }
 }
 
 export default function BookingFlowPage() {
@@ -53,11 +53,13 @@ export default function BookingFlowPage() {
   const { data: shop } = useQuery({ queryKey: ['shop', shopId], queryFn: () => fetchShop(shopId) })
   const days = next7Days()
 
-  const { data: slots = [], isLoading: slotsLoading } = useQuery({
+  const { data: availData, isLoading: slotsLoading } = useQuery({
     queryKey: ['availability', shopId, selectedDate, selectedBarber?.id],
     queryFn: () => fetchAvailability(shopId, selectedDate, selectedBarber?.id),
     enabled: !!selectedDate && step >= 2,
   })
+  const slots = availData?.slots ?? []
+  const isDayClosed = availData?.is_closed ?? false
 
   const services = (shop?.services ?? []).filter((s: any) => !s.is_addon)
   const addons = (shop?.services ?? []).filter((s: any) => s.is_addon)
@@ -341,8 +343,20 @@ export default function BookingFlowPage() {
                   </div>
                 ) : slots.length === 0 ? (
                   <div className="text-center py-8">
-                    <p className="text-gray-400 text-sm">No slots available for this day</p>
-                    <p className="text-gray-300 text-xs mt-1">Try another date or barber</p>
+                    {isDayClosed ? (
+                      <>
+                        <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-3">
+                          <span className="text-xl">🚫</span>
+                        </div>
+                        <p className="text-red-400 font-semibold text-sm">Shop is closed on this day</p>
+                        <p className="text-gray-300 text-xs mt-1">Please select another date to book</p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-gray-400 text-sm">No slots available for this day</p>
+                        <p className="text-gray-300 text-xs mt-1">Try another date or barber</p>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">

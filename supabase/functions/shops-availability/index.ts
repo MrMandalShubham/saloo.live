@@ -101,12 +101,12 @@ Deno.serve(async (req) => {
 
     const hoursData = hoursRes.data
     if (!hoursData || hoursData.is_closed) {
-      return json({ data: { date, slots: [] }, error: null })
+      return json({ data: { date, slots: [], is_closed: true }, error: null })
     }
 
     const barbers = barbersRes.data
     if (!barbers?.length) {
-      return json({ data: { date, slots: [] }, error: null })
+      return json({ data: { date, slots: [], is_closed: false, no_barbers: true }, error: null })
     }
 
     const barberIds = barbers.map(b => b.id)

@@ -14,6 +14,8 @@ async function searchShops(q: string, filters: { openNow: boolean; features: str
   const { data: { session } } = await supabase.auth.getSession()
 
   const apikey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
+  const headers = { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey }
+  const base = process.env['NEXT_PUBLIC_SUPABASE_URL']
 
   const params = new URLSearchParams({
     lat: '22.7196', lng: '75.8577', radius_km: '50', limit: '20',
@@ -23,14 +25,25 @@ async function searchShops(q: string, filters: { openNow: boolean; features: str
     sort_by: filters.sort === 'distance' ? 'nearest' : filters.sort,
   })
 
-  // Use search for text queries (works without PostGIS), nearby for geo queries
-  const fn = q ? 'shops-search' : 'shops-nearby'
-  const res = await fetch(
-    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/${fn}?${params}`,
-    { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey } }
-  )
+  // Try nearby first (geo-based), fallback to search (works without PostGIS location)
+  if (!q) {
+    const res = await fetch(`${base}/functions/v1/shops-nearby?${params}`, { headers })
+    const json = await res.json()
+    const results = json.data ?? []
+    if (results.length > 0) return results
+
+    // Fallback: get all shops via search
+    const fallback = await fetch(`${base}/functions/v1/shops-search?q=&city=&limit=20`, { headers })
+    const fbJson = await fallback.json()
+    const fbData = fbJson.data
+    return Array.isArray(fbData) ? fbData : (fbData?.shops ?? [])
+  }
+
+  // Text search
+  const res = await fetch(`${base}/functions/v1/shops-search?${params}`, { headers })
   const json = await res.json()
-  return json.data ?? []
+  const data = json.data
+  return Array.isArray(data) ? data : (data?.shops ?? [])
 }
 
 export default function SearchPage() {

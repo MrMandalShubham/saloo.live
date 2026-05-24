@@ -25,7 +25,8 @@ async function fetchNearbyShops() {
     { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey } }
   )
   const searchJson = await searchRes.json()
-  return searchJson.data ?? []
+  const sData = searchJson.data
+  return Array.isArray(sData) ? sData : (sData?.shops ?? [])
 }
 
 export function ShopsGrid() {
