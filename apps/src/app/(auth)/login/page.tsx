@@ -13,6 +13,7 @@ function LoginPage() {
   const supabase    = createClient()
 
   const prefillEmail = searchParams.get('email') ?? ''
+  const redirectTo = searchParams.get('redirect') ?? '/home'
 
   const [mode, setMode]         = useState<AuthMode>('signin')
   const [email, setEmail]       = useState(prefillEmail)
@@ -49,8 +50,8 @@ function LoginPage() {
     try { await supabase.rpc('ensure_user_profile' as any) } catch {}
 
     setLoading(false)
-    // All users (including admin, shop_owner) land on customer home first
-    window.location.href = '/home'
+    // Redirect to where they came from, or home
+    window.location.href = redirectTo
   }
 
   // ── Sign Up ───────────────────────────────────────────────────────────────

@@ -484,7 +484,7 @@ export default function BookingFlowPage() {
             </p>
             <div className="space-y-2 pt-2">
               <button
-                onClick={() => router.push('/login')}
+                onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/book/${shopId}`)}`)}
                 className="w-full bg-saloo-teal text-white font-syne font-bold py-3 rounded-xl hover:bg-saloo-teal/90 transition-colors text-base"
               >
                 Create Profile

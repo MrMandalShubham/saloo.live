@@ -88,10 +88,12 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // 2. Logged-in on login page → /home
+  // 2. Logged-in on login page → redirect param or /home
   if (user && (pathname === '/login' || pathname === '/admin/login')) {
     const url = request.nextUrl.clone()
-    url.pathname = '/home'
+    const redirectTo = request.nextUrl.searchParams.get('redirect')
+    url.pathname = redirectTo && redirectTo.startsWith('/') ? redirectTo : '/home'
+    url.search = ''
     return NextResponse.redirect(url)
   }
 
