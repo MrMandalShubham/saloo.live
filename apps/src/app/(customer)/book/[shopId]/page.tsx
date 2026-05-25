@@ -154,15 +154,11 @@ export default function BookingFlowPage() {
           contact: session?.user?.user_metadata?.phone ?? '',
         },
         theme: { color: '#008B7D' },
-        config: {
-          display: {
-            blocks: {
-              upi: { name: 'Pay via UPI', instruments: [{ method: 'upi', flows: ['intent', 'collect', 'qr'] }] },
-              card: { name: 'Pay via Card', instruments: [{ method: 'card' }] },
-            },
-            sequence: ['block.upi', 'block.card'],
-            preferences: { show_default_blocks: false },
-          },
+        method: {
+          upi: true,
+          card: true,
+          netbanking: true,
+          wallet: true,
         },
         handler: async (payment: any) => {
           await confirmBooking(
