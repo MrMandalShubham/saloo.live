@@ -69,17 +69,19 @@ Deno.serve(async (req) => {
 
     if (bookingErr || !booking) throw bookingErr
 
-    // Update payment record
-    await supabase
-      .from('payments')
-      .update({
-        booking_id: booking.id,
-        status: 'captured',
-        razorpay_payment_id,
-        razorpay_signature,
-        method: 'razorpay',
-      })
-      .eq('razorpay_order_id', razorpay_order_id)
+    // Create payment record
+    await supabase.from('payments').insert({
+      booking_id: booking.id,
+      user_id: user.id,
+      amount: advance_amount,
+      type: 'advance',
+      status: 'captured',
+      method: 'razorpay',
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      metadata: { hold_id },
+    })
 
     // Link hold to booking (prevents cleanup)
     await supabase

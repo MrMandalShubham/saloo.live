@@ -2,7 +2,7 @@
 
 import { handleCors, json, error } from '../_shared/cors.ts'
 import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
-import { createOrder } from '../_shared/razorpay.ts'
+import { createOrder, IS_DEV_MODE } from '../_shared/razorpay.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
@@ -58,23 +58,16 @@ Deno.serve(async (req) => {
       },
     })
 
-    // Store order ID in a pending payment record
-    await supabase.from('payments').insert({
-      booking_id: hold.booking_id ?? '00000000-0000-0000-0000-000000000000',  // placeholder
-      user_id: user.id,
-      amount: advance_paise / 100,
-      type: 'advance',
-      status: 'pending',
-      razorpay_order_id: order.id,
-      metadata: { hold_id, order_receipt: order.receipt },
-    })
+    // Payment record is created in payments-verify after booking is confirmed
+    // (avoids FK constraint issue — booking doesn't exist yet at this stage)
 
     return json({
       data: {
         razorpay_order_id: order.id,
         amount: advance_paise,
         currency: 'INR',
-        key_id: Deno.env.get('RAZORPAY_KEY_ID'),
+        key_id: Deno.env.get('RAZORPAY_KEY_ID') ?? 'demo',
+        dev_mode: IS_DEV_MODE,
       },
       error: null,
     })

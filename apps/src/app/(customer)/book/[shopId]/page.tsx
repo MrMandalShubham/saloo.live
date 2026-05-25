@@ -131,12 +131,12 @@ export default function BookingFlowPage() {
       const orderData = await orderRes.json()
       if (orderData.error) throw new Error(orderData.error.message ?? orderData.error)
 
-      const { razorpay_order_id, amount, key_id } = orderData.data
+      const { razorpay_order_id, amount, key_id, dev_mode } = orderData.data
 
+      // Dev mode: skip Razorpay popup, auto-confirm
       const Razorpay = (window as any).Razorpay
-      if (!Razorpay) {
-        // Dev fallback: simulate success
-        await confirmBooking(razorpay_order_id, 'dev_pay', 'dev_sig', session?.access_token)
+      if (dev_mode || !Razorpay) {
+        await confirmBooking(razorpay_order_id, `pay_demo_${Date.now()}`, 'demo_sig', session?.access_token)
         return
       }
 

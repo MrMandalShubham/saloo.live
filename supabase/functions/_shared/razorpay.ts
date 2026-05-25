@@ -1,8 +1,11 @@
 import { createHmac } from 'https://deno.land/std@0.224.0/crypto/mod.ts'
 
-const KEY_ID = Deno.env.get('RAZORPAY_KEY_ID')!
-const KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET')!
+const KEY_ID = Deno.env.get('RAZORPAY_KEY_ID') ?? ''
+const KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET') ?? ''
 const BASE = 'https://api.razorpay.com/v1'
+
+// Dev mode: when no real Razorpay keys are set, simulate payment flow
+export const IS_DEV_MODE = !KEY_ID || KEY_ID.startsWith('rzp_demo') || KEY_ID === 'demo'
 
 function authHeader(): string {
   return 'Basic ' + btoa(`${KEY_ID}:${KEY_SECRET}`)
@@ -14,6 +17,17 @@ export async function createOrder(params: {
   receipt: string   // hold_id or booking_ref
   notes?: Record<string, string>
 }) {
+  if (IS_DEV_MODE) {
+    // Return a mock order for dev/demo
+    return {
+      id: `order_demo_${crypto.randomUUID().slice(0, 12)}`,
+      amount: params.amount,
+      currency: 'INR',
+      receipt: params.receipt,
+      status: 'created',
+    }
+  }
+
   const res = await fetch(`${BASE}/orders`, {
     method: 'POST',
     headers: { Authorization: authHeader(), 'Content-Type': 'application/json' },
@@ -34,6 +48,9 @@ export async function verifySignature(
   paymentId: string,
   signature: string
 ): Promise<boolean> {
+  // Dev mode: accept demo signatures
+  if (IS_DEV_MODE) return true
+
   const payload = `${orderId}|${paymentId}`
   const key = new TextEncoder().encode(KEY_SECRET)
   const data = new TextEncoder().encode(payload)
