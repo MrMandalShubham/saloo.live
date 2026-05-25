@@ -1,5 +1,3 @@
-import { createHmac } from 'https://deno.land/std@0.224.0/crypto/mod.ts'
-
 const KEY_ID = Deno.env.get('RAZORPAY_KEY_ID') ?? ''
 const KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET') ?? ''
 const BASE = 'https://api.razorpay.com/v1'
@@ -9,6 +7,21 @@ export const IS_DEV_MODE = !KEY_ID || KEY_ID.startsWith('rzp_demo') || KEY_ID ==
 
 function authHeader(): string {
   return 'Basic ' + btoa(`${KEY_ID}:${KEY_SECRET}`)
+}
+
+/** HMAC-SHA256 using native Web Crypto API */
+async function hmacSha256(secret: string, message: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+  const sig = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message))
+  return Array.from(new Uint8Array(sig))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
 }
 
 /** Create a Razorpay order. amount is in paise. */
@@ -48,17 +61,8 @@ export async function verifySignature(
   paymentId: string,
   signature: string
 ): Promise<boolean> {
-  // Dev mode: accept demo signatures
   if (IS_DEV_MODE) return true
-
-  const payload = `${orderId}|${paymentId}`
-  const key = new TextEncoder().encode(KEY_SECRET)
-  const data = new TextEncoder().encode(payload)
-  const hmac = createHmac('sha256', key)
-  await hmac.update(data)
-  const digest = Array.from(new Uint8Array(await hmac.digest()))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
+  const digest = await hmacSha256(KEY_SECRET, `${orderId}|${paymentId}`)
   return digest === signature
 }
 
@@ -67,14 +71,8 @@ export async function verifyWebhookSignature(
   payload: string,
   signature: string
 ): Promise<boolean> {
-  const webhookSecret = Deno.env.get('RAZORPAY_WEBHOOK_SECRET')!
-  const key = new TextEncoder().encode(webhookSecret)
-  const data = new TextEncoder().encode(payload)
-  const hmac = createHmac('sha256', key)
-  await hmac.update(data)
-  const digest = Array.from(new Uint8Array(await hmac.digest()))
-    .map(b => b.toString(16).padStart(2, '0'))
-    .join('')
+  const webhookSecret = Deno.env.get('RAZORPAY_WEBHOOK_SECRET') ?? ''
+  const digest = await hmacSha256(webhookSecret, payload)
   return digest === signature
 }
 
