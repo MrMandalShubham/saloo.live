@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     // Fetch the hold
     const { data: hold, error: holdErr } = await supabase
       .from('slot_holds')
-      .select('*, services:service_ids')
+      .select('*')
       .eq('id', hold_id)
       .eq('user_id', user.id)
       .gt('expires_at', new Date().toISOString())
