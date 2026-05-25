@@ -119,6 +119,82 @@ export default function BookingFlowPage() {
     }
   }
 
+  const handleUpiPay = async (upiApp: string) => {
+    setPaying(true); setErr('')
+    try {
+      const session = await getSession()
+      const orderRes = await fetch(`${BASE}/functions/v1/payments-create-order`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json', apikey: ANON },
+        body: JSON.stringify({ hold_id: holdData.hold_id }),
+      })
+      const orderData = await orderRes.json()
+      if (orderData.error) throw new Error(orderData.error.message ?? orderData.error)
+
+      const { razorpay_order_id, amount, key_id, dev_mode } = orderData.data
+
+      if (dev_mode) {
+        await confirmBooking(razorpay_order_id, `pay_demo_${Date.now()}`, 'demo_sig', session?.access_token)
+        return
+      }
+
+      const RazorpayC = (window as any).Razorpay
+      if (!RazorpayC) throw new Error('Payment gateway not loaded. Please refresh.')
+
+      const rzp = new RazorpayC({
+        key: key_id,
+        amount: String(amount),
+        currency: 'INR',
+        order_id: razorpay_order_id,
+        name: 'Saloo',
+        description: `Booking at ${shop?.name}`,
+        image: '/icons/icon-192x192.png',
+        prefill: {
+          name: session?.user?.user_metadata?.full_name ?? '',
+          email: session?.user?.email ?? '',
+          contact: session?.user?.user_metadata?.phone ?? '',
+          method: 'upi',
+        },
+        theme: { color: '#008B7D' },
+        config: {
+          display: {
+            blocks: {
+              upi: {
+                name: 'Pay via UPI',
+                instruments: [
+                  {
+                    method: 'upi',
+                    flows: ['intent'],
+                    apps: [upiApp],
+                  },
+                ],
+              },
+            },
+            sequence: ['block.upi'],
+            preferences: { show_default_blocks: true },
+          },
+        },
+        handler: async (payment: any) => {
+          await confirmBooking(
+            payment.razorpay_order_id,
+            payment.razorpay_payment_id,
+            payment.razorpay_signature,
+            session?.access_token
+          )
+        },
+        modal: {
+          ondismiss: () => setPaying(false),
+          confirm_close: true,
+        },
+      })
+      rzp.open()
+    } catch (e: any) {
+      setErr(e.message)
+    } finally {
+      setPaying(false)
+    }
+  }
+
   const handlePay = async () => {
     setPaying(true); setErr('')
     try {
@@ -475,10 +551,64 @@ export default function BookingFlowPage() {
                   className="w-full border border-border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-saloo-teal/50 resize-none transition-colors" />
               </div>
 
-              <button onClick={handlePay} disabled={paying}
-                className="w-full bg-saloo-teal text-navy font-syne font-bold py-4 rounded-xl hover:bg-saloo-teal/90 transition-colors disabled:opacity-50 text-lg">
-                {paying ? 'Processing...' : `Pay ${formatINR(holdData.advance_amount)} Now`}
-              </button>
+              {/* UPI App Buttons */}
+              <div>
+                <p className="text-sm font-medium text-gray-700 mb-3">Pay {formatINR(holdData.advance_amount)} via UPI</p>
+                <div className="grid grid-cols-4 gap-2 mb-3">
+                  {[
+                    { name: 'GPay', app: 'google_pay', icon: '🟢', color: 'bg-white border-gray-200 hover:border-blue-400' },
+                    { name: 'PhonePe', app: 'phonepe', icon: '🟣', color: 'bg-white border-gray-200 hover:border-purple-400' },
+                    { name: 'Paytm', app: 'paytm', icon: '🔵', color: 'bg-white border-gray-200 hover:border-sky-400' },
+                    { name: 'CRED', app: 'cred', icon: '⚫', color: 'bg-white border-gray-200 hover:border-gray-400' },
+                  ].map(upi => (
+                    <button
+                      key={upi.app}
+                      onClick={() => handleUpiPay(upi.app)}
+                      disabled={paying}
+                      className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 transition-all disabled:opacity-50 ${upi.color}`}
+                    >
+                      <span className="text-2xl">{upi.icon}</span>
+                      <span className="text-[11px] font-medium text-gray-700">{upi.name}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="grid grid-cols-4 gap-2 mb-4">
+                  {[
+                    { name: 'Navi', app: 'navi', icon: '🟡' },
+                    { name: 'Amazon', app: 'amazon_pay', icon: '🟠' },
+                    { name: 'WhatsApp', app: 'whatsapp', icon: '🟢' },
+                    { name: 'More', app: 'upi', icon: '📱' },
+                  ].map(upi => (
+                    <button
+                      key={upi.app}
+                      onClick={() => handleUpiPay(upi.app)}
+                      disabled={paying}
+                      className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border-2 border-gray-200 bg-white hover:border-saloo-teal/40 transition-all disabled:opacity-50"
+                    >
+                      <span className="text-2xl">{upi.icon}</span>
+                      <span className="text-[11px] font-medium text-gray-700">{upi.name}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="flex-1 border-t border-gray-200" />
+                  <span className="text-xs text-gray-400 uppercase tracking-wider">or pay via</span>
+                  <div className="flex-1 border-t border-gray-200" />
+                </div>
+
+                <button onClick={handlePay} disabled={paying}
+                  className="w-full bg-navy text-white font-syne font-bold py-3.5 rounded-xl hover:bg-navy/90 transition-colors disabled:opacity-50 text-sm">
+                  {paying ? 'Processing...' : 'Card / Netbanking / Wallet'}
+                </button>
+              </div>
+
+              {paying && (
+                <div className="flex items-center justify-center gap-2 py-2">
+                  <div className="w-4 h-4 border-2 border-saloo-teal border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm text-gray-500">Processing payment...</span>
+                </div>
+              )}
               <p className="text-center text-xs text-gray-400">
                 Powered by Razorpay · 100% secure
               </p>
