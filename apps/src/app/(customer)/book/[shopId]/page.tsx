@@ -147,7 +147,23 @@ export default function BookingFlowPage() {
         order_id: razorpay_order_id,
         name: 'Saloo',
         description: `Booking at ${shop?.name}`,
-        theme: { color: '#C9A84C' },
+        image: '/icons/icon-192x192.png',
+        prefill: {
+          name: session?.user?.user_metadata?.full_name ?? '',
+          email: session?.user?.email ?? '',
+          contact: session?.user?.user_metadata?.phone ?? '',
+        },
+        theme: { color: '#008B7D' },
+        config: {
+          display: {
+            blocks: {
+              upi: { name: 'Pay via UPI', instruments: [{ method: 'upi', flows: ['intent', 'collect', 'qr'] }] },
+              card: { name: 'Pay via Card', instruments: [{ method: 'card' }] },
+            },
+            sequence: ['block.upi', 'block.card'],
+            preferences: { show_default_blocks: false },
+          },
+        },
         handler: async (payment: any) => {
           await confirmBooking(
             payment.razorpay_order_id,
@@ -155,6 +171,10 @@ export default function BookingFlowPage() {
             payment.razorpay_signature,
             session?.access_token
           )
+        },
+        modal: {
+          ondismiss: () => setPaying(false),
+          confirm_close: true,
         },
       })
       rzp.open()
