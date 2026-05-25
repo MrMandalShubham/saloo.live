@@ -3,8 +3,10 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { jwtDecode } from 'jwt-decode'
 
 // All route prefixes that require authentication
+// Guest-accessible: /home, /search, /shop/*, /book/*
+// Protected: everything else that needs auth
 const PROTECTED_PREFIXES = [
-  '/home', '/search', '/shop', '/book', '/bookings',
+  '/bookings',
   '/review', '/dispute', '/loyalty', '/notifications', '/profile',
   '/open-shop', '/owner', '/admin',
 ]

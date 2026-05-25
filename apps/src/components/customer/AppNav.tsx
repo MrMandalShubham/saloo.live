@@ -25,7 +25,7 @@ function upsertAccount(acc: SavedAccount) {
   localStorage.setItem(KEY, JSON.stringify([acc, ...list]))
 }
 
-export function AppNav() {
+export function AppNav({ isGuest = false }: { isGuest?: boolean }) {
   const pathname = usePathname()
   const router   = useRouter()
 
@@ -40,6 +40,7 @@ export function AppNav() {
   const mobileRef  = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (isGuest) return
     const supabase = createClient()
     // getUser() validates the session server-side — prevents stale localStorage sessions
     supabase.auth.getUser().then(async ({ data: { user } }) => {
@@ -118,18 +119,29 @@ export function AppNav() {
   const totalAccounts = 1 + others.length
   const isAdmin       = dbRole === 'admin'
 
-  // Desktop nav links — show "Owner Dashboard" if user has a shop, else "Open a Shop"
-  const desktopNavLinks = [
-    { href: '/home',          label: 'Home'     },
-    { href: '/search',        label: 'Explore'  },
-    { href: '/bookings',      label: 'Bookings' },
-    { href: '/notifications', label: 'Alerts'   },
-    { href: '/loyalty',       label: 'Rewards'  },
-    { href: '/profile',       label: 'Profile'  },
-    ...(hasShop
-      ? [{ href: '/owner/dashboard', label: 'Dashboard' }]
-      : [{ href: '/open-shop', label: 'Open a Shop' }]
-    ),
+  // Desktop nav links — guests only see Home & Explore
+  const desktopNavLinks = isGuest
+    ? [
+        { href: '/home',   label: 'Home'    },
+        { href: '/search', label: 'Explore' },
+      ]
+    : [
+        { href: '/home',          label: 'Home'     },
+        { href: '/search',        label: 'Explore'  },
+        { href: '/bookings',      label: 'Bookings' },
+        { href: '/notifications', label: 'Alerts'   },
+        { href: '/loyalty',       label: 'Rewards'  },
+        { href: '/profile',       label: 'Profile'  },
+        ...(hasShop
+          ? [{ href: '/owner/dashboard', label: 'Dashboard' }]
+          : [{ href: '/open-shop', label: 'Open a Shop' }]
+        ),
+      ]
+
+  // Mobile bottom nav — guests only see Home & Explore
+  const guestBottomNav = [
+    { href: '/home',   label: 'Home',    icon: '⌂' },
+    { href: '/search', label: 'Explore', icon: '◎' },
   ]
 
   const PopoverContent = () => (
@@ -251,58 +263,72 @@ export function AppNav() {
             })}
           </nav>
 
-          {/* Desktop profile avatar */}
-          <div ref={desktopRef} className="relative hidden md:block">
-            <button onClick={() => setPopover(v => !v)} className="flex items-center gap-2.5 group">
-              <div className="relative">
-                <div className={`w-9 h-9 rounded-full flex items-center justify-center font-syne font-bold text-sm transition-all ${
-                  pathname.startsWith('/profile') ? 'bg-saloo-teal text-saloo-dark' : 'bg-saloo-teal/15 text-saloo-teal border border-saloo-teal/30 hover:bg-saloo-teal/25'
-                }`}>
-                  {initial}
+          {/* Desktop profile avatar / Sign In */}
+          {isGuest ? (
+            <Link href="/login"
+              className="hidden md:flex items-center gap-2 px-5 py-2 rounded-xl bg-saloo-teal text-white font-semibold text-sm hover:bg-saloo-teal/90 transition-all shadow-sm">
+              Sign In
+            </Link>
+          ) : (
+            <div ref={desktopRef} className="relative hidden md:block">
+              <button onClick={() => setPopover(v => !v)} className="flex items-center gap-2.5 group">
+                <div className="relative">
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-syne font-bold text-sm transition-all ${
+                    pathname.startsWith('/profile') ? 'bg-saloo-teal text-saloo-dark' : 'bg-saloo-teal/15 text-saloo-teal border border-saloo-teal/30 hover:bg-saloo-teal/25'
+                  }`}>
+                    {initial}
+                  </div>
+                  {totalAccounts > 1 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-saloo-teal text-saloo-dark text-[8px] font-bold flex items-center justify-center">
+                      {totalAccounts}
+                    </span>
+                  )}
                 </div>
-                {totalAccounts > 1 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-saloo-teal text-saloo-dark text-[8px] font-bold flex items-center justify-center">
-                    {totalAccounts}
-                  </span>
-                )}
-              </div>
-            </button>
-            {popoverOpen && (
-              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-white/95 backdrop-blur-xl border border-saloo-dark/10 rounded-2xl shadow-glass-lg overflow-hidden">
-                <PopoverContent />
-              </div>
-            )}
-          </div>
+              </button>
+              {popoverOpen && (
+                <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-white/95 backdrop-blur-xl border border-saloo-dark/10 rounded-2xl shadow-glass-lg overflow-hidden">
+                  <PopoverContent />
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Mobile avatar (top-right) */}
-          <div ref={mobileRef} className="relative md:hidden">
-            <button onClick={() => setPopover(v => !v)}>
-              <div className="relative">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center font-syne font-bold text-sm transition-all ${
-                  pathname.startsWith('/profile') ? 'bg-saloo-teal text-saloo-dark' : 'bg-saloo-teal/15 text-saloo-teal border border-saloo-teal/30'
-                }`}>
-                  {initial}
+          {/* Mobile avatar / Sign In (top-right) */}
+          {isGuest ? (
+            <Link href="/login"
+              className="md:hidden flex items-center px-4 py-1.5 rounded-lg bg-saloo-teal text-white font-semibold text-sm hover:bg-saloo-teal/90 transition-all">
+              Sign In
+            </Link>
+          ) : (
+            <div ref={mobileRef} className="relative md:hidden">
+              <button onClick={() => setPopover(v => !v)}>
+                <div className="relative">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center font-syne font-bold text-sm transition-all ${
+                    pathname.startsWith('/profile') ? 'bg-saloo-teal text-saloo-dark' : 'bg-saloo-teal/15 text-saloo-teal border border-saloo-teal/30'
+                  }`}>
+                    {initial}
+                  </div>
+                  {totalAccounts > 1 && (
+                    <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-saloo-teal text-saloo-dark text-[8px] font-bold flex items-center justify-center">
+                      {totalAccounts}
+                    </span>
+                  )}
                 </div>
-                {totalAccounts > 1 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-saloo-teal text-saloo-dark text-[8px] font-bold flex items-center justify-center">
-                    {totalAccounts}
-                  </span>
-                )}
-              </div>
-            </button>
-            {popoverOpen && (
-              <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-white/95 backdrop-blur-xl border border-saloo-dark/10 rounded-2xl shadow-glass-lg overflow-hidden">
-                <PopoverContent />
-              </div>
-            )}
-          </div>
+              </button>
+              {popoverOpen && (
+                <div className="absolute right-0 top-[calc(100%+10px)] z-50 w-64 bg-white/95 backdrop-blur-xl border border-saloo-dark/10 rounded-2xl shadow-glass-lg overflow-hidden">
+                  <PopoverContent />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </header>
 
       {/* ── Mobile bottom nav ── */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-2xl border-t-2 border-[#008B7D]/30 shadow-glass-lg">
         <div className="flex">
-          {BOTTOM_NAV.map(item => {
+          {(isGuest ? guestBottomNav : BOTTOM_NAV).map(item => {
             const active = pathname === item.href || pathname.startsWith(item.href + '/')
             return (
               <Link key={item.href} href={item.href}

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 
 export default function SplashPage() {
   const router = useRouter()
@@ -14,11 +13,9 @@ export default function SplashPage() {
     const t2 = setTimeout(() => setPhase('reveal'), 1200)
     const t3 = setTimeout(() => setPhase('exit'), 2200)
 
-    // Auth check + redirect after animation
-    const t4 = setTimeout(async () => {
-      const supabase = createClient()
-      const { data: { session } } = await supabase.auth.getSession()
-      router.replace(session ? '/home' : '/login')
+    // Redirect after animation
+    const t4 = setTimeout(() => {
+      router.replace('/home')
     }, 2800)
 
     return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }

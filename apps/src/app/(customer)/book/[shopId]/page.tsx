@@ -49,6 +49,7 @@ export default function BookingFlowPage() {
   const [paying, setPaying] = useState(false)
   const [holdData, setHoldData] = useState<any>(null)
   const [err, setErr] = useState('')
+  const [showAuthPopup, setShowAuthPopup] = useState(false)
 
   const { data: shop } = useQuery({ queryKey: ['shop', shopId], queryFn: () => fetchShop(shopId) })
   const days = next7Days()
@@ -75,6 +76,12 @@ export default function BookingFlowPage() {
 
   const handleHold = async () => {
     if (!selectedSlot) return
+    // Guest gate: require auth before Review & Pay
+    const session = await getSession()
+    if (!session) {
+      setShowAuthPopup(true)
+      return
+    }
     setHolding(true); setErr('')
     try {
       const session = await getSession()
@@ -463,6 +470,35 @@ export default function BookingFlowPage() {
           </div>
         )}
       </div>
+
+      {/* Auth-required popup for guests */}
+      {showAuthPopup && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-xl">
+            <div className="w-16 h-16 rounded-full bg-saloo-teal/15 flex items-center justify-center mx-auto">
+              <span className="text-3xl">✂</span>
+            </div>
+            <h3 className="font-syne font-bold text-xl text-navy">Almost there!</h3>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Create your Saloo profile to complete the booking. It only takes a minute!
+            </p>
+            <div className="space-y-2 pt-2">
+              <button
+                onClick={() => router.push('/login')}
+                className="w-full bg-saloo-teal text-white font-syne font-bold py-3 rounded-xl hover:bg-saloo-teal/90 transition-colors text-base"
+              >
+                Create Profile
+              </button>
+              <button
+                onClick={() => setShowAuthPopup(false)}
+                className="w-full text-gray-500 text-sm py-2 hover:text-gray-700 transition-colors"
+              >
+                Continue browsing
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
