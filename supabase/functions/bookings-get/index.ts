@@ -14,7 +14,11 @@ Deno.serve(async (req) => {
 
     const supabase = createAdminClient()
 
-    const { data: booking, error: dbErr } = await supabase
+    // Try as customer first, then as shop owner
+    let booking: any = null
+
+    // Check as customer
+    const { data: customerBooking } = await supabase
       .from('bookings')
       .select(`
         *,
@@ -28,7 +32,37 @@ Deno.serve(async (req) => {
       .eq('user_id', user.id)
       .single()
 
-    if (dbErr || !booking) return error('Booking not found', 404)
+    if (customerBooking) {
+      booking = customerBooking
+    } else {
+      // Check as shop owner
+      const { data: shop } = await supabase
+        .from('shops')
+        .select('id')
+        .eq('owner_id', user.id)
+        .single()
+
+      if (shop) {
+        const { data: ownerBooking } = await supabase
+          .from('bookings')
+          .select(`
+            *,
+            shop:shops(id, name, address, phone, photos, lat, lng),
+            barber:barbers(id, name, avatar_url, specialties),
+            payment:payments(id, amount, type, status, method, created_at),
+            review:reviews(id, rating, text, photos, created_at),
+            dispute:disputes(id, reason, status, created_at),
+            user:users(name, phone, avatar_url)
+          `)
+          .eq('id', bookingId)
+          .eq('shop_id', shop.id)
+          .single()
+
+        booking = ownerBooking
+      }
+    }
+
+    if (!booking) return error('Booking not found', 404)
 
     // Fetch services separately (array of IDs)
     const allServiceIds = [...(booking.service_ids ?? []), ...(booking.addon_ids ?? [])]
