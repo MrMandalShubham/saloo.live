@@ -8,6 +8,7 @@ import { formatINR } from '@saloo/lib'
 const BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 const STATUS_COLOR: Record<string, string> = {
+  pending_confirmation: 'text-orange-400 bg-orange-400/10',
   pending: 'text-amber-400 bg-amber-400/10',
   confirmed: 'text-blue-400 bg-blue-400/10',
   in_chair: 'text-purple-400 bg-purple-400/10',
@@ -16,7 +17,17 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled: 'text-gray-400 bg-gray-400/10',
 }
 
+const STATUS_LABEL: Record<string, string> = {
+  pending_confirmation: '⏳ Awaiting Confirmation',
+  pending: 'Pending', confirmed: 'Confirmed', in_chair: 'In Chair',
+  completed: 'Completed', no_show: 'No Show', cancelled: 'Cancelled',
+}
+
 const ACTIONS: Record<string, Array<{ label: string; status: string; color: string }>> = {
+  pending_confirmation: [
+    { label: '✓ Confirm Booking', status: 'confirmed', color: 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30' },
+    { label: '✕ Reject Booking', status: 'cancelled', color: 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30' },
+  ],
   pending: [
     { label: 'Confirm Booking', status: 'confirmed', color: 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30' },
     { label: 'Cancel', status: 'cancelled', color: 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30' },
@@ -85,7 +96,7 @@ export default function OwnerBookingDetailPage() {
         <button onClick={() => router.back()} className="text-saloo-pink text-xl hover:opacity-70">‹</button>
         <h1 className="text-2xl font-bold text-saloo-dark" style={{ fontFamily: 'Syne, sans-serif' }}>{booking.booking_ref}</h1>
         <span className={`text-xs font-bold px-3 py-1 rounded-full ${STATUS_COLOR[booking.status] ?? 'text-gray-400 bg-gray-400/10'}`}>
-          {booking.status}
+          {STATUS_LABEL[booking.status] ?? booking.status}
         </span>
       </div>
 
