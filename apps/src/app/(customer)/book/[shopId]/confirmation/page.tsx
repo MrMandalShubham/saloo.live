@@ -80,8 +80,19 @@ export default async function BookingConfirmationPage() {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="font-syne text-2xl font-bold text-navy">Booking Confirmed!</h1>
-        <p className="text-gray-500 text-sm mt-1">Your appointment is all set</p>
+        <h1 className="font-syne text-2xl font-bold text-navy">Payment Successful!</h1>
+        <p className="text-gray-500 text-sm mt-1">Waiting for barber confirmation</p>
+      </div>
+
+      {/* Pending confirmation banner */}
+      <div className="mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+        <span className="text-2xl mt-0.5">⏳</span>
+        <div>
+          <p className="font-semibold text-amber-800 text-sm">Booking Pending</p>
+          <p className="text-amber-700 text-xs mt-0.5 leading-relaxed">
+            Your payment is done. The barber will confirm your appointment shortly. You&apos;ll receive a notification once confirmed.
+          </p>
+        </div>
       </div>
 
       {booking && (
@@ -98,7 +109,7 @@ export default async function BookingConfirmationPage() {
                 </div>
                 <div className="bg-white/20 backdrop-blur-sm rounded-lg px-3 py-1.5">
                   <p className="text-white text-xs font-semibold uppercase tracking-wide">
-                    {booking.status === 'confirmed' ? 'Confirmed' : booking.status}
+                    {booking.status === 'pending_confirmation' ? '⏳ Pending' : booking.status === 'confirmed' ? '✅ Confirmed' : booking.status}
                   </p>
                 </div>
               </div>

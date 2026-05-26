@@ -3,9 +3,10 @@ import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
 import { sendPush } from '../_shared/fcm.ts'
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  pending_payment: ['confirmed', 'cancelled'],
-  confirmed:       ['in_chair', 'no_show', 'cancelled'],
-  in_chair:        ['completed'],
+  pending_payment:      ['confirmed', 'cancelled'],
+  pending_confirmation: ['confirmed', 'cancelled'],
+  confirmed:            ['in_chair', 'no_show', 'cancelled'],
+  in_chair:             ['completed'],
 }
 
 Deno.serve(async (req) => {
@@ -65,23 +66,33 @@ Deno.serve(async (req) => {
 
     if (updateErr) throw updateErr
 
-    // Push notification to customer
-    const statusMessages: Record<string, string> = {
-      confirmed:  `Your booking at ${shop.name} is confirmed!`,
-      in_chair:   `Your session has started at ${shop.name}. Enjoy!`,
-      completed:  `Your visit to ${shop.name} is complete. Leave a review!`,
-      no_show:    `Your booking at ${shop.name} was marked as no-show.`,
-      cancelled:  `Your booking at ${shop.name} has been cancelled.`,
+    // Notification config per status
+    const notifConfig: Record<string, { type: string; title: string; body: string; pushTitle: string }> = {
+      confirmed:  { type: 'booking_confirmed', title: 'Booking Confirmed! ✅', body: `Your booking at ${shop.name} has been confirmed by the barber. See you there!`, pushTitle: 'Booking Confirmed! ✅' },
+      in_chair:   { type: 'booking_confirmed', title: 'Session Started', body: `Your session has started at ${shop.name}. Enjoy!`, pushTitle: 'Session Started! 💈' },
+      completed:  { type: 'booking_completed', title: 'Visit Complete', body: `Your visit to ${shop.name} is complete. Leave a review!`, pushTitle: 'Visit Complete! ⭐' },
+      no_show:    { type: 'no_show', title: 'No Show', body: `Your booking at ${shop.name} was marked as no-show.`, pushTitle: 'No Show ❌' },
+      cancelled:  { type: 'booking_rejected', title: 'Booking Cancelled', body: `Your booking at ${shop.name} has been cancelled by the shop.`, pushTitle: 'Booking Cancelled ❌' },
     }
-    const msg = statusMessages[status]
-    if (msg) {
+    const notif = notifConfig[status]
+    if (notif) {
+      // Save in-app notification
+      await supabase.from('notifications').insert({
+        user_id: booking.user_id,
+        type: notif.type,
+        title: notif.title,
+        body: notif.body,
+        data: { booking_id: bookingId },
+      })
+
+      // Push notification
       const { data: customer } = await supabase
         .from('users')
         .select('fcm_token')
         .eq('id', booking.user_id)
         .single()
       if (customer?.fcm_token) {
-        await sendPush({ fcmToken: customer.fcm_token, title: 'Booking Update', body: msg }).catch(() => null)
+        await sendPush({ fcmToken: customer.fcm_token, title: notif.pushTitle, body: notif.body }).catch(() => null)
       }
     }
 

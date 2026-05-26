@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 
 const STATUS_COLOR: Record<string, string> = {
+  pending_confirmation: 'text-orange-400 bg-orange-400/10 border-orange-400/20',
   pending:   'text-amber-400 bg-amber-400/10 border-amber-400/20',
   confirmed: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
   in_chair:  'text-purple-400 bg-purple-400/10 border-purple-400/20',
@@ -14,21 +15,39 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled: 'text-saloo-dark/50 bg-white/5 border-white/80',
 }
 const STATUS_LABEL: Record<string, string> = {
-  pending: 'Pending', confirmed: 'Confirmed', in_chair: 'In Chair',
+  pending_confirmation: '⏳ Needs Confirm', pending: 'Pending', confirmed: 'Confirmed', in_chair: 'In Chair',
   completed: 'Done', no_show: 'No Show', cancelled: 'Cancelled',
 }
 const TABS = [
   { key: 'today',    label: 'Today' },
   { key: 'upcoming', label: 'Upcoming' },
   { key: 'past',     label: 'Past' },
-  { key: 'pending',  label: 'Pending' },
+  { key: 'pending_confirmation',  label: '⏳ Pending' },
 ]
 
 const BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 
 export default function OwnerBookingsPage() {
   const [activeTab, setActiveTab] = useState('today')
+  const [updating, setUpdating] = useState<string | null>(null)
   const supabase = createClient()
+  const queryClient = useQueryClient()
+
+  const handleStatusUpdate = async (bookingId: string, status: 'confirmed' | 'cancelled') => {
+    setUpdating(bookingId + status)
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${BASE_URL}/functions/v1/owner-bookings-update/${bookingId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      if (res.ok) {
+        queryClient.invalidateQueries({ queryKey: ['owner-bookings'] })
+      }
+    } catch {}
+    setUpdating(null)
+  }
 
   const { data: bookings, isLoading } = useQuery({
     queryKey: ['owner-bookings', activeTab],
@@ -98,6 +117,24 @@ export default function OwnerBookingsPage() {
                   {STATUS_LABEL[b.status] ?? b.status}
                 </span>
                 {b.has_dispute && <span className="text-red-400 text-xs">Dispute</span>}
+                {b.status === 'pending_confirmation' && (
+                  <div className="flex gap-1.5 mt-1" onClick={e => e.preventDefault()}>
+                    <button
+                      onClick={() => handleStatusUpdate(b.id, 'confirmed')}
+                      disabled={!!updating}
+                      className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+                    >
+                      {updating === b.id + 'confirmed' ? '...' : '✓ Confirm'}
+                    </button>
+                    <button
+                      onClick={() => handleStatusUpdate(b.id, 'cancelled')}
+                      disabled={!!updating}
+                      className="px-3 py-1 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-colors disabled:opacity-50"
+                    >
+                      {updating === b.id + 'cancelled' ? '...' : '✕ Reject'}
+                    </button>
+                  </div>
+                )}
               </div>
             </Link>
           ))}

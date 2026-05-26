@@ -9,6 +9,7 @@ import { formatDate, formatTime } from '@saloo/lib'
 type Tab = 'upcoming' | 'past' | 'cancelled'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
+  pending_confirmation: { label: '⏳ Awaiting Confirmation', color: '#C2410C', bg: '#FFF7ED' },
   confirmed:       { label: 'Confirmed',  color: '#15803D', bg: '#DCFCE7' },
   in_chair:        { label: 'In Chair',   color: '#854D0E', bg: '#FEF9C3' },
   completed:       { label: 'Completed',  color: '#15803D', bg: '#DCFCE7' },

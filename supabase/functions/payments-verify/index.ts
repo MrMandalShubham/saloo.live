@@ -59,7 +59,7 @@ Deno.serve(async (req) => {
         date: hold.hold_date,
         start_time: hold.start_time,
         end_time: hold.end_time,
-        status: 'confirmed',
+        status: 'pending_confirmation',
         total_amount,
         advance_amount,
         instructions: instructions ?? null,
@@ -115,30 +115,52 @@ Deno.serve(async (req) => {
       }),
     ])
 
-    // Save notification
-    await supabase.from('notifications').insert({
-      user_id: user.id,
-      type: 'booking_confirmed',
-      title: 'Booking Confirmed!',
-      body: `Your booking ${booking.booking_ref} is confirmed.`,
-      data: { booking_id: booking.id, booking_ref: booking.booking_ref },
-    })
-
     // Fetch shop and barber names for notifications
     const [{ data: shop }, { data: barber }] = await Promise.all([
-      supabase.from('shops').select('name, phone').eq('id', hold.shop_id).single(),
+      supabase.from('shops').select('name, phone, owner_id').eq('id', hold.shop_id).single(),
       supabase.from('barbers').select('name').eq('id', hold.barber_id).single(),
     ])
 
-    // Send push notification (non-blocking)
-    Promise.allSettled([
-      userData?.fcm_token ? sendPush({
+    // Notify customer: payment done, waiting for barber
+    await supabase.from('notifications').insert({
+      user_id: user.id,
+      type: 'booking_pending',
+      title: 'Payment Successful!',
+      body: `Your payment for ${booking.booking_ref} is done. Waiting for barber confirmation.`,
+      data: { booking_id: booking.id, booking_ref: booking.booking_ref },
+    })
+
+    // Notify shop owner: new booking needs confirmation
+    if (shop?.owner_id) {
+      await supabase.from('notifications').insert({
+        user_id: shop.owner_id,
+        type: 'booking_pending',
+        title: 'New Booking Request!',
+        body: `${userData?.name ?? 'A customer'} booked ${barber?.name ?? 'a barber'} on ${hold.hold_date} at ${hold.start_time}. Confirm or reject.`,
+        data: { booking_id: booking.id, booking_ref: booking.booking_ref },
+      })
+
+      // Push to owner
+      const { data: ownerData } = await supabase.from('users').select('fcm_token').eq('id', shop.owner_id).single()
+      if (ownerData?.fcm_token) {
+        sendPush({
+          fcmToken: ownerData.fcm_token,
+          title: 'New Booking Request! 📋',
+          body: `${userData?.name ?? 'Customer'} · ${barber?.name} · ${hold.hold_date} ${hold.start_time}`,
+          data: { type: 'booking_pending', booking_id: booking.id },
+        }).catch(() => null)
+      }
+    }
+
+    // Push to customer
+    if (userData?.fcm_token) {
+      sendPush({
         fcmToken: userData.fcm_token,
-        title: 'Booking Confirmed! ✅',
-        body: `${shop?.name} · ${hold.hold_date} ${hold.start_time}`,
-        data: { type: 'booking_confirmed', booking_id: booking.id },
-      }) : Promise.resolve(),
-    ])
+        title: 'Payment Successful! 💳',
+        body: `${shop?.name} · Waiting for barber confirmation`,
+        data: { type: 'booking_pending', booking_id: booking.id },
+      }).catch(() => null)
+    }
 
     return json({ data: { booking }, error: null })
   } catch (err) {

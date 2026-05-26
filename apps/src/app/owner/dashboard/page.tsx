@@ -6,6 +6,7 @@ import { formatINR } from '@saloo/lib'
 import { redirect } from 'next/navigation'
 
 const STATUS_COLOR: Record<string, string> = {
+  pending_confirmation: 'text-orange-600 bg-orange-400/20 border-orange-400/40',
   pending:   'text-amber-600 bg-amber-400/20 border-amber-400/40',
   confirmed: 'text-blue-600 bg-blue-400/20 border-blue-400/40',
   in_chair:  'text-purple-600 bg-purple-400/20 border-purple-400/40',
@@ -14,7 +15,7 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled: 'text-saloo-dark/50 bg-black/5 border-black/10',
 }
 const STATUS_LABEL: Record<string, string> = {
-  pending: 'Pending', confirmed: 'Confirmed', in_chair: 'In Chair',
+  pending_confirmation: '⏳ Needs Confirm', pending: 'Pending', confirmed: 'Confirmed', in_chair: 'In Chair',
   completed: 'Done', no_show: 'No Show', cancelled: 'Cancelled',
 }
 
@@ -37,7 +38,7 @@ async function getDashboardData(shopId: string, supabase: any) {
   }
 
   const today_revenue = all.filter((b: any) => b.status === 'completed').reduce((s: number, b: any) => s + (b.total_amount ?? 0), 0)
-  const pending = all.filter((b: any) => b.status === 'pending').length
+  const pending = all.filter((b: any) => b.status === 'pending' || b.status === 'pending_confirmation').length
   const { data: weekData } = await supabase.from('bookings').select('total_amount').eq('shop_id', shopId).eq('status', 'completed').gte('date', weekAgo)
   const weekly_revenue = (weekData ?? []).reduce((s: number, b: any) => s + (b.total_amount ?? 0), 0)
   const { count: active_disputes } = await supabase.from('disputes').select('id', { count: 'exact', head: true }).eq('shop_id', shopId).in('status', ['open', 'under_review'])
@@ -153,7 +154,7 @@ export default async function OwnerDashboardPage() {
       {(data.pending_confirmations > 0 || data.active_disputes > 0) && (
         <div className="bg-white/60 backdrop-blur-md border border-amber-200 shadow-sm rounded-2xl p-4 space-y-2">
           {data.pending_confirmations > 0 && (
-            <Link href="/owner/bookings?status=pending" className="flex items-center justify-between group">
+            <Link href="/owner/bookings?status=pending_confirmation" className="flex items-center justify-between group">
               <span className="text-amber-600 text-sm font-medium">
                 {data.pending_confirmations} booking{data.pending_confirmations > 1 ? 's' : ''} need confirmation
               </span>

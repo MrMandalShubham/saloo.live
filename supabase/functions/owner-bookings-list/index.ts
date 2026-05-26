@@ -47,12 +47,14 @@ Deno.serve(async (req) => {
         .not('status', 'in', '("cancelled","expired")')
     } else if (status === 'upcoming') {
       query = query.gte('date', today)
-        .in('status', ['pending_payment', 'confirmed', 'in_chair'])
+        .in('status', ['pending_payment', 'pending_confirmation', 'confirmed', 'in_chair'])
     } else if (status === 'past') {
       query = query.lt('date', today)
         .in('status', ['completed', 'no_show', 'cancelled'])
     } else if (status === 'pending') {
       query = query.eq('status', 'pending_payment')
+    } else if (status === 'pending_confirmation') {
+      query = query.eq('status', 'pending_confirmation')
     }
 
     const { data: bookings, error: dbErr } = await query
