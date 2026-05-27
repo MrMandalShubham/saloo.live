@@ -145,10 +145,11 @@ export default async function HomePage() {
 
       {/* Nearby Shops */}
       <section>
-        <div className="mb-5">
-          <h2 className="font-syne font-bold text-2xl tracking-tight text-navy">Nearby Shops</h2>
-          <p className="text-secondary text-sm font-medium mt-1 tracking-wide">Top-rated barbers around you</p>
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-1 h-6 rounded-full bg-saloo-teal" />
+          <h2 className="font-syne font-bold text-xl text-navy">Nearby Shops</h2>
         </div>
+        <p className="text-secondary text-sm font-medium ml-3 mb-4 tracking-wide">Top-rated barbers around you</p>
         <ShopsGrid />
       </section>
 
