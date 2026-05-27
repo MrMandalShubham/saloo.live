@@ -57,7 +57,7 @@ export function AdminNav() {
       <div className="hidden lg:block w-56 flex-shrink-0" />
 
       {/* Mobile top bar */}
-      <header className="lg:hidden sticky top-0 z-40 bg-white/80 backdrop-blur-2xl border-b-2 border-[#8E890D]/30 px-4 h-14 flex items-center justify-between shadow-sm">
+      <header className="lg:hidden sticky top-0 z-40 bg-white/80 backdrop-blur-2xl border-b-2 border-[#8E890D]/30 px-4 h-14 flex items-center justify-between shadow-sm safe-top">
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-lg bg-gold/15 border border-gold/30 flex items-center justify-center">
             <span className="font-syne font-bold text-gold text-xs">✦</span>

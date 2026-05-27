@@ -229,7 +229,7 @@ export function AppNav({ isGuest = false }: { isGuest?: boolean }) {
   return (
     <>
       {/* ── Top header ── */}
-      <header className="bg-white/80 backdrop-blur-2xl sticky top-0 z-50 border-b-2 border-[#008B7D]/30 shadow-sm">
+      <header className="bg-white/80 backdrop-blur-2xl sticky top-0 z-50 border-b-2 border-[#008B7D]/30 shadow-sm safe-top">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
 
           {/* Logo */}
