@@ -145,17 +145,9 @@ export default async function HomePage() {
 
       {/* Nearby Shops */}
       <section>
-        <div className="flex items-center justify-between mb-5">
-          <div>
-            <h2 className="font-syne font-bold text-2xl tracking-tight text-navy">Nearby Shops</h2>
-            <p className="text-secondary text-sm font-medium mt-1 tracking-wide">Top-rated barbers around you</p>
-          </div>
-          <Link
-            href="/search"
-            className="px-4 py-2 rounded-full bg-navy/5 text-navy text-xs font-bold uppercase tracking-widest hover:bg-navy hover:text-white transition-colors flex items-center gap-2 group"
-          >
-            See all <svg className="w-3 h-3 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
-          </Link>
+        <div className="mb-5">
+          <h2 className="font-syne font-bold text-2xl tracking-tight text-navy">Nearby Shops</h2>
+          <p className="text-secondary text-sm font-medium mt-1 tracking-wide">Top-rated barbers around you</p>
         </div>
         <ShopsGrid />
       </section>
