@@ -41,7 +41,7 @@ a, button { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
 
 @layer utilities {
   .text-balance { text-wrap: balance; }
-  .safe-top { padding-top: max(env(safe-area-inset-top), 6px); }
+  .safe-top { padding-top: max(env(safe-area-inset-top), 10px); }
   .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
