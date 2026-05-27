@@ -1,10 +1,10 @@
 export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
-import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { formatINR, formatDuration } from '@saloo/lib'
+import { ShopPhotoCarousel } from '@/components/customer/ShopPhotoCarousel'
+import { ShopTabs } from '@/components/customer/ShopTabs'
 import type { Metadata } from 'next'
 
 async function fetchShop(id: string) {
@@ -48,8 +48,8 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
 
       {/* Hero photos */}
       <div className="relative h-72 sm:h-80 rounded-3xl overflow-hidden bg-lavender shadow-royal-lg">
-        {shop.photos?.[0] ? (
-          <Image src={shop.photos[0]} alt={shop.name} fill className="object-cover" priority />
+        {shop.photos?.length > 0 ? (
+          <ShopPhotoCarousel photos={shop.photos} />
         ) : (
           <div className="h-full flex items-center justify-center bg-gradient-to-br from-lavender to-champagne">
             <div className="w-20 h-20 rounded-2xl bg-white/60 backdrop-blur-sm flex items-center justify-center border border-navy/10 shadow-sm">
@@ -100,126 +100,12 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
         </div>
       )}
 
-      {/* Services */}
-      <section className="bg-white rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-8 h-8 rounded-xl bg-saloo-teal/10 flex items-center justify-center">
-            <svg className="w-4 h-4 text-saloo-teal" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M7.848 8.25l1.536.887M7.848 8.25a3 3 0 11-5.196-3 3 3 0 015.196 3zm1.536.887a2.165 2.165 0 011.083 1.839c.005.351.054.695.14 1.024M9.384 9.137l2.077 1.199" />
-            </svg>
-          </div>
-          <h2 className="font-syne font-bold text-xl text-navy">Services</h2>
-        </div>
-        <div className="space-y-0.5">
-          {services.map((svc: any, idx: number) => (
-            <div key={svc.id} className={`flex items-center justify-between py-3.5 ${idx < services.length - 1 ? 'border-b border-border/60' : ''}`}>
-              <div>
-                <p className="font-semibold text-navy">{svc.name}</p>
-                <p className="text-xs text-muted mt-0.5 flex items-center gap-1">
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                  {formatDuration(svc.duration_min)}
-                </p>
-              </div>
-              <p className="font-syne font-bold text-saloo-teal text-lg">{formatINR(svc.price)}</p>
-            </div>
-          ))}
-        </div>
-        {addons.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-border">
-            <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-3">Add-ons</p>
-            <div className="space-y-0.5">
-              {addons.map((a: any, idx: number) => (
-                <div key={a.id} className={`flex items-center justify-between py-2.5 ${idx < addons.length - 1 ? 'border-b border-border/60' : ''}`}>
-                  <p className="text-sm text-secondary">+ {a.name}</p>
-                  <p className="text-sm font-semibold text-navy">+{formatINR(a.price)}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </section>
-
-      {/* Barbers */}
-      {shop.barbers?.length > 0 && (
-        <section className="bg-white rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 rounded-xl bg-navy/5 flex items-center justify-center">
-              <svg className="w-4 h-4 text-navy" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
-              </svg>
-            </div>
-            <h2 className="font-syne font-bold text-xl text-navy">Our Barbers</h2>
-          </div>
-          <div className="space-y-4">
-            {shop.barbers.map((b: any) => {
-              const bRating = b.rating ?? b.avg_rating ?? 0
-              const portfolioImages = (b.portfolio ?? []).slice(0, 4)
-              return (
-                <div key={b.id} className="bg-lavender/30 rounded-2xl p-4 hover:bg-lavender/50 transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gold/20 to-champagne flex items-center justify-center overflow-hidden border border-saloo-teal/20 shadow-sm shrink-0">
-                      {(b.avatar_url || b.photo_url) ? (
-                        <Image src={b.avatar_url || b.photo_url} alt={b.name} width={64} height={64} className="w-full h-full object-cover" />
-                      ) : (
-                        <svg className="w-7 h-7 text-saloo-teal/60" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                        </svg>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="font-semibold text-navy">{b.name}</p>
-                        {b.experience_level && b.experience_level !== 'junior' && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 font-medium capitalize">{b.experience_level}</span>
-                        )}
-                      </div>
-                      {bRating > 0 && (
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <svg className="w-3 h-3 text-saloo-teal" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" />
-                          </svg>
-                          <span className="text-xs text-muted font-medium">{Number(bRating).toFixed(1)}</span>
-                          {b.review_count > 0 && <span className="text-xs text-muted/60">({b.review_count})</span>}
-                        </div>
-                      )}
-                      {b.bio && <p className="text-xs text-secondary mt-1 line-clamp-2">{b.bio}</p>}
-                      {b.specialties?.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {b.specialties.slice(0, 4).map((s: string) => (
-                            <span key={s} className="text-[10px] bg-saloo-teal/10 text-saloo-teal px-2 py-0.5 rounded-full font-medium">{s}</span>
-                          ))}
-                          {b.specialties.length > 4 && <span className="text-[10px] text-muted">+{b.specialties.length - 4}</span>}
-                        </div>
-                      )}
-                      {b.experience_years > 0 && (
-                        <p className="text-[11px] text-muted mt-1">{b.experience_years}+ years experience</p>
-                      )}
-                    </div>
-                  </div>
-                  {/* Portfolio preview */}
-                  {portfolioImages.length > 0 && (
-                    <div className="flex gap-2 mt-3 overflow-x-auto">
-                      {portfolioImages.map((p: any) => (
-                        <div key={p.id} className="w-20 h-20 rounded-xl overflow-hidden shrink-0 relative">
-                          <Image src={p.image_url} alt={p.caption ?? 'Work'} fill className="object-cover" />
-                          {p.is_before_after && (
-                            <span className="absolute top-1 left-1 bg-amber-500/90 text-white text-[8px] px-1 py-0.5 rounded font-bold">B/A</span>
-                          )}
-                        </div>
-                      ))}
-                      {(b.portfolio ?? []).length > 4 && (
-                        <div className="w-20 h-20 rounded-xl bg-navy/5 flex items-center justify-center shrink-0">
-                          <span className="text-xs text-muted font-semibold">+{(b.portfolio ?? []).length - 4}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
+      {/* Services / Barbers / Styles tabs */}
+      <ShopTabs
+        services={services}
+        addons={addons}
+        barbers={shop.barbers ?? []}
+      />
 
       {/* Reviews */}
       {reviews.length > 0 && (
