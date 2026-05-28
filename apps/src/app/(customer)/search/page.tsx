@@ -61,8 +61,8 @@ function applyFilters(shops: any[], filters: { openNow: boolean; features: strin
   // Sort
   if (filters.sort === 'distance') {
     filtered.sort((a, b) => {
-      const distA = a.distance_m ?? a.distance_km * 1000 ?? 999999
-      const distB = b.distance_m ?? b.distance_km * 1000 ?? 999999
+      const distA = a.distance_m ?? (a.distance_km ? a.distance_km * 1000 : 999999)
+      const distB = b.distance_m ?? (b.distance_km ? b.distance_km * 1000 : 999999)
       return distA - distB
     })
   } else if (filters.sort === 'rating') {
