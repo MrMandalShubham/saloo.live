@@ -89,6 +89,45 @@ Deno.serve(async (req) => {
       .update({ booking_id: booking.id })
       .eq('id', hold_id)
 
+    // ── Wallet: hold advance amount ──
+    try {
+      // Get or create wallet for shop
+      let { data: wallet } = await supabase
+        .from('wallets')
+        .select('id, hold_amount')
+        .eq('shop_id', hold.shop_id)
+        .single()
+
+      if (!wallet) {
+        const { data: newW } = await supabase
+          .from('wallets')
+          .insert({ shop_id: hold.shop_id })
+          .select('id, hold_amount')
+          .single()
+        wallet = newW
+      }
+
+      if (wallet) {
+        const newHold = (wallet.hold_amount ?? 0) + advance_amount
+        await supabase.from('wallets').update({
+          hold_amount: newHold,
+          updated_at: new Date().toISOString(),
+        }).eq('id', wallet.id)
+
+        await supabase.from('wallet_transactions').insert({
+          wallet_id: wallet.id,
+          booking_id: booking.id,
+          amount: advance_amount,
+          type: 'hold',
+          description: `Advance hold for ${booking.booking_ref}`,
+          balance_after: wallet.balance ?? 0,
+          hold_after: newHold,
+        })
+      }
+    } catch (walletErr) {
+      console.error('Wallet hold error (non-fatal):', walletErr)
+    }
+
     // Award loyalty points (1 pt per ₹1, 1.5x on Mon–Thu)
     const bookingDate = new Date(hold.hold_date)
     const dayOfWeek = bookingDate.getDay()

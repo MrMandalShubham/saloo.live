@@ -9,7 +9,7 @@ import { formatINR, formatDistance } from '@saloo/lib'
 
 const FEATURES = ['AC', 'Parking', 'WiFi', 'Card Payment', 'Kids Friendly']
 
-async function searchShops(q: string, filters: { openNow: boolean; features: string[]; sort: string }) {
+async function fetchAllShops(q: string) {
   const supabase = createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
@@ -18,32 +18,64 @@ async function searchShops(q: string, filters: { openNow: boolean; features: str
   const base = process.env['NEXT_PUBLIC_SUPABASE_URL']
 
   const params = new URLSearchParams({
-    lat: '22.7196', lng: '75.8577', radius_km: '50', limit: '20',
+    lat: '22.7196', lng: '75.8577', radius_km: '50', limit: '50',
     ...(q && { q }),
-    ...(filters.openNow && { open_now: 'true' }),
-    ...(filters.features.length && { features: filters.features.join(',') }),
-    sort_by: filters.sort === 'distance' ? 'nearest' : filters.sort,
+    sort_by: 'nearest',
   })
 
-  // Try nearby first (geo-based), fallback to search (works without PostGIS location)
+  // Try nearby first (geo-based), fallback to search
   if (!q) {
     const res = await fetch(`${base}/functions/v1/shops-nearby?${params}`, { headers })
     const json = await res.json()
     const results = json.data ?? []
     if (results.length > 0) return results
 
-    // Fallback: get all shops via search
-    const fallback = await fetch(`${base}/functions/v1/shops-search?q=&city=&limit=20`, { headers })
+    const fallback = await fetch(`${base}/functions/v1/shops-search?q=&city=&limit=50`, { headers })
     const fbJson = await fallback.json()
     const fbData = fbJson.data
     return Array.isArray(fbData) ? fbData : (fbData?.shops ?? [])
   }
 
-  // Text search
   const res = await fetch(`${base}/functions/v1/shops-search?${params}`, { headers })
   const json = await res.json()
   const data = json.data
   return Array.isArray(data) ? data : (data?.shops ?? [])
+}
+
+function applyFilters(shops: any[], filters: { openNow: boolean; features: string[]; sort: string }) {
+  let filtered = [...shops]
+
+  // Filter: Open Now
+  if (filters.openNow) {
+    filtered = filtered.filter(s => s.open_now || s.is_open_now)
+  }
+
+  // Filter: Features (shop must have ALL selected features)
+  if (filters.features.length > 0) {
+    filtered = filtered.filter(s => {
+      const shopFeatures: string[] = s.features ?? []
+      return filters.features.every(f => shopFeatures.includes(f))
+    })
+  }
+
+  // Sort
+  if (filters.sort === 'distance') {
+    filtered.sort((a, b) => {
+      const distA = a.distance_m ?? a.distance_km * 1000 ?? 999999
+      const distB = b.distance_m ?? b.distance_km * 1000 ?? 999999
+      return distA - distB
+    })
+  } else if (filters.sort === 'rating') {
+    filtered.sort((a, b) => {
+      const rA = a.rating ?? a.avg_rating ?? 0
+      const rB = b.rating ?? b.avg_rating ?? 0
+      return rB - rA
+    })
+  } else if (filters.sort === 'price') {
+    filtered.sort((a, b) => (a.min_price ?? 999999) - (b.min_price ?? 999999))
+  }
+
+  return filtered
 }
 
 export default function SearchPage() {
@@ -53,11 +85,13 @@ export default function SearchPage() {
   const [sort, setSort] = useState<'distance' | 'rating' | 'price'>('distance')
   const [showFilters, setShowFilters] = useState(false)
 
-  const { data: shops = [], isLoading } = useQuery({
-    queryKey: ['shops-search', query, openNow, selectedFeatures, sort],
-    queryFn: () => searchShops(query, { openNow, features: selectedFeatures, sort }),
+  const { data: allShops = [], isLoading } = useQuery({
+    queryKey: ['shops-search', query],
+    queryFn: () => fetchAllShops(query),
     staleTime: 30_000,
   })
+
+  const shops = applyFilters(allShops, { openNow, features: selectedFeatures, sort })
 
   const toggleFeature = (f: string) =>
     setSelectedFeatures(prev => prev.includes(f) ? prev.filter(x => x !== f) : [...prev, f])

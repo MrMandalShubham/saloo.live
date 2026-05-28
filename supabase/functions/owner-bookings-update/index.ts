@@ -66,6 +66,87 @@ Deno.serve(async (req) => {
 
     if (updateErr) throw updateErr
 
+    // ── Wallet: release or cancel hold ──
+    if (['confirmed', 'completed', 'cancelled', 'no_show'].includes(status)) {
+      try {
+        // Get booking advance amount
+        const { data: bookingFull } = await supabase
+          .from('bookings')
+          .select('advance_amount')
+          .eq('id', bookingId)
+          .single()
+
+        const advanceAmt = bookingFull?.advance_amount ?? 0
+
+        if (advanceAmt > 0) {
+          const { data: wallet } = await supabase
+            .from('wallets')
+            .select('id, balance, hold_amount, total_released, total_cancelled')
+            .eq('shop_id', shop.id)
+            .single()
+
+          if (wallet) {
+            // Check if there's already a release/cancel tx for this booking (prevent double)
+            const { data: existingTx } = await supabase
+              .from('wallet_transactions')
+              .select('id')
+              .eq('wallet_id', wallet.id)
+              .eq('booking_id', bookingId)
+              .in('type', ['release', 'cancel'])
+              .limit(1)
+
+            if (!existingTx || existingTx.length === 0) {
+              if (status === 'confirmed' || status === 'completed') {
+                // Release: move from hold to balance
+                const newHold = Math.max(0, (wallet.hold_amount ?? 0) - advanceAmt)
+                const newBalance = (wallet.balance ?? 0) + advanceAmt
+                const newReleased = (wallet.total_released ?? 0) + advanceAmt
+
+                await supabase.from('wallets').update({
+                  balance: newBalance,
+                  hold_amount: newHold,
+                  total_released: newReleased,
+                  updated_at: new Date().toISOString(),
+                }).eq('id', wallet.id)
+
+                await supabase.from('wallet_transactions').insert({
+                  wallet_id: wallet.id,
+                  booking_id: bookingId,
+                  amount: advanceAmt,
+                  type: 'release',
+                  description: `Released for ${data.booking_ref} (${status})`,
+                  balance_after: newBalance,
+                  hold_after: newHold,
+                })
+              } else {
+                // Cancel/No-show: remove from hold, add to cancelled
+                const newHold = Math.max(0, (wallet.hold_amount ?? 0) - advanceAmt)
+                const newCancelled = (wallet.total_cancelled ?? 0) + advanceAmt
+
+                await supabase.from('wallets').update({
+                  hold_amount: newHold,
+                  total_cancelled: newCancelled,
+                  updated_at: new Date().toISOString(),
+                }).eq('id', wallet.id)
+
+                await supabase.from('wallet_transactions').insert({
+                  wallet_id: wallet.id,
+                  booking_id: bookingId,
+                  amount: advanceAmt,
+                  type: 'cancel',
+                  description: `Cancelled for ${data.booking_ref} (${status})`,
+                  balance_after: wallet.balance ?? 0,
+                  hold_after: newHold,
+                })
+              }
+            }
+          }
+        }
+      } catch (walletErr) {
+        console.error('Wallet update error (non-fatal):', walletErr)
+      }
+    }
+
     // Notification config per status
     const notifConfig: Record<string, { type: string; title: string; body: string; pushTitle: string }> = {
       confirmed:  { type: 'booking_confirmed', title: 'Booking Confirmed! ✅', body: `Your booking at ${shop.name} has been confirmed by the barber. See you there!`, pushTitle: 'Booking Confirmed! ✅' },
