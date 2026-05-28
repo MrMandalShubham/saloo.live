@@ -31,7 +31,7 @@ export default function OwnerWalletPage() {
     },
   })
 
-  const wallet = data?.wallet
+  const wallet = data?.wallet ?? { balance: 0, hold_amount: 0, total_released: 0, total_cancelled: 0 }
   const transactions = (data?.transactions ?? []).filter(
     (tx: any) => filter === 'all' || tx.type === filter
   )
@@ -58,10 +58,6 @@ export default function OwnerWalletPage() {
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-24 bg-white/60 backdrop-blur-md border border-white/80 rounded-2xl animate-pulse" />
           ))}
-        </div>
-      ) : !wallet ? (
-        <div className="bg-white/60 backdrop-blur-md border border-white/80 rounded-2xl p-10 text-center">
-          <p className="text-saloo-dark/50">No wallet found</p>
         </div>
       ) : (
         <>
