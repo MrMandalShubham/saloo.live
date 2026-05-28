@@ -61,6 +61,7 @@ Deno.serve(async (req) => {
           hold_amount: wallet.hold_amount,
           total_released: wallet.total_released,
           total_cancelled: wallet.total_cancelled,
+          total_withdrawn: wallet.total_withdrawn ?? 0,
           updated_at: wallet.updated_at,
         },
         transactions: transactions ?? [],

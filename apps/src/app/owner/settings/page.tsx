@@ -118,8 +118,8 @@ export default function OwnerSettingsPage() {
   function handleSave() {
     if (!form) return
     setErr('')
-    const { name, description, phone, email, address, city, state, pincode, features, photos, social_instagram, social_facebook, gst_number } = form
-    updateMutation.mutate({ name, description, phone, email, address, city, state, pincode, features, photos, social_instagram, social_facebook, gst_number })
+    const { name, description, phone, email, address, city, state, pincode, features, photos, social_instagram, social_facebook, gst_number, payout_method, payout_upi_id, payout_bank_account, payout_bank_ifsc, payout_bank_name, payout_phone } = form
+    updateMutation.mutate({ name, description, phone, email, address, city, state, pincode, features, photos, social_instagram, social_facebook, gst_number, payout_method, payout_upi_id, payout_bank_account, payout_bank_ifsc, payout_bank_name, payout_phone })
   }
 
   async function handleSignOut() {
@@ -263,16 +263,6 @@ export default function OwnerSettingsPage() {
             <FI label="Instagram" value={form.social_instagram ?? ''} onChange={v => setForm({ ...form, social_instagram: v })} placeholder="@yoursalon" />
             <FI label="Facebook" value={form.social_facebook ?? ''} onChange={v => setForm({ ...form, social_facebook: v })} placeholder="facebook.com/yoursalon" />
             <FI label="GST Number" value={form.gst_number ?? ''} onChange={v => setForm({ ...form, gst_number: v })} placeholder="Optional" />
-            <div className="flex gap-3 pt-1">
-              <button onClick={() => { setEditing(false); setErr('') }}
-                className="flex-1 py-3 bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 hover:text-saloo-dark rounded-xl text-sm transition-colors">
-                Cancel
-              </button>
-              <button onClick={handleSave} disabled={updateMutation.isPending || uploading}
-                className="flex-1 py-3 bg-saloo-pink text-saloo-cream rounded-xl font-syne font-bold text-sm hover:bg-saloo-pink/90 disabled:opacity-40 transition-all">
-                {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
-              </button>
-            </div>
           </div>
         ) : (
           <div className="space-y-0">
@@ -289,6 +279,101 @@ export default function OwnerSettingsPage() {
           </div>
         )}
       </div>
+
+      {/* ═══ PAYMENT SETTINGS ═══ */}
+      <div className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-6">
+        <div className="flex items-center gap-2 mb-5">
+          <span className="text-lg">🏦</span>
+          <p className="text-saloo-dark/50 text-xs uppercase tracking-widest">Payment Settings</p>
+        </div>
+
+        {editing && form ? (
+          <div className="space-y-4">
+            {/* Method selector */}
+            <div>
+              <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2">Payout Method</label>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { key: 'upi', label: 'UPI', icon: '📲' },
+                  { key: 'bank', label: 'Bank Account', icon: '🏦' },
+                  { key: 'phone', label: 'PhonePe / GPay', icon: '📱' },
+                ].map(m => (
+                  <button key={m.key} type="button" onClick={() => setForm({ ...form, payout_method: m.key })}
+                    className={`flex flex-col items-center gap-1.5 px-3 py-3 rounded-xl text-xs font-medium transition-all ${
+                      form.payout_method === m.key
+                        ? 'bg-saloo-pink/10 border-2 border-saloo-pink/40 text-saloo-dark'
+                        : 'bg-white/40 border border-white/80 text-saloo-dark/50 hover:bg-white/60'
+                    }`}>
+                    <span className="text-lg">{m.icon}</span>
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* UPI fields */}
+            {form.payout_method === 'upi' && (
+              <FI label="UPI ID" value={form.payout_upi_id ?? ''} onChange={v => setForm({ ...form, payout_upi_id: v })} placeholder="yourname@upi" />
+            )}
+
+            {/* Bank fields */}
+            {form.payout_method === 'bank' && (
+              <>
+                <FI label="Account Holder Name" value={form.payout_bank_name ?? ''} onChange={v => setForm({ ...form, payout_bank_name: v })} placeholder="As per bank records" />
+                <FI label="Account Number" value={form.payout_bank_account ?? ''} onChange={v => setForm({ ...form, payout_bank_account: v })} placeholder="Enter account number" />
+                <FI label="IFSC Code" value={form.payout_bank_ifsc ?? ''} onChange={v => setForm({ ...form, payout_bank_ifsc: v })} placeholder="e.g. SBIN0001234" />
+              </>
+            )}
+
+            {/* Phone fields */}
+            {form.payout_method === 'phone' && (
+              <FI label="Phone Number" value={form.payout_phone ?? ''} onChange={v => setForm({ ...form, payout_phone: v })} placeholder="10-digit mobile number" />
+            )}
+
+            {!form.payout_method && (
+              <p className="text-saloo-dark/40 text-xs">Select a payout method to configure withdrawal details.</p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-0">
+            <Row label="Payout Method" value={
+              shop.payout_method === 'upi' ? 'UPI' :
+              shop.payout_method === 'bank' ? 'Bank Account' :
+              shop.payout_method === 'phone' ? 'PhonePe / GPay' : 'Not configured'
+            } />
+            {shop.payout_method === 'upi' && (
+              <Row label="UPI ID" value={shop.payout_upi_id ?? '—'} />
+            )}
+            {shop.payout_method === 'bank' && (
+              <>
+                <Row label="Account Name" value={shop.payout_bank_name ?? '—'} />
+                <Row label="Account No." value={shop.payout_bank_account ? '••••' + shop.payout_bank_account.slice(-4) : '—'} />
+                <Row label="IFSC" value={shop.payout_bank_ifsc ?? '—'} />
+              </>
+            )}
+            {shop.payout_method === 'phone' && (
+              <Row label="Phone" value={shop.payout_phone ?? '—'} isLast />
+            )}
+            {!shop.payout_method && (
+              <p className="text-saloo-dark/40 text-xs mt-2">No payout method configured. Edit profile to set up withdrawals.</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Save / Cancel — only in edit mode */}
+      {editing && (
+        <div className="flex gap-3">
+          <button onClick={() => { setEditing(false); setErr('') }}
+            className="flex-1 py-3 bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 hover:text-saloo-dark rounded-xl text-sm transition-colors">
+            Cancel
+          </button>
+          <button onClick={handleSave} disabled={updateMutation.isPending || uploading}
+            className="flex-1 py-3 bg-saloo-pink text-saloo-cream rounded-xl font-syne font-bold text-sm hover:bg-saloo-pink/90 disabled:opacity-40 transition-all">
+            {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
+          </button>
+        </div>
+      )}
 
       {/* Sign out */}
       <button onClick={handleSignOut}

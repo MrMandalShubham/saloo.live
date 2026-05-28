@@ -27,6 +27,7 @@ Deno.serve(async (req) => {
       'name', 'description', 'phone', 'email', 'address', 'city', 'state', 'pincode',
       'features', 'specialties', 'gst_number', 'social_instagram', 'social_facebook',
       'auto_confirm_bookings', 'slot_buffer_min', 'advance_percentage', 'photos',
+      'payout_method', 'payout_upi_id', 'payout_bank_account', 'payout_bank_ifsc', 'payout_bank_name', 'payout_phone',
     ]
     const updates: Record<string, unknown> = {}
     for (const key of allowed) {

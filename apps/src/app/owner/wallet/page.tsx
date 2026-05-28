@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { formatINR } from '@saloo/lib'
+import Link from 'next/link'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 
@@ -31,7 +32,7 @@ export default function OwnerWalletPage() {
     },
   })
 
-  const wallet = data?.wallet ?? { balance: 0, hold_amount: 0, total_released: 0, total_cancelled: 0 }
+  const wallet = data?.wallet ?? { balance: 0, hold_amount: 0, total_released: 0, total_cancelled: 0, total_withdrawn: 0 }
   const transactions = (data?.transactions ?? []).filter(
     (tx: any) => filter === 'all' || tx.type === filter
   )
@@ -103,16 +104,23 @@ export default function OwnerWalletPage() {
               <p className="text-red-600/60 text-[10px] mt-1">Refunded to customers</p>
             </div>
 
-            {/* Pending payout placeholder */}
+            {/* Withdrawn */}
             <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">🏦</span>
-                <p className="text-blue-800 text-[10px] font-bold uppercase tracking-widest">Payouts</p>
+                <p className="text-blue-800 text-[10px] font-bold uppercase tracking-widest">Withdrawn</p>
               </div>
-              <p className="font-syne text-xl font-bold text-blue-700">Coming Soon</p>
-              <p className="text-blue-600/60 text-[10px] mt-1">Bank transfer</p>
+              <p className="font-syne text-xl font-bold text-blue-700">{formatINR(wallet.total_withdrawn)}</p>
+              <p className="text-blue-600/60 text-[10px] mt-1">Total payouts</p>
             </div>
           </div>
+
+          {/* Withdraw Button */}
+          <Link href="/owner/wallet/withdraw"
+            className="w-full flex items-center justify-center gap-2 py-4 bg-gradient-to-r from-saloo-pink to-saloo-pink/80 text-saloo-cream rounded-2xl font-syne font-bold text-sm hover:opacity-90 transition-all shadow-sm">
+            <span className="text-lg">🏦</span>
+            Withdraw Funds
+          </Link>
 
           {/* Transaction History */}
           <div>
