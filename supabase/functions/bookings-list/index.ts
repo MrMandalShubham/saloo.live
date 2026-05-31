@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     let query = supabase
       .from('bookings')
       .select(`
-        id, booking_ref, date, start_time, end_time, status, total_amount, advance_amount, created_at,
+        id, booking_ref, date, start_time, end_time, status, total_amount, advance_amount, created_at, owner_completed, customer_completed,
         shop:shops(id, name, address, photos),
         barber:barbers(id, name, avatar_url)
       `)

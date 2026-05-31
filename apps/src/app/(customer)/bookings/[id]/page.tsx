@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { formatINR, formatDate, formatTime } from '@saloo/lib'
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; emoji: string }> = {
+  pending_confirmation: { label: 'Awaiting Confirmation', color: '#C2410C', bg: '#FFF7ED', emoji: '⏳' },
   confirmed:       { label: 'Confirmed',  color: '#15803D', bg: '#DCFCE7', emoji: '✅' },
   in_chair:        { label: 'In Chair',   color: '#854D0E', bg: '#FEF9C3', emoji: '💈' },
   completed:       { label: 'Completed',  color: '#15803D', bg: '#DCFCE7', emoji: '✓' },
@@ -42,6 +43,20 @@ async function cancelBooking(id: string) {
   return res.json()
 }
 
+async function completeBooking(id: string) {
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  const res = await fetch(
+    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/bookings-complete/${id}`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }
+  )
+  return res.json()
+}
+
 export default function BookingDetailPage() {
   const { id } = useParams<{ id: string }>()
   const queryClient = useQueryClient()
@@ -56,6 +71,15 @@ export default function BookingDetailPage() {
     mutationFn: () => cancelBooking(id),
     onSuccess: (data) => {
       if (data.error) { alert(data.error.message); return }
+      queryClient.invalidateQueries({ queryKey: ['booking', id] })
+      queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    },
+  })
+
+  const completeMutation = useMutation({
+    mutationFn: () => completeBooking(id),
+    onSuccess: (data) => {
+      if (data.error) { alert(data.error.message ?? data.error); return }
       queryClient.invalidateQueries({ queryKey: ['booking', id] })
       queryClient.invalidateQueries({ queryKey: ['bookings'] })
     },
@@ -93,8 +117,10 @@ export default function BookingDetailPage() {
   const shop = Array.isArray(booking.shop) ? booking.shop[0] : booking.shop
   const barber = Array.isArray(booking.barber) ? booking.barber[0] : booking.barber
   const canCancel = booking.status === 'confirmed'
+  const canComplete = booking.status === 'in_chair' && !booking.customer_completed
   const canReview = booking.status === 'completed' && !booking.review
   const canDispute = ['completed', 'no_show'].includes(booking.status) && !booking.dispute
+  const showDualStatus = booking.status === 'in_chair' && (booking.owner_completed || booking.customer_completed)
 
   return (
     <div className="max-w-2xl mx-auto space-y-4 pb-6">
@@ -169,8 +195,42 @@ export default function BookingDetailPage() {
         </div>
       )}
 
+      {/* Dual confirmation status */}
+      {showDualStatus && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-3">
+          <p className="text-amber-800 text-sm font-semibold">Completion Confirmation</p>
+          <div className="flex gap-3">
+            <div className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium ${booking.owner_completed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+              <span>{booking.owner_completed ? '✅' : '⏳'}</span> Barber
+            </div>
+            <div className={`flex-1 flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium ${booking.customer_completed ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+              <span>{booking.customer_completed ? '✅' : '⏳'}</span> You
+            </div>
+          </div>
+          {booking.customer_completed && !booking.owner_completed && (
+            <p className="text-amber-600/70 text-xs">Waiting for barber to confirm completion...</p>
+          )}
+          {booking.owner_completed && !booking.customer_completed && (
+            <p className="text-amber-600/70 text-xs">Barber has marked the service as complete. Please confirm below.</p>
+          )}
+        </div>
+      )}
+
       {/* Actions */}
       <div className="space-y-3">
+        {canComplete && (
+          <button
+            onClick={() => {
+              if (confirm('Confirm that the service has been completed?')) {
+                completeMutation.mutate()
+              }
+            }}
+            disabled={completeMutation.isPending}
+            className="w-full bg-green-500 text-white font-syne font-bold py-4 rounded-2xl hover:bg-green-600 transition-colors disabled:opacity-50"
+          >
+            {completeMutation.isPending ? 'Confirming...' : '✓ Service Completed'}
+          </button>
+        )}
         {canReview && (
           <Link
             href={`/review/${booking.id}`}

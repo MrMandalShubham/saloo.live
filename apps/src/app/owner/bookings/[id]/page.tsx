@@ -38,7 +38,7 @@ const ACTIONS: Record<string, Array<{ label: string; status: string; color: stri
     { label: 'Cancel', status: 'cancelled', color: 'bg-red-500/20 text-red-400 hover:bg-red-500/30 border border-red-500/30' },
   ],
   in_chair: [
-    { label: 'Mark Complete', status: 'completed', color: 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30' },
+    { label: '✓ Service Complete', status: 'completed', color: 'bg-green-500/20 text-green-400 hover:bg-green-500/30 border border-green-500/30' },
   ],
 }
 
@@ -88,7 +88,10 @@ export default function OwnerBookingDetailPage() {
     return <div className="flex items-center justify-center py-20"><p className="text-red-400">Booking not found</p></div>
   }
 
-  const actions = ACTIONS[booking.status] ?? []
+  const ownerDone = booking.owner_completed
+  const customerDone = booking.customer_completed
+  const showDualStatus = booking.status === 'in_chair' && (ownerDone || customerDone)
+  const actions = (booking.status === 'in_chair' && ownerDone) ? [] : (ACTIONS[booking.status] ?? [])
 
   return (
     <div className="max-w-2xl">
@@ -99,6 +102,24 @@ export default function OwnerBookingDetailPage() {
           {STATUS_LABEL[booking.status] ?? booking.status}
         </span>
       </div>
+
+      {/* Dual confirmation status */}
+      {showDualStatus && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-4">
+          <p className="text-amber-800 text-sm font-semibold mb-3">Completion Confirmation</p>
+          <div className="flex gap-3">
+            <div className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${ownerDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+              <span>{ownerDone ? '✅' : '⏳'}</span> You (Owner)
+            </div>
+            <div className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium ${customerDone ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-400'}`}>
+              <span>{customerDone ? '✅' : '⏳'}</span> Customer
+            </div>
+          </div>
+          {ownerDone && !customerDone && (
+            <p className="text-amber-600/70 text-xs mt-2">Waiting for customer to confirm service completion...</p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-4">
         {/* Appointment */}

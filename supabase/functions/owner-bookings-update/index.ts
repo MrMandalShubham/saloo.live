@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
     // Get current booking
     const { data: booking } = await supabase
       .from('bookings')
-      .select('id, status, user_id')
+      .select('id, status, user_id, owner_completed, customer_completed')
       .eq('id', bookingId)
       .eq('shop_id', shop.id)
       .single()
@@ -50,7 +50,18 @@ Deno.serve(async (req) => {
       return error(`Cannot transition from ${booking.status} to ${status}`, 422)
     }
 
-    const updates: Record<string, unknown> = { status, updated_at: new Date().toISOString() }
+    // Dual completion: owner marks complete → set flag, only move to completed if customer also confirmed
+    let finalStatus = status
+    const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
+
+    if (status === 'completed' && booking.status === 'in_chair') {
+      updates.owner_completed = true
+      if (!booking.customer_completed) {
+        // Customer hasn't confirmed yet — stay in_chair
+        finalStatus = 'in_chair'
+      }
+    }
+    updates.status = finalStatus
     if (status === 'no_show') {
       updates.no_show_at = new Date().toISOString()
       // Atomically increment no_show_count on user
@@ -66,10 +77,10 @@ Deno.serve(async (req) => {
 
     if (updateErr) throw updateErr
 
-    // ── Wallet: release or cancel hold ──
-    if (['confirmed', 'completed', 'cancelled', 'no_show'].includes(status)) {
+    // ── Wallet: cancel hold on cancellation/no-show ──
+    // Release now happens only via bookings-complete (dual confirmation)
+    if (['cancelled', 'no_show'].includes(finalStatus)) {
       try {
-        // Get booking advance amount
         const { data: bookingFull } = await supabase
           .from('bookings')
           .select('advance_amount')
@@ -81,12 +92,11 @@ Deno.serve(async (req) => {
         if (advanceAmt > 0) {
           const { data: wallet } = await supabase
             .from('wallets')
-            .select('id, balance, hold_amount, total_released, total_cancelled')
+            .select('id, balance, hold_amount, total_cancelled')
             .eq('shop_id', shop.id)
             .single()
 
           if (wallet) {
-            // Check if there's already a release/cancel tx for this booking (prevent double)
             const { data: existingTx } = await supabase
               .from('wallet_transactions')
               .select('id')
@@ -96,49 +106,24 @@ Deno.serve(async (req) => {
               .limit(1)
 
             if (!existingTx || existingTx.length === 0) {
-              if (status === 'confirmed' || status === 'completed') {
-                // Release: move from hold to balance
-                const newHold = Math.max(0, (wallet.hold_amount ?? 0) - advanceAmt)
-                const newBalance = (wallet.balance ?? 0) + advanceAmt
-                const newReleased = (wallet.total_released ?? 0) + advanceAmt
+              const newHold = Math.max(0, (wallet.hold_amount ?? 0) - advanceAmt)
+              const newCancelled = (wallet.total_cancelled ?? 0) + advanceAmt
 
-                await supabase.from('wallets').update({
-                  balance: newBalance,
-                  hold_amount: newHold,
-                  total_released: newReleased,
-                  updated_at: new Date().toISOString(),
-                }).eq('id', wallet.id)
+              await supabase.from('wallets').update({
+                hold_amount: newHold,
+                total_cancelled: newCancelled,
+                updated_at: new Date().toISOString(),
+              }).eq('id', wallet.id)
 
-                await supabase.from('wallet_transactions').insert({
-                  wallet_id: wallet.id,
-                  booking_id: bookingId,
-                  amount: advanceAmt,
-                  type: 'release',
-                  description: `Released for ${data.booking_ref} (${status})`,
-                  balance_after: newBalance,
-                  hold_after: newHold,
-                })
-              } else {
-                // Cancel/No-show: remove from hold, add to cancelled
-                const newHold = Math.max(0, (wallet.hold_amount ?? 0) - advanceAmt)
-                const newCancelled = (wallet.total_cancelled ?? 0) + advanceAmt
-
-                await supabase.from('wallets').update({
-                  hold_amount: newHold,
-                  total_cancelled: newCancelled,
-                  updated_at: new Date().toISOString(),
-                }).eq('id', wallet.id)
-
-                await supabase.from('wallet_transactions').insert({
-                  wallet_id: wallet.id,
-                  booking_id: bookingId,
-                  amount: advanceAmt,
-                  type: 'cancel',
-                  description: `Cancelled for ${data.booking_ref} (${status})`,
-                  balance_after: wallet.balance ?? 0,
-                  hold_after: newHold,
-                })
-              }
+              await supabase.from('wallet_transactions').insert({
+                wallet_id: wallet.id,
+                booking_id: bookingId,
+                amount: advanceAmt,
+                type: 'cancel',
+                description: `Cancelled for ${data.booking_ref} (${finalStatus})`,
+                balance_after: wallet.balance ?? 0,
+                hold_after: newHold,
+              })
             }
           }
         }
@@ -155,7 +140,24 @@ Deno.serve(async (req) => {
       no_show:    { type: 'no_show', title: 'No Show', body: `Your booking at ${shop.name} was marked as no-show.`, pushTitle: 'No Show ❌' },
       cancelled:  { type: 'booking_rejected', title: 'Booking Cancelled', body: `Your booking at ${shop.name} has been cancelled by the shop.`, pushTitle: 'Booking Cancelled ❌' },
     }
-    const notif = notifConfig[status]
+
+    // If owner confirmed but waiting for customer, send a different notification
+    if (status === 'completed' && finalStatus === 'in_chair') {
+      await supabase.from('notifications').insert({
+        user_id: booking.user_id,
+        type: 'booking_completed',
+        title: 'Service Done?',
+        body: `${shop.name} has marked your service as complete. Please confirm from your side.`,
+        data: { booking_id: bookingId },
+      })
+      const { data: customer } = await supabase.from('users').select('fcm_token').eq('id', booking.user_id).single()
+      if (customer?.fcm_token) {
+        await sendPush({ fcmToken: customer.fcm_token, title: 'Service Done? ✅', body: `${shop.name} marked your service complete. Confirm to finish.` }).catch(() => null)
+      }
+      return json({ data: { ...data, waiting_for: 'customer' }, error: null })
+    }
+
+    const notif = notifConfig[finalStatus]
     if (notif) {
       // Save in-app notification
       await supabase.from('notifications').insert({

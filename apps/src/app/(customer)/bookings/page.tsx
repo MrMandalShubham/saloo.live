@@ -1,7 +1,7 @@
 ﻿'use client'
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import { formatDate, formatTime } from '@saloo/lib'
@@ -30,12 +30,35 @@ async function fetchBookings(filter: Tab) {
   return json.data ?? []
 }
 
+async function completeBooking(id: string) {
+  const supabase = createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  const res = await fetch(
+    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/bookings-complete/${id}`,
+    {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    }
+  )
+  return res.json()
+}
+
 export default function BookingsPage() {
   const [tab, setTab] = useState<Tab>('upcoming')
+  const queryClient = useQueryClient()
 
   const { data: bookings = [], isLoading } = useQuery({
     queryKey: ['bookings', tab],
     queryFn: () => fetchBookings(tab),
+  })
+
+  const completeMutation = useMutation({
+    mutationFn: (id: string) => completeBooking(id),
+    onSuccess: (data) => {
+      if (data.error) { alert(data.error.message ?? data.error); return }
+      queryClient.invalidateQueries({ queryKey: ['bookings'] })
+    },
   })
 
   return (
@@ -121,6 +144,24 @@ export default function BookingsPage() {
                     {cfg.label}
                   </span>
                 </div>
+                {b.status === 'in_chair' && !b.customer_completed && (
+                  <button
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      if (confirm('Confirm that the service has been completed?')) {
+                        completeMutation.mutate(b.id)
+                      }
+                    }}
+                    disabled={completeMutation.isPending}
+                    className="mt-3 w-full py-2.5 bg-green-500 text-white text-sm font-bold rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
+                  >
+                    {completeMutation.isPending ? 'Confirming...' : '✓ Confirm Service Completed'}
+                  </button>
+                )}
+                {b.status === 'in_chair' && b.customer_completed && (
+                  <p className="mt-3 text-center text-green-600 text-xs font-semibold">✅ You confirmed · Waiting for barber</p>
+                )}
               </Link>
             )
           })}

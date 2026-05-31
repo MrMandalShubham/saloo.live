@@ -128,31 +128,13 @@ Deno.serve(async (req) => {
       console.error('Wallet hold error (non-fatal):', walletErr)
     }
 
-    // Award loyalty points (1 pt per ₹1, 1.5x on Mon–Thu)
-    const bookingDate = new Date(hold.hold_date)
-    const dayOfWeek = bookingDate.getDay()
-    const multiplier = dayOfWeek >= 1 && dayOfWeek <= 4 ? 1.5 : 1
-    const earnedPoints = Math.floor(total_amount * multiplier)
+    // Loyalty points are now awarded on dual completion (bookings-complete)
 
     const { data: userData } = await supabase
       .from('users')
-      .select('loyalty_points, fcm_token, phone, name')
+      .select('fcm_token, phone, name')
       .eq('id', user.id)
       .single()
-
-    const newBalance = (userData?.loyalty_points ?? 0) + earnedPoints
-
-    await Promise.all([
-      supabase.from('users').update({ loyalty_points: newBalance }).eq('id', user.id),
-      supabase.from('loyalty_transactions').insert({
-        user_id: user.id,
-        booking_id: booking.id,
-        points: earnedPoints,
-        type: 'earn',
-        description: `Booking ${booking.booking_ref}`,
-        balance_after: newBalance,
-      }),
-    ])
 
     // Fetch shop and barber names for notifications
     const [{ data: shop }, { data: barber }] = await Promise.all([
