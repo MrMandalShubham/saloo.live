@@ -474,7 +474,7 @@ export default function BookingFlowPage() {
                   <span className="font-medium">{formatINR(holdData.total_amount)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm text-gray-500">Advance ({shop?.advance_percentage ?? 30}%)</span>
+                  <span className="text-sm text-gray-500">Advance ({shop?.advance_percentage ?? 10}%)</span>
                   <span className="font-syne font-bold text-saloo-teal text-lg">{formatINR(holdData.advance_amount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">

@@ -37,13 +37,13 @@ Deno.serve(async (req) => {
     const total_duration = mainServices.reduce((sum, s) => sum + s.duration_min, 0)
     const total_amount = [...mainServices, ...addons].reduce((sum, s) => sum + s.price, 0)
 
-    // Use shop's configured advance percentage (default 30%)
+    // Use shop's configured advance percentage (default 10%)
     const { data: shopConfig } = await supabase
       .from('shops')
       .select('advance_percentage')
       .eq('id', shop_id)
       .single()
-    const advancePct = shopConfig?.advance_percentage ?? 30
+    const advancePct = shopConfig?.advance_percentage ?? 10
     const advance_amount = Math.ceil(total_amount * (advancePct / 100))
 
     // Compute end_time

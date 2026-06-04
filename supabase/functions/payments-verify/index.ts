@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
       .in('id', [...hold.service_ids, ...hold.addon_ids])
 
     const total_amount = services?.reduce((sum, s) => sum + s.price, 0) ?? 0
-    const advance_amount = Math.ceil(total_amount * 0.3)
+    const advance_amount = Math.ceil(total_amount * 0.1)
 
     // Create the booking
     const { data: booking, error: bookingErr } = await supabase

@@ -22,7 +22,7 @@ export function fromPaise(paise: number): number {
   return paise / 100
 }
 
-/** Calculate 30% advance amount */
+/** Calculate 10% advance amount */
 export function calcAdvance(total: number): number {
-  return Math.ceil(total * 0.3)
+  return Math.ceil(total * 0.1)
 }

@@ -1,4 +1,4 @@
-// Create a Razorpay order for the advance payment (30% of total)
+// Create a Razorpay order for the advance payment (10% of total)
 
 import { handleCors, json, error } from '../_shared/cors.ts'
 import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
       .select('advance_percentage')
       .eq('id', hold.shop_id)
       .single()
-    const advancePct = (shop?.advance_percentage ?? 30) / 100
+    const advancePct = (shop?.advance_percentage ?? 10) / 100
 
     // Fetch services to compute advance amount
     const { data: services } = await supabase
