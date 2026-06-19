@@ -230,6 +230,7 @@ export default async function OwnerDashboardPage() {
         <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {[
             { label: 'Bookings',     href: '/owner/bookings',     icon: '◈' },
+            { label: 'Live Queue',   href: '/owner/queue',        icon: '⧖' },
             { label: 'Wallet',       href: '/owner/wallet',       icon: '◉' },
             { label: 'Services',     href: '/owner/services',     icon: '✂' },
             { label: 'Availability', href: '/owner/availability', icon: '◷' },

@@ -138,14 +138,24 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
         </section>
       )}
 
-      {/* Book CTA */}
+      {/* Book / Queue CTA */}
       <div className="fixed bottom-[68px] left-0 right-0 md:static md:bottom-0 md:mt-0 bg-white/80 backdrop-blur-lg border-t md:border md:rounded-2xl border-border/60 p-4 z-40 shadow-royal-lg md:shadow-sm">
-        <Link
-          href={`/book/${shop.id}`}
-          className="block w-full bg-saloo-teal text-navy font-syne font-bold text-center py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all hover:shadow-gold text-lg tracking-tight"
-        >
-          Book Now
-        </Link>
+        <div className="flex gap-3">
+          <Link
+            href={`/book/${shop.id}`}
+            className="flex-1 bg-saloo-teal text-navy font-syne font-bold text-center py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all hover:shadow-gold text-lg tracking-tight"
+          >
+            Book Now
+          </Link>
+          {shop.walk_in_enabled && (shop.is_open || shop.is_open_now) && (
+            <Link
+              href={`/queue/${shop.id}`}
+              className="flex-1 bg-navy text-white font-syne font-bold text-center py-4 rounded-2xl hover:bg-navy/90 transition-all text-lg tracking-tight flex items-center justify-center gap-2"
+            >
+              <span>🚶</span> Join Queue
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   )
