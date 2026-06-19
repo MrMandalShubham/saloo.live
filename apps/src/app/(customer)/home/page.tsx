@@ -12,6 +12,7 @@ export default async function HomePage() {
 
   let profile = null
   let lastBooking = null
+  let favBarbers: any[] = []
 
   if (user) {
     const { data: p } = await supabase
@@ -24,13 +25,22 @@ export default async function HomePage() {
     try {
       const { data } = await supabase
         .from('bookings')
-        .select('id, booking_ref, status, date, start_time, shop:shops(name)')
+        .select('id, booking_ref, status, date, start_time, shop_id, barber_id, service_ids, addon_ids, shop:shops(name)')
         .eq('user_id', user.id)
         .eq('status', 'completed')
         .order('created_at', { ascending: false })
         .limit(1)
         .single()
       lastBooking = data
+    } catch {}
+
+    try {
+      const { data: fb } = await (supabase as any)
+        .from('favourite_barbers')
+        .select('barber:barbers(id, name, avatar_url, shop_id, rating, shop:shops(name))')
+        .eq('user_id', user.id)
+        .limit(10)
+      favBarbers = (fb ?? []).map((r: any) => r.barber).filter(Boolean)
     } catch {}
   }
 
@@ -121,6 +131,39 @@ export default async function HomePage() {
 
       {/* Quick Re-Book */}
       {lastBooking && <QuickReBook booking={lastBooking as any} />}
+
+      {/* Your Barbers */}
+      {favBarbers.length > 0 && (
+        <section>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="w-1 h-6 rounded-full bg-red-400" />
+            <h2 className="font-syne font-bold text-xl text-navy">Your Barbers</h2>
+          </div>
+          <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+            {favBarbers.map((b: any) => {
+              const shopName = Array.isArray(b.shop) ? b.shop[0]?.name : b.shop?.name
+              return (
+                <Link
+                  key={b.id}
+                  href={`/book/${b.shop_id}?barber=${b.id}`}
+                  className="shrink-0 w-32 bg-white border border-border rounded-2xl p-3 hover:border-saloo-teal/40 hover:shadow-royal transition-all text-center"
+                >
+                  <div className="w-14 h-14 rounded-2xl mx-auto bg-gradient-to-br from-gold/20 to-champagne flex items-center justify-center overflow-hidden border border-saloo-teal/20 mb-2">
+                    {b.avatar_url ? (
+                      <img src={b.avatar_url} alt={b.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-2xl">✂️</span>
+                    )}
+                  </div>
+                  <p className="font-semibold text-navy text-sm truncate">{b.name}</p>
+                  <p className="text-muted text-[11px] truncate">{shopName}</p>
+                  {b.rating > 0 && <p className="text-saloo-teal text-[11px] font-semibold mt-0.5">★ {Number(b.rating).toFixed(1)}</p>}
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Search CTA */}
       <Link

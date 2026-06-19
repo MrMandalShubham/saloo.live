@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import Image from 'next/image'
+import { createClient } from '@/lib/supabase/client'
 import { formatINR, formatDuration } from '@saloo/lib'
 
 type Tab = 'services' | 'barbers' | 'styles'
@@ -16,6 +18,43 @@ export function ShopTabs({
   barbers: any[]
 }) {
   const [tab, setTab] = useState<Tab>('services')
+  const router = useRouter()
+  const [userId, setUserId] = useState<string | null>(null)
+  const [favs, setFavs] = useState<Set<string>>(new Set())
+
+  // Load current user's favourite barbers for this shop
+  useEffect(() => {
+    const barberIds = barbers.map((b: any) => b.id)
+    if (barberIds.length === 0) return
+    const supabase = createClient()
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session) return
+      setUserId(session.user.id)
+      const { data } = await (supabase as any)
+        .from('favourite_barbers')
+        .select('barber_id')
+        .eq('user_id', session.user.id)
+        .in('barber_id', barberIds)
+      if (data) setFavs(new Set(data.map((r: any) => r.barber_id)))
+    })
+  }, [barbers])
+
+  async function toggleFav(barberId: string) {
+    if (!userId) { router.push('/login'); return }
+    const supabase = createClient()
+    const isFav = favs.has(barberId)
+    // Optimistic update
+    setFavs(prev => {
+      const next = new Set(prev)
+      if (isFav) next.delete(barberId); else next.add(barberId)
+      return next
+    })
+    if (isFav) {
+      await (supabase as any).from('favourite_barbers').delete().eq('user_id', userId).eq('barber_id', barberId)
+    } else {
+      await (supabase as any).from('favourite_barbers').insert({ user_id: userId, barber_id: barberId })
+    }
+  }
 
   const tabs: { key: Tab; label: string; icon: string }[] = [
     { key: 'services', label: 'Services', icon: '✂' },
@@ -103,6 +142,15 @@ export function ShopTabs({
                           {b.experience_level && b.experience_level !== 'junior' && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 font-medium capitalize">{b.experience_level}</span>
                           )}
+                          <button
+                            onClick={() => toggleFav(b.id)}
+                            aria-label={favs.has(b.id) ? 'Remove favourite' : 'Add favourite'}
+                            className="ml-auto shrink-0 text-xl leading-none transition-transform active:scale-90"
+                          >
+                            <span className={favs.has(b.id) ? 'text-red-500' : 'text-gray-300 hover:text-red-300'}>
+                              {favs.has(b.id) ? '♥' : '♡'}
+                            </span>
+                          </button>
                         </div>
                         {bRating > 0 && (
                           <div className="flex items-center gap-1 mt-0.5">

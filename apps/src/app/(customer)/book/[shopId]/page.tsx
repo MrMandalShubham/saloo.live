@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { formatINR, formatDate, formatTime, next7Days } from '@saloo/lib'
@@ -38,8 +38,10 @@ async function fetchAvailability(shopId: string, date: string, barberId?: string
 export default function BookingFlowPage() {
   const { shopId } = useParams<{ shopId: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const [step, setStep] = useState(0)
+  const [prefilled, setPrefilled] = useState(false)
   const [selectedServices, setSelectedServices] = useState<any[]>([])
   const [selectedBarber, setSelectedBarber] = useState<any>(null)
   const [selectedDate, setSelectedDate] = useState('')
@@ -73,6 +75,27 @@ export default function BookingFlowPage() {
       ? prev.filter(s => s.id !== svc.id)
       : [...prev, svc]
     )
+
+  // ── Pre-fill from query params: "repeat my last cut" (services+barber) or favourite barber ──
+  useEffect(() => {
+    if (prefilled || !shop) return
+    const isRepeat = searchParams.get('repeat') === '1'
+    const wantBarber = searchParams.get('barber')
+    if (!isRepeat && !wantBarber) return
+
+    const wantIds = (searchParams.get('services') ?? '').split(',').filter(Boolean)
+    const matched = (shop.services ?? []).filter((s: any) => wantIds.includes(s.id))
+    if (matched.length > 0) setSelectedServices(matched)
+
+    if (wantBarber) {
+      const b = (shop.barbers ?? []).find((x: any) => x.id === wantBarber)
+      if (b) setSelectedBarber(b)
+    }
+
+    // Repeat with known services → jump to Date & Time; barber-only → start at services
+    if (isRepeat && matched.length > 0) setStep(2)
+    setPrefilled(true)
+  }, [shop, prefilled, searchParams])
 
   const handleHold = async () => {
     if (!selectedSlot) return

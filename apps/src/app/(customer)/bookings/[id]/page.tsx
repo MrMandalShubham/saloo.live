@@ -117,6 +117,7 @@ export default function BookingDetailPage() {
   const shop = Array.isArray(booking.shop) ? booking.shop[0] : booking.shop
   const barber = Array.isArray(booking.barber) ? booking.barber[0] : booking.barber
   const canCancel = booking.status === 'confirmed'
+  const canReschedule = ['confirmed', 'pending_confirmation'].includes(booking.status)
   const canComplete = booking.status === 'in_chair' && !booking.customer_completed
   const canReview = booking.status === 'completed' && !booking.review
   const canDispute = ['completed', 'no_show'].includes(booking.status) && !booking.dispute
@@ -237,6 +238,14 @@ export default function BookingDetailPage() {
             className="block w-full bg-saloo-teal text-navy font-syne font-bold py-4 rounded-2xl text-center hover:bg-saloo-teal/90 transition-colors"
           >
             Leave a Review ⭐
+          </Link>
+        )}
+        {canReschedule && (
+          <Link
+            href={`/bookings/${booking.id}/reschedule`}
+            className="block w-full border border-saloo-teal text-saloo-teal font-semibold py-4 rounded-2xl text-center hover:bg-saloo-teal/5 transition-colors"
+          >
+            Reschedule
           </Link>
         )}
         {canCancel && (
