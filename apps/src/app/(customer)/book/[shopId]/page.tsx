@@ -339,14 +339,29 @@ export default function BookingFlowPage() {
         {step === 1 && (
           <div className="bg-white rounded-2xl border border-border p-6 space-y-4 shadow-sm">
             <h2 className="font-syne font-bold text-xl text-navy">Choose Barber</h2>
-            <button onClick={() => { setSelectedBarber(null); setSelectedDate(''); setSelectedSlot(null); setStep(2) }}
-              className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-saloo-teal/30 bg-saloo-teal/5 hover:bg-saloo-teal/10 transition-colors">
-              <div className="w-12 h-12 rounded-full bg-saloo-teal/20 flex items-center justify-center text-xl">⚡</div>
-              <div className="text-left">
-                <p className="font-semibold text-navy">Any Available</p>
-                <p className="text-sm text-gray-400">First available barber</p>
-              </div>
-            </button>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => { setSelectedBarber(null); setSelectedDate(''); setSelectedSlot(null); setStep(2) }}
+                className="flex items-center gap-3 p-4 rounded-xl border-2 border-saloo-teal/30 bg-saloo-teal/5 hover:bg-saloo-teal/10 transition-colors">
+                <div className="w-10 h-10 rounded-full bg-saloo-teal/20 flex items-center justify-center text-lg shrink-0">⚡</div>
+                <div className="text-left min-w-0">
+                  <p className="font-semibold text-navy text-sm">First Available</p>
+                  <p className="text-xs text-gray-400">Soonest slot</p>
+                </div>
+              </button>
+              <button
+                onClick={() => {
+                  const best = [...barbers].sort((a: any, b: any) => (b.rating ?? b.avg_rating ?? 0) - (a.rating ?? a.avg_rating ?? 0))[0]
+                  if (best) { setSelectedBarber(best); setSelectedDate(''); setSelectedSlot(null); setStep(2) }
+                }}
+                disabled={barbers.length === 0}
+                className="flex items-center gap-3 p-4 rounded-xl border-2 border-gold/40 bg-gold/5 hover:bg-gold/10 transition-colors disabled:opacity-40">
+                <div className="w-10 h-10 rounded-full bg-gold/20 flex items-center justify-center text-lg shrink-0">⭐</div>
+                <div className="text-left min-w-0">
+                  <p className="font-semibold text-navy text-sm">Best Rated</p>
+                  <p className="text-xs text-gray-400">Top barber</p>
+                </div>
+              </button>
+            </div>
             {barbers.length === 0 && (
               <p className="text-gray-400 text-sm text-center py-4">No barbers added yet</p>
             )}
