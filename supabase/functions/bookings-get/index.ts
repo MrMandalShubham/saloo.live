@@ -16,6 +16,7 @@ Deno.serve(async (req) => {
 
     // Try as customer first, then as shop owner
     let booking: any = null
+    let isOwnerView = false
 
     // Check as customer
     const { data: customerBooking } = await supabase
@@ -59,10 +60,23 @@ Deno.serve(async (req) => {
           .single()
 
         booking = ownerBooking
+        if (ownerBooking) isOwnerView = true
       }
     }
 
     if (!booking) return error('Booking not found', 404)
+
+    // Owner/barber view: attach the customer's grooming profile + saved cut photos
+    let customerProfile = null
+    let customerCutPhotos: any[] = []
+    if (isOwnerView && booking.user_id) {
+      const [{ data: prof }, { data: photos }] = await Promise.all([
+        supabase.from('grooming_profiles').select('*').eq('user_id', booking.user_id).maybeSingle(),
+        supabase.from('cut_photos').select('id, image_url, caption, created_at').eq('user_id', booking.user_id).order('created_at', { ascending: false }).limit(6),
+      ])
+      customerProfile = prof
+      customerCutPhotos = photos ?? []
+    }
 
     // Fetch services separately (array of IDs)
     const allServiceIds = [...(booking.service_ids ?? []), ...(booking.addon_ids ?? [])]
@@ -71,7 +85,7 @@ Deno.serve(async (req) => {
       .select('id, name, price, duration_min, is_addon, category')
       .in('id', allServiceIds)
 
-    return json({ data: { ...booking, services: services ?? [] }, error: null })
+    return json({ data: { ...booking, services: services ?? [], customer_profile: customerProfile, customer_cut_photos: customerCutPhotos }, error: null })
   } catch (err) {
     console.error('bookings-get error:', err)
     return error('Failed to fetch booking', 500)

@@ -133,6 +133,41 @@ export default function OwnerBookingDetailPage() {
           {booking.instructions && <Row label="Instructions" value={booking.instructions} />}
         </Section>
 
+        {/* Customer Preferences (grooming profile) */}
+        {(() => {
+          const p = booking.customer_profile
+          const photos = booking.customer_cut_photos ?? []
+          const fields = p ? [
+            ['Fade', p.fade_level], ['Sides guard', p.guard_number], ['Top', p.top_length],
+            ['Neckline', p.neckline], ['Beard', p.beard_style],
+            ['Talk', p.talk_level === 'silent' ? 'Silent cut' : p.talk_level === 'casual' ? 'Casual chat' : p.talk_level === 'consult' ? 'Style consult' : p.talk_level],
+          ].filter(([, v]) => v) : []
+          if (fields.length === 0 && !p?.style_notes && !p?.allergy_notes && photos.length === 0) return null
+          return (
+            <div className="bg-saloo-pink/5 border border-saloo-pink/20 rounded-2xl p-5">
+              <h2 className="text-saloo-dark font-semibold text-base mb-3 flex items-center gap-2"><span>✂️</span> Customer Preferences</h2>
+              {fields.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {fields.map(([k, v]) => (
+                    <span key={k} className="text-xs bg-white border border-saloo-dark/10 rounded-lg px-2.5 py-1.5 text-saloo-dark/80">
+                      <span className="text-saloo-dark/40">{k}:</span> <span className="font-semibold capitalize">{v}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {p?.style_notes && <p className="text-sm text-saloo-dark/80 mb-1"><span className="text-saloo-dark/40">Notes:</span> {p.style_notes}</p>}
+              {p?.allergy_notes && <p className="text-sm text-red-600 mb-2">⚠ Allergies: {p.allergy_notes}</p>}
+              {photos.length > 0 && (
+                <div className="flex gap-2 mt-3 overflow-x-auto scrollbar-none">
+                  {photos.map((ph: any) => (
+                    <img key={ph.id} src={ph.image_url} alt="Saved cut" className="w-20 h-20 rounded-xl object-cover shrink-0 border border-saloo-dark/10" />
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })()}
+
         {/* Payment */}
         <Section title="Payment">
           <Row label="Total" value={formatINR(booking.total_amount)} />
