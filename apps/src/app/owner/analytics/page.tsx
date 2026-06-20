@@ -107,6 +107,41 @@ export default function OwnerAnalyticsPage() {
             )}
           </div>
 
+          {/* Customer Insights */}
+          <div className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-5">
+            <p className="text-saloo-dark/50 text-xs uppercase tracking-widest mb-5">Customer Insights</p>
+            <div className="grid grid-cols-3 gap-3 mb-5">
+              <div className="text-center">
+                <p className="font-syne text-xl font-bold text-saloo-pink">{formatINR(data.avg_ltv ?? 0)}</p>
+                <p className="text-saloo-dark/50 text-[10px] uppercase tracking-wider font-bold mt-1">Avg LTV</p>
+              </div>
+              <div className="text-center">
+                <p className="font-syne text-xl font-bold text-saloo-dark">{data.rebooking_rate ?? 0}%</p>
+                <p className="text-saloo-dark/50 text-[10px] uppercase tracking-wider font-bold mt-1">Rebooking</p>
+              </div>
+              <div className="text-center">
+                <p className="font-syne text-xl font-bold text-saloo-dark">{data.total_customers ?? 0}</p>
+                <p className="text-saloo-dark/50 text-[10px] uppercase tracking-wider font-bold mt-1">Customers</p>
+              </div>
+            </div>
+            {data.top_customers?.length > 0 && (
+              <>
+                <p className="text-saloo-dark/40 text-[10px] uppercase tracking-widest font-bold mb-2">Top Customers</p>
+                <div className="space-y-2">
+                  {data.top_customers.map((c: any, i: number) => (
+                    <div key={i} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="text-saloo-dark/40 text-xs w-4 font-syne">{i + 1}</span>
+                        <span className="text-saloo-dark/70 text-sm">{c.name}</span>
+                      </div>
+                      <span className="text-saloo-dark/60 text-sm">{c.visits} visits · <span className="text-saloo-pink font-semibold">{formatINR(c.spend)}</span></span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
           {/* Revenue by day */}
           {data.revenue_by_day?.length > 0 && (
             <div className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-5">

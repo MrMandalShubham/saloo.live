@@ -106,13 +106,34 @@ Deno.serve(async (req) => {
       }))
     }
 
-    // New vs repeat customers
+    // New vs repeat customers + spend per customer (LTV)
     const customerIds = [...new Set(completed.map((b: any) => b.user_id))]
     let new_customers = 0, repeat_customers = 0
+    const spendByUser: Record<string, number> = {}
+    const visitsByUser: Record<string, number> = {}
+    for (const b of completed) {
+      spendByUser[b.user_id] = (spendByUser[b.user_id] ?? 0) + (b.total_amount ?? 0)
+      visitsByUser[b.user_id] = (visitsByUser[b.user_id] ?? 0) + 1
+    }
     for (const uid of customerIds) {
-      const bookingCount = completed.filter((b: any) => b.user_id === uid).length
-      if (bookingCount === 1) new_customers++
+      if (visitsByUser[uid] === 1) new_customers++
       else repeat_customers++
+    }
+    const total_customers = customerIds.length
+    const avg_ltv = total_customers > 0 ? Math.round(total_revenue / total_customers) : 0
+    const rebooking_rate = total_customers > 0 ? Math.round((repeat_customers / total_customers) * 100) : 0
+
+    // Top customers by spend
+    const topCustomerIds = Object.entries(spendByUser).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([id]) => id)
+    let top_customers: Array<{ name: string; spend: number; visits: number }> = []
+    if (topCustomerIds.length > 0) {
+      const { data: users } = await supabase.from('users').select('id, name').in('id', topCustomerIds)
+      const nameMap = Object.fromEntries((users ?? []).map((u: any) => [u.id, u.name]))
+      top_customers = topCustomerIds.map((id) => ({
+        name: nameMap[id] ?? 'Guest',
+        spend: Math.round(spendByUser[id] ?? 0),
+        visits: visitsByUser[id] ?? 0,
+      }))
     }
 
     return json({
@@ -128,6 +149,12 @@ Deno.serve(async (req) => {
         avg_rating: shop.rating ?? 0,
         new_customers,
         repeat_customers,
+        total_customers,
+        avg_ltv,
+        rebooking_rate,
+        cancelled_count: cancelled.length,
+        no_show_count: noShows.length,
+        top_customers,
         top_services,
         top_barbers,
         revenue_by_day,
