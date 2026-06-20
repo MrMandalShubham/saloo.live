@@ -237,6 +237,7 @@ export default async function OwnerDashboardPage() {
             { label: 'Availability', href: '/owner/availability', icon: '◷' },
             { label: 'Analytics',   href: '/owner/analytics',    icon: '◎' },
             { label: 'Team',         href: '/owner/team',         icon: '◉' },
+            { label: 'Attendance',   href: '/owner/attendance',   icon: '◴' },
             { label: 'Promotions',   href: '/owner/promotions',   icon: '✦' },
             { label: 'Reviews',      href: '/owner/reviews',      icon: '★' },
             { label: 'Settings',     href: '/owner/settings',     icon: '◐' },

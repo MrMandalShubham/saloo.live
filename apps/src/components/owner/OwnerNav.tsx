@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { label: 'Earnings',     href: '/owner/earnings',    icon: '₹' },
   { label: 'Services',     href: '/owner/services',    icon: '✂' },
   { label: 'Team',         href: '/owner/team',        icon: '◉' },
+  { label: 'Attendance',   href: '/owner/attendance',  icon: '◴' },
   { label: 'Analytics',   href: '/owner/analytics',   icon: '◎' },
   { label: 'Availability', href: '/owner/availability',icon: '◷' },
   { label: 'Promotions',   href: '/owner/promotions',  icon: '✦' },
