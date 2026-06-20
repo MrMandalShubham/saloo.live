@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { label: 'Queue',        href: '/owner/queue',       icon: '⧖' },
   { label: 'Bookings',     href: '/owner/bookings',    icon: '◈' },
   { label: 'Wallet',       href: '/owner/wallet',      icon: '◉' },
+  { label: 'Earnings',     href: '/owner/earnings',    icon: '₹' },
   { label: 'Services',     href: '/owner/services',    icon: '✂' },
   { label: 'Team',         href: '/owner/team',        icon: '◉' },
   { label: 'Analytics',   href: '/owner/analytics',   icon: '◎' },

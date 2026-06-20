@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
 
     // ── Update barber profile fields ──
     const allowed = ['name', 'phone', 'email', 'specialties', 'bio', 'is_active',
-      'avatar_url', 'experience_years', 'languages', 'instagram_handle', 'experience_level']
+      'avatar_url', 'experience_years', 'languages', 'instagram_handle', 'experience_level', 'commission_rate']
     const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
     for (const key of allowed) {
       if (key in body) updates[key] = body[key]
