@@ -47,6 +47,7 @@ export default function BookingFlowPage() {
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedSlot, setSelectedSlot] = useState<any>(null) // full slot object
   const [instructions, setInstructions] = useState('')
+  const [readyBy, setReadyBy] = useState('') // "get ready by" target time (HH:MM)
   const [holding, setHolding] = useState(false)
   const [paying, setPaying] = useState(false)
   const [holdData, setHoldData] = useState<any>(null)
@@ -69,6 +70,14 @@ export default function BookingFlowPage() {
   const barbers = shop?.barbers ?? []
   const total = selectedServices.reduce((sum: number, s: any) => sum + Number(s.price), 0)
   const totalDuration = selectedServices.filter((s: any) => !s.is_addon).reduce((sum: number, s: any) => sum + s.duration_min, 0)
+
+  // "Get ready by" — qualify slots whose service finishes by the target time
+  const toMin = (t: string) => { const [h, m] = t.slice(0, 5).split(':').map(Number); return h * 60 + m }
+  const readyByMin = readyBy ? toMin(readyBy) : null
+  const slotQualifies = (s: any) => readyByMin == null ? true : (toMin(s.start_time) + totalDuration) <= readyByMin
+  const bestReadySlot = readyByMin == null ? null
+    : [...slots].filter((s: any) => (s.is_available ?? s.available) && slotQualifies(s))
+        .sort((a: any, b: any) => toMin(b.start_time) - toMin(a.start_time))[0] ?? null
 
   const toggleService = (svc: any) =>
     setSelectedServices(prev => prev.find(s => s.id === svc.id)
@@ -409,12 +418,32 @@ export default function BookingFlowPage() {
               })}
             </div>
 
+            {/* Get ready by */}
+            {selectedDate && (
+              <div className="bg-gold/5 border border-gold/30 rounded-xl p-3 flex items-center gap-3">
+                <span className="text-lg">⏰</span>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold text-navy">Need to be ready by a time?</p>
+                  <p className="text-xs text-gray-400">We'll find the latest slot that finishes in time</p>
+                </div>
+                <input type="time" value={readyBy} onChange={e => setReadyBy(e.target.value)}
+                  className="bg-white border border-border rounded-lg px-2 py-1.5 text-sm text-navy focus:outline-none focus:border-gold" />
+                {readyBy && (
+                  <button onClick={() => { if (bestReadySlot) setSelectedSlot(bestReadySlot) }} disabled={!bestReadySlot}
+                    className="text-xs font-bold bg-gold/20 text-amber-700 px-2.5 py-1.5 rounded-lg disabled:opacity-40">
+                    {bestReadySlot ? 'Pick best' : 'None fit'}
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Time slots */}
             {selectedDate && (
               <div>
                 <p className="text-sm font-semibold text-gray-700 mb-3">
                   Available Slots
                   {selectedBarber && <span className="font-normal text-gray-400"> · {selectedBarber.name}</span>}
+                  {readyBy && bestReadySlot && <span className="font-normal text-amber-600"> · ready by {readyBy}</span>}
                 </p>
                 {slotsLoading ? (
                   <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
@@ -444,6 +473,8 @@ export default function BookingFlowPage() {
                     {slots.map((s: any) => {
                       const available = s.is_available ?? s.available
                       const isSelected = selectedSlot?.start_time === s.start_time
+                      const isBest = bestReadySlot?.start_time === s.start_time
+                      const dimmed = readyByMin != null && available && !slotQualifies(s)
                       return (
                         <button key={s.start_time} disabled={!available}
                           onClick={() => setSelectedSlot(s)}
@@ -452,12 +483,19 @@ export default function BookingFlowPage() {
                               ? 'bg-saloo-teal border-saloo-teal text-navy shadow-sm'
                               : !available
                                 ? 'bg-gray-50 border-gray-100 text-gray-300 cursor-not-allowed line-through'
-                                : s.is_popular
-                                  ? 'bg-amber-50 border-amber-200 text-amber-700 hover:border-saloo-teal/50'
-                                  : 'bg-white border-border text-gray-700 hover:border-saloo-teal/50'
+                                : isBest
+                                  ? 'bg-gold/15 border-gold text-amber-700 ring-1 ring-gold'
+                                  : dimmed
+                                    ? 'bg-white border-border text-gray-300'
+                                    : s.is_popular
+                                      ? 'bg-amber-50 border-amber-200 text-amber-700 hover:border-saloo-teal/50'
+                                      : 'bg-white border-border text-gray-700 hover:border-saloo-teal/50'
                           }`}>
                           {formatTime(s.start_time)}
-                          {s.is_popular && available && !isSelected && (
+                          {isBest && !isSelected && (
+                            <span className="absolute -top-1.5 -right-1.5 bg-gold text-navy text-[7px] font-bold px-1 py-0.5 rounded-full leading-none">BEST</span>
+                          )}
+                          {s.is_popular && available && !isSelected && !isBest && (
                             <span className="absolute -top-1 -right-1 w-2 h-2 bg-amber-400 rounded-full" />
                           )}
                         </button>
