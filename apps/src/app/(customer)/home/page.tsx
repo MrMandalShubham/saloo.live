@@ -186,6 +186,20 @@ export default async function HomePage() {
         </div>
       </Link>
 
+      {/* Discover / Leaderboard */}
+      <Link href="/leaderboard"
+        className="flex items-center gap-4 bg-gradient-to-br from-[#0A1116] to-[#0E1B24] rounded-2xl px-5 py-4 hover:-translate-y-0.5 transition-transform group relative overflow-hidden">
+        <div className="absolute top-[-30%] right-[-5%] w-32 h-32 rounded-full bg-gold/15 blur-2xl" />
+        <div className="relative z-10 flex items-center gap-4 w-full">
+          <div className="text-2xl">🏆</div>
+          <div className="flex-1">
+            <p className="font-syne font-bold text-white">Discover Top Barbers</p>
+            <p className="text-white/60 text-xs mt-0.5">Trending shops & city leaderboard</p>
+          </div>
+          <span className="text-gold text-xl group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </Link>
+
       {/* Nearby Shops */}
       <section>
         <div className="flex items-center gap-2 mb-1">
