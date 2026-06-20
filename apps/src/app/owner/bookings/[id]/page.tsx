@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
@@ -47,6 +48,7 @@ export default function OwnerBookingDetailPage() {
   const router = useRouter()
   const qc = useQueryClient()
   const supabase = createClient()
+  const [tipInput, setTipInput] = useState('')
 
   const { data: booking, isLoading } = useQuery({
     queryKey: ['booking', id],
@@ -78,6 +80,21 @@ export default function OwnerBookingDetailPage() {
       qc.invalidateQueries({ queryKey: ['owner-bookings'] })
       qc.invalidateQueries({ queryKey: ['owner-dashboard'] })
     },
+  })
+
+  const tipMutation = useMutation({
+    mutationFn: async (amount: number) => {
+      const { data: { session } } = await supabase.auth.getSession()
+      const res = await fetch(`${BASE_URL}/functions/v1/owner-booking-tip`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session!.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ booking_id: id, tip_amount: amount }),
+      })
+      const json = await res.json()
+      if (json.error) throw new Error(json.error.message)
+      return json.data
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['booking', id] }),
   })
 
   if (isLoading) {
@@ -173,7 +190,37 @@ export default function OwnerBookingDetailPage() {
           <Row label="Total" value={formatINR(booking.total_amount)} />
           <Row label="Advance Paid" value={formatINR(booking.advance_amount)} />
           <Row label="Due at Shop" value={formatINR(booking.total_amount - booking.advance_amount)} />
+          {Number(booking.tip_amount) > 0 && <Row label="Tip" value={formatINR(booking.tip_amount)} />}
         </Section>
+
+        {/* Tip tracking (completed bookings) */}
+        {booking.status === 'completed' && (
+          <div className="bg-white/5 rounded-2xl p-5">
+            <h2 className="text-saloo-dark font-semibold text-base mb-3 flex items-center gap-2"><span>💸</span> Tip for {booking.barber?.name ?? 'barber'}</h2>
+            {Number(booking.tip_amount) > 0 ? (
+              <div className="flex items-center justify-between">
+                <span className="font-syne font-bold text-green-600 text-xl">{formatINR(booking.tip_amount)}</span>
+                <button onClick={() => { setTipInput(String(booking.tip_amount)); tipMutation.mutate(0) }}
+                  className="text-saloo-dark/50 text-xs hover:text-red-500">Clear</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <div className="flex-1 flex gap-2">
+                  {[20, 50, 100].map(amt => (
+                    <button key={amt} onClick={() => tipMutation.mutate(amt)}
+                      className="flex-1 py-2.5 bg-saloo-dark/5 hover:bg-saloo-dark/10 rounded-xl text-sm font-semibold text-saloo-dark transition-colors">
+                      {formatINR(amt)}
+                    </button>
+                  ))}
+                </div>
+                <input value={tipInput} onChange={e => setTipInput(e.target.value)} placeholder="₹" type="number"
+                  className="w-20 bg-white border border-saloo-dark/15 rounded-xl px-3 py-2 text-sm text-saloo-dark focus:outline-none" />
+                <button onClick={() => { const v = parseFloat(tipInput); if (v > 0) tipMutation.mutate(v) }} disabled={tipMutation.isPending}
+                  className="px-4 bg-saloo-pink text-white rounded-xl text-sm font-bold disabled:opacity-40">Save</button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Actions */}
         {actions.length > 0 && (

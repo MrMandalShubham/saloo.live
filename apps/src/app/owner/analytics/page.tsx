@@ -54,6 +54,7 @@ export default function OwnerAnalyticsPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <Metric label="Total Revenue"    value={formatINR(data.total_revenue)}        sub={`${data.total_bookings} bookings`} accent />
             <Metric label="Avg Booking"      value={formatINR(data.avg_booking_value)}    sub={`★ ${data.avg_rating?.toFixed(1)} avg rating`} accent />
+            <Metric label="Tips Collected"   value={formatINR(data.total_tips ?? 0)}      sub="for barbers" />
             <Metric label="New Customers"    value={String(data.new_customers)}           sub="first visit" />
             <Metric label="Returning"        value={String(data.repeat_customers)}        sub="came back" />
           </div>
@@ -98,7 +99,7 @@ export default function OwnerAnalyticsPage() {
                         <span className="text-saloo-dark/40 text-xs w-4 font-syne">{i + 1}</span>
                         <span className="text-saloo-dark/70 text-sm">{b.name}</span>
                       </div>
-                      <span className="text-saloo-pink text-sm font-semibold">{b.bookings} · ★ {b.rating?.toFixed(1)}</span>
+                      <span className="text-saloo-pink text-sm font-semibold">{b.bookings} · ★ {b.rating?.toFixed(1)}{b.tips > 0 ? ` · ${formatINR(b.tips)} tips` : ''}</span>
                     </div>
                   ))}
                 </div>

@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     // All bookings in period
     const { data: bookings } = await supabase
       .from('bookings')
-      .select('id, status, total_amount, service_ids, user_id, date, barber_id, created_at')
+      .select('id, status, total_amount, tip_amount, service_ids, user_id, date, barber_id, created_at')
       .eq('shop_id', shop.id)
       .gte('date', fromDate)
 
@@ -37,6 +37,7 @@ Deno.serve(async (req) => {
     const noShows   = all.filter((b: any) => b.status === 'no_show')
 
     const total_revenue = completed.reduce((s: number, b: any) => s + (b.total_amount ?? 0), 0)
+    const total_tips = completed.reduce((s: number, b: any) => s + (Number(b.tip_amount) || 0), 0)
     const total_bookings = all.length
 
     // Revenue by day
@@ -85,7 +86,13 @@ Deno.serve(async (req) => {
       .slice(0, 5)
       .map(([id]) => id)
 
-    let top_barbers: Array<{ name: string; bookings: number; rating: number }> = []
+    // Tips by barber
+    const barberTips: Record<string, number> = {}
+    for (const b of completed) {
+      if (b.barber_id) barberTips[b.barber_id] = (barberTips[b.barber_id] ?? 0) + (Number(b.tip_amount) || 0)
+    }
+
+    let top_barbers: Array<{ name: string; bookings: number; rating: number; tips: number }> = []
     if (topBarberIds.length > 0) {
       const { data: barbers } = await supabase
         .from('barbers')
@@ -95,6 +102,7 @@ Deno.serve(async (req) => {
         name: b.name,
         bookings: barberCount[b.id] ?? 0,
         rating: b.rating ?? 0,
+        tips: barberTips[b.id] ?? 0,
       }))
     }
 
@@ -112,6 +120,7 @@ Deno.serve(async (req) => {
         period,
         total_bookings,
         total_revenue,
+        total_tips,
         avg_booking_value: completed.length > 0 ? Math.round(total_revenue / completed.length) : 0,
         completion_rate: total_bookings > 0 ? Math.round((completed.length / total_bookings) * 100) : 0,
         cancellation_rate: total_bookings > 0 ? Math.round((cancelled.length / total_bookings) * 100) : 0,
