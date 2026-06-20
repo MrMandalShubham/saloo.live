@@ -332,6 +332,10 @@ export default function BookingFlowPage() {
               className="w-full bg-saloo-teal text-navy font-syne font-bold py-3.5 rounded-xl disabled:opacity-40 hover:bg-saloo-teal/90 transition-colors">
               Continue — {formatINR(total)}
             </button>
+            <button onClick={() => router.push(`/book/${shopId}/group`)}
+              className="w-full text-center text-sm text-gray-500 hover:text-saloo-teal transition-colors py-1">
+              👥 Booking for multiple people? <span className="font-semibold">Group booking →</span>
+            </button>
           </div>
         )}
 
