@@ -2,23 +2,28 @@
 
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { relativeTime } from '@saloo/lib'
 
-const FILTERS = ['all', 'booking', 'payment', 'loyalty', 'promo'] as const
-type Filter = typeof FILTERS[number]
+const FILTERS = [
+  { key: 'all', label: 'All' },
+  { key: 'transactional', label: 'Bookings' },
+  { key: 'loyalty', label: 'Loyalty' },
+  { key: 'promotions', label: 'Offers' },
+] as const
+type Filter = typeof FILTERS[number]['key']
 
 async function fetchNotifications(filter: Filter) {
   const supabase = createClient()
   const { data: { session } } = await supabase.auth.getSession()
-  const params = new URLSearchParams({ ...(filter !== 'all' && { type: filter }), limit: '30' })
+  const params = new URLSearchParams({ ...(filter !== 'all' && { filter }), limit: '30' })
   const res = await fetch(
     `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/notifications-list?${params}`,
     { headers: { Authorization: `Bearer ${session?.access_token}` } }
   )
   const json = await res.json()
-  const result = json.data ?? {}
-  return { notifications: result.notifications ?? [], unread_count: result.unread_count ?? 0 }
+  return { notifications: json.data ?? [], unread_count: json.unread_count ?? 0 }
 }
 
 async function markAllRead() {
@@ -86,15 +91,15 @@ export default function NotificationsPage() {
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
         {FILTERS.map(f => (
           <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`shrink-0 px-4 py-1.5 rounded-pill text-xs font-semibold border transition-all capitalize ${
-              filter === f
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`shrink-0 px-4 py-1.5 rounded-pill text-xs font-semibold border transition-all ${
+              filter === f.key
                 ? 'bg-navy text-white border-navy'
                 : 'bg-white border-border text-secondary hover:border-navy/40 hover:text-navy'
             }`}
           >
-            {f}
+            {f.label}
           </button>
         ))}
       </div>
@@ -142,6 +147,14 @@ export default function NotificationsPage() {
                 </p>
                 <p className="text-sm text-muted mt-0.5 leading-snug">{n.body}</p>
                 <p className="text-[11px] text-muted/60 mt-1.5">{relativeTime(n.created_at)}</p>
+                {n.data?.rebook && n.data?.shop_id && (
+                  <Link
+                    href={`/book/${n.data.shop_id}${n.data.barber_id ? `?barber=${n.data.barber_id}` : ''}`}
+                    className="inline-block mt-2 bg-saloo-teal text-navy text-xs font-bold px-4 py-1.5 rounded-lg hover:bg-saloo-teal/90 transition-colors"
+                  >
+                    Rebook now →
+                  </Link>
+                )}
               </div>
               {!n.is_read && (
                 <div className="w-2 h-2 rounded-full bg-saloo-teal mt-2 shrink-0" />
