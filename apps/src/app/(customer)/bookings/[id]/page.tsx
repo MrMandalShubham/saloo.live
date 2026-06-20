@@ -120,6 +120,7 @@ export default function BookingDetailPage() {
   const canReschedule = ['confirmed', 'pending_confirmation'].includes(booking.status)
   const canComplete = booking.status === 'in_chair' && !booking.customer_completed
   const canReview = booking.status === 'completed' && !booking.review
+  const canInvoice = ['completed', 'confirmed', 'in_chair'].includes(booking.status)
   const canDispute = ['completed', 'no_show'].includes(booking.status) && !booking.dispute
   const showDualStatus = booking.status === 'in_chair' && (booking.owner_completed || booking.customer_completed)
 
@@ -256,6 +257,14 @@ export default function BookingDetailPage() {
           >
             {cancelMutation.isPending ? 'Cancelling...' : 'Cancel Booking'}
           </button>
+        )}
+        {canInvoice && (
+          <Link
+            href={`/bookings/${booking.id}/invoice`}
+            className="block w-full border border-border text-gray-600 font-semibold py-4 rounded-2xl text-center hover:border-gray-300 transition-colors"
+          >
+            View Invoice / Receipt
+          </Link>
         )}
         {canDispute && (
           <Link

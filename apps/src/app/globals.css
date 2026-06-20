@@ -46,3 +46,10 @@ a, button { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
   .scrollbar-none { -ms-overflow-style: none; scrollbar-width: none; }
   .scrollbar-none::-webkit-scrollbar { display: none; }
 }
+
+/* ─── Print: show only the invoice, hide app chrome ─────────────────────── */
+@media print {
+  header, nav, .no-print { display: none !important; }
+  body { background: #fff !important; }
+  .print-area { box-shadow: none !important; border: none !important; }
+}

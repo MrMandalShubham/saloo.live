@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
       .from('bookings')
       .select(`
         *,
-        shop:shops(id, name, address, phone, photos, lat, lng),
+        shop:shops(id, name, address, phone, photos, lat, lng, gst_number),
         barber:barbers(id, name, avatar_url, specialties),
         payment:payments(id, amount, type, status, method, created_at),
         review:reviews(id, rating, text, photos, created_at),
@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
           .from('bookings')
           .select(`
             *,
-            shop:shops(id, name, address, phone, photos, lat, lng),
+            shop:shops(id, name, address, phone, photos, lat, lng, gst_number),
             barber:barbers(id, name, avatar_url, specialties),
             payment:payments(id, amount, type, status, method, created_at),
             review:reviews(id, rating, text, photos, created_at),
