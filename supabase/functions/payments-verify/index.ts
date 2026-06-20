@@ -5,6 +5,7 @@ import { handleCors, json, error } from '../_shared/cors.ts'
 import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
 import { verifySignature } from '../_shared/razorpay.ts'
 import { sendPush } from '../_shared/fcm.ts'
+import { promoEligible, computeDiscount } from '../_shared/promotions.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
@@ -16,7 +17,7 @@ Deno.serve(async (req) => {
   if (!user) return error(authErr ?? 'Unauthorized', 401)
 
   try {
-    const { hold_id, razorpay_order_id, razorpay_payment_id, razorpay_signature, instructions } = await req.json()
+    const { hold_id, razorpay_order_id, razorpay_payment_id, razorpay_signature, instructions, promo_id } = await req.json()
 
     if (!hold_id || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return error('Payment verification params are required', 400)
@@ -44,8 +45,30 @@ Deno.serve(async (req) => {
       .select('id, price, duration_min')
       .in('id', [...hold.service_ids, ...hold.addon_ids])
 
-    const total_amount = services?.reduce((sum, s) => sum + s.price, 0) ?? 0
-    const advance_amount = Math.ceil(total_amount * 0.1)
+    const gross_amount = services?.reduce((sum, s) => sum + s.price, 0) ?? 0
+    // Advance was charged on the full price at create-order time — keep it unchanged
+    const advance_amount = Math.ceil(gross_amount * 0.1)
+
+    // ── Apply an eligible promotion (discount comes off the at-shop balance) ──
+    let discount_amount = 0
+    let promotion_id: string | null = null
+    if (promo_id) {
+      const { data: promo } = await supabase.from('promotions').select('*').eq('id', promo_id).eq('shop_id', hold.shop_id).single()
+      if (promo) {
+        const { count: priorCount } = await supabase
+          .from('bookings').select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id).eq('shop_id', hold.shop_id).in('status', ['completed', 'confirmed', 'in_chair'])
+        const isNew = (priorCount ?? 0) === 0
+        if (promoEligible(promo, { total: gross_amount, serviceIds: hold.service_ids, isNew, startTime: hold.start_time })) {
+          discount_amount = Math.min(computeDiscount(promo, gross_amount), gross_amount - advance_amount)
+          if (discount_amount > 0) {
+            promotion_id = promo.id
+            await supabase.from('promotions').update({ usage_count: (promo.usage_count ?? 0) + 1 }).eq('id', promo.id).catch(() => null)
+          }
+        }
+      }
+    }
+    const total_amount = gross_amount - discount_amount
 
     // Create the booking
     const { data: booking, error: bookingErr } = await supabase
@@ -62,6 +85,8 @@ Deno.serve(async (req) => {
         status: 'pending_confirmation',
         total_amount,
         advance_amount,
+        discount_amount,
+        promotion_id,
         instructions: instructions ?? null,
       })
       .select()

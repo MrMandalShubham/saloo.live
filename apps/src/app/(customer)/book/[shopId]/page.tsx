@@ -51,6 +51,8 @@ export default function BookingFlowPage() {
   const [holding, setHolding] = useState(false)
   const [paying, setPaying] = useState(false)
   const [holdData, setHoldData] = useState<any>(null)
+  const [promos, setPromos] = useState<any[]>([])
+  const [promo, setPromo] = useState<any>(null)
   const [err, setErr] = useState('')
   const [showAuthPopup, setShowAuthPopup] = useState(false)
 
@@ -229,6 +231,25 @@ export default function BookingFlowPage() {
     }
   }
 
+  // Fetch eligible offers when entering Review & Pay, auto-apply the best
+  useEffect(() => {
+    if (step !== 3 || !holdData) return
+    const run = async () => {
+      const session = await getSession()
+      const mainIds = selectedServices.filter(s => !s.is_addon).map((s: any) => s.id)
+      const addonIds = selectedServices.filter(s => s.is_addon).map((s: any) => s.id)
+      const res = await fetch(`${BASE}/functions/v1/promotions-eligible`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session?.access_token}`, 'Content-Type': 'application/json', apikey: ANON },
+        body: JSON.stringify({ shop_id: shopId, service_ids: [...mainIds, ...addonIds], total: holdData.total_amount, start_time: selectedSlot?.start_time }),
+      })
+      const json = await res.json()
+      setPromos(json.data?.promos ?? [])
+      setPromo(json.data?.best ?? null)
+    }
+    run().catch(() => null)
+  }, [step, holdData])
+
   const confirmBooking = async (orderId: string, paymentId: string, sig: string, token?: string) => {
     const session = await getSession()
     const res = await fetch(`${BASE}/functions/v1/payments-verify`, {
@@ -240,6 +261,7 @@ export default function BookingFlowPage() {
         razorpay_payment_id: paymentId,
         razorpay_signature: sig,
         instructions: instructions || undefined,
+        promo_id: promo?.id ?? undefined,
       }),
     })
     const json = await res.json()
@@ -548,18 +570,50 @@ export default function BookingFlowPage() {
                 ))}
               </div>
 
+              {/* Offers */}
+              {promos.length > 0 && (
+                <div className="border-t border-border pt-4">
+                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Offers</p>
+                  <div className="space-y-2">
+                    {promos.map((p: any) => (
+                      <button key={p.id} onClick={() => setPromo(promo?.id === p.id ? null : p)}
+                        className={`w-full flex items-center justify-between p-3 rounded-xl border text-left transition-all ${
+                          promo?.id === p.id ? 'border-saloo-teal bg-saloo-teal/5' : 'border-border hover:border-saloo-teal/40'
+                        }`}>
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">🎁</span>
+                          <div>
+                            <p className="text-sm font-semibold text-navy">{p.title}</p>
+                            <p className="text-xs text-green-600 font-medium">Save {formatINR(p.discount)}</p>
+                          </div>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${promo?.id === p.id ? 'bg-saloo-teal border-saloo-teal' : 'border-gray-300'}`}>
+                          {promo?.id === p.id && <span className="text-white text-[10px]">✓</span>}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="border-t border-border pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Service total</span>
                   <span className="font-medium">{formatINR(holdData.total_amount)}</span>
                 </div>
+                {promo && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-green-600">Offer · {promo.title}</span>
+                    <span className="text-green-600 font-medium">− {formatINR(promo.discount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between">
                   <span className="text-sm text-gray-500">Advance ({shop?.advance_percentage ?? 10}%)</span>
                   <span className="font-syne font-bold text-saloo-teal text-lg">{formatINR(holdData.advance_amount)}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-400">Pay at shop</span>
-                  <span className="text-gray-600">{formatINR(holdData.total_amount - holdData.advance_amount)}</span>
+                  <span className="text-gray-600">{formatINR(Math.max(0, holdData.total_amount - holdData.advance_amount - (promo?.discount ?? 0)))}</span>
                 </div>
               </div>
 
