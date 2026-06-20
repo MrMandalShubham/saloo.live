@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { createClient } from '@/lib/supabase/server'
 import { relativeTime } from '@saloo/lib'
+import Link from 'next/link'
 
 const TIER_CONFIG = {
   bronze:   { gradient: 'from-amber-700 to-amber-900', text: '#FFF', label: 'Bronze', next: 500 },
@@ -72,6 +73,20 @@ export default async function LoyaltyPage() {
           )}
         </div>
       </div>
+
+      {/* Refer & Earn */}
+      <Link href="/refer"
+        className="block bg-gradient-to-br from-[#0A1116] to-[#0E1B24] rounded-2xl p-5 relative overflow-hidden hover:-translate-y-0.5 transition-transform group">
+        <div className="absolute top-[-30%] right-[-5%] w-32 h-32 rounded-full bg-saloo-teal/15 blur-2xl" />
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="text-3xl">🤝</div>
+          <div className="flex-1">
+            <p className="font-syne font-bold text-white text-lg">Refer & Earn</p>
+            <p className="text-white/60 text-sm">Give 100 points, get 200 for every friend</p>
+          </div>
+          <span className="text-saloo-teal text-xl group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </Link>
 
       {/* Quick Redeem */}
       <div className="bg-white border border-border rounded-2xl p-5 space-y-1 shadow-sm">

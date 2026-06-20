@@ -134,6 +134,55 @@ Deno.serve(async (req) => {
         console.error('Loyalty points error (non-fatal):', loyaltyErr)
       }
 
+      // ── Referral + milestone rewards (non-fatal) ──
+      try {
+        // Helper: credit loyalty points to any user + ledger entry + optional notification
+        const award = async (uid: string, points: number, description: string, notif?: { title: string; body: string }) => {
+          const { data: u } = await supabase.from('users').select('loyalty_points, fcm_token').eq('id', uid).single()
+          const newBal = (u?.loyalty_points ?? 0) + points
+          await supabase.from('users').update({ loyalty_points: newBal }).eq('id', uid)
+          await supabase.from('loyalty_transactions').insert({
+            user_id: uid, booking_id: bookingId, points, type: 'bonus', description, balance_after: newBal,
+          })
+          if (notif) {
+            await supabase.from('notifications').insert({ user_id: uid, type: 'loyalty_earned', title: notif.title, body: notif.body, data: { booking_id: bookingId } }).catch(() => null)
+            if (u?.fcm_token) sendPush({ fcmToken: u.fcm_token, title: notif.title, body: notif.body }).catch(() => null)
+          }
+        }
+
+        // How many completed bookings does this customer now have?
+        const { count: completedCount } = await supabase
+          .from('bookings')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('status', 'completed')
+        const visits = completedCount ?? 0
+
+        // Referral: pay out on the referred user's FIRST completed booking
+        const { data: me } = await supabase
+          .from('users')
+          .select('referred_by, referral_rewarded')
+          .eq('id', user.id)
+          .single()
+
+        if (me?.referred_by && !me.referral_rewarded && visits === 1) {
+          await supabase.from('users').update({ referral_rewarded: true }).eq('id', user.id)
+          await award(user.id, 100, 'Referral welcome bonus', { title: 'Welcome bonus! 🎁', body: 'You earned 100 points for joining via a referral.' })
+          await award(me.referred_by, 200, 'Friend referral reward', { title: 'Referral reward! 🤝', body: 'A friend you referred completed their first booking. +200 points!' })
+        }
+
+        // Milestone rewards by visit count
+        const MILESTONES: Record<number, number> = { 5: 100, 10: 250, 20: 500, 50: 1500 }
+        if (MILESTONES[visits]) {
+          await award(user.id, MILESTONES[visits], `${visits}-visit milestone reward`, {
+            title: `Badge unlocked: ${visits} visits 🎉`,
+            body: `You've hit ${visits} visits! Here's ${MILESTONES[visits]} bonus points.`,
+          })
+        }
+      } catch (growthErr) {
+        console.error('Referral/milestone error (non-fatal):', growthErr)
+      }
+
       // Notify owner
       if (shop.owner_id) {
         await supabase.from('notifications').insert({
