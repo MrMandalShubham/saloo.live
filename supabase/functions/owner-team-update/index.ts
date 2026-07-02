@@ -54,12 +54,17 @@ Deno.serve(async (req) => {
 
     if (dbErr) throw dbErr
 
-    // ── Sync barber_services if provided ──
+    // ── Sync barber_services (with optional per-service price overrides) ──
     if (body.service_ids && Array.isArray(body.service_ids)) {
+      const prices: Record<string, number | null> = body.service_prices ?? {}
       // Delete existing and re-insert
       await supabase.from('barber_services').delete().eq('barber_id', barberId)
       if (body.service_ids.length > 0) {
-        const rows = body.service_ids.map((sid: string) => ({ barber_id: barberId, service_id: sid }))
+        const rows = body.service_ids.map((sid: string) => {
+          const raw = prices[sid]
+          const price = raw === '' || raw == null || isNaN(Number(raw)) ? null : Number(raw)
+          return { barber_id: barberId, service_id: sid, price }
+        })
         const { error: svcErr } = await supabase.from('barber_services').insert(rows)
         if (svcErr) console.error('barber_services sync error:', svcErr)
       }
@@ -89,7 +94,7 @@ Deno.serve(async (req) => {
     // Fetch updated data with relations
     const { data: fullBarber } = await supabase
       .from('barbers')
-      .select('*, portfolio:barber_portfolio(*), barber_services(service_id)')
+      .select('*, portfolio:barber_portfolio(*), barber_services(service_id, price)')
       .eq('id', barberId)
       .single()
 

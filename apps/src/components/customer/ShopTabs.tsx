@@ -22,6 +22,10 @@ export function ShopTabs({
   const [userId, setUserId] = useState<string | null>(null)
   const [favs, setFavs] = useState<Set<string>>(new Set())
 
+  // Lookup for resolving a barber's linked services → name + shop default price
+  const serviceById: Record<string, any> = {}
+  for (const s of [...services, ...addons]) serviceById[s.id] = s
+
   // Load current user's favourite barbers for this shop
   useEffect(() => {
     const barberIds = barbers.map((b: any) => b.id)
@@ -175,6 +179,25 @@ export function ShopTabs({
                         )}
                       </div>
                     </div>
+                    {(b.barber_services?.length ?? 0) > 0 && (
+                      <div className="mt-3 border-t border-white/40 pt-3">
+                        <p className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2">Services &amp; Pricing</p>
+                        <div className="space-y-1">
+                          {b.barber_services.map((bs: any) => {
+                            const svc = serviceById[bs.service_id]
+                            if (!svc) return null
+                            const price = bs.price != null ? bs.price : svc.price
+                            const custom = bs.price != null && Number(bs.price) !== Number(svc.price)
+                            return (
+                              <div key={bs.service_id} className="flex justify-between text-xs">
+                                <span className="text-secondary">{svc.name}</span>
+                                <span className={`font-semibold ${custom ? 'text-saloo-teal' : 'text-navy'}`}>{formatINR(price)}</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
                     {portfolioImages.length > 0 && (
                       <div className="flex gap-2 mt-3 overflow-x-auto scrollbar-none">
                         {portfolioImages.map((p: any) => (

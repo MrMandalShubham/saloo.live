@@ -4,6 +4,7 @@
 
 import { handleCors, json, error } from '../_shared/cors.ts'
 import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
+import { effectivePrices } from '../_shared/pricing.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
@@ -23,19 +24,20 @@ Deno.serve(async (req) => {
 
     const supabase = createAdminClient()
 
-    // Fetch services to compute duration and total
-    const { data: services, error: svcErr } = await supabase
-      .from('services')
-      .select('id, price, duration_min, is_addon')
-      .in('id', [...service_ids, ...addon_ids])
+    // Resolve prices honoring per-barber overrides
+    const priceMap = await effectivePrices(supabase, barber_id, [...service_ids, ...addon_ids])
+    if (priceMap.size === 0) return error('Invalid service IDs', 400)
 
-    if (svcErr || !services?.length) return error('Invalid service IDs', 400)
-
-    const mainServices = services.filter(s => service_ids.includes(s.id) && !s.is_addon)
-    const addons = services.filter(s => addon_ids.includes(s.id) && s.is_addon)
-
-    const total_duration = mainServices.reduce((sum, s) => sum + s.duration_min, 0)
-    const total_amount = [...mainServices, ...addons].reduce((sum, s) => sum + s.price, 0)
+    let total_duration = 0
+    let total_amount = 0
+    for (const id of service_ids) {
+      const p = priceMap.get(id)
+      if (p && !p.is_addon) { total_duration += p.duration_min; total_amount += p.price }
+    }
+    for (const id of addon_ids) {
+      const p = priceMap.get(id)
+      if (p && p.is_addon) { total_amount += p.price }
+    }
 
     // Use shop's configured advance percentage (default 10%)
     const { data: shopConfig } = await supabase

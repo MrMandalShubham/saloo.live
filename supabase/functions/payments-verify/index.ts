@@ -6,6 +6,7 @@ import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
 import { verifySignature } from '../_shared/razorpay.ts'
 import { sendPush } from '../_shared/fcm.ts'
 import { promoEligible, computeDiscount } from '../_shared/promotions.ts'
+import { effectivePrices } from '../_shared/pricing.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
@@ -39,13 +40,10 @@ Deno.serve(async (req) => {
 
     if (holdErr || !hold) return error('Hold not found', 404)
 
-    // Fetch services for total calculation
-    const { data: services } = await supabase
-      .from('services')
-      .select('id, price, duration_min')
-      .in('id', [...hold.service_ids, ...hold.addon_ids])
-
-    const gross_amount = services?.reduce((sum, s) => sum + s.price, 0) ?? 0
+    // Total from effective (per-barber) prices
+    const priceMap = await effectivePrices(supabase, hold.barber_id, [...hold.service_ids, ...hold.addon_ids])
+    let gross_amount = 0
+    for (const p of priceMap.values()) gross_amount += p.price
     // Advance was charged on the full price at create-order time — keep it unchanged
     const advance_amount = Math.ceil(gross_amount * 0.1)
 

@@ -208,6 +208,9 @@ function BarberProfile({ barber, shopServices, onBack }: { barber: any; shopServ
   const [linkedServices, setLinkedServices] = useState<string[]>(
     (barber.barber_services ?? []).map((bs: any) => bs.service_id)
   )
+  const [servicePrices, setServicePrices] = useState<Record<string, string>>(
+    Object.fromEntries((barber.barber_services ?? []).filter((bs: any) => bs.price != null).map((bs: any) => [bs.service_id, String(bs.price)]))
+  )
 
   async function saveProfile() {
     setSaving(true); setMsg('')
@@ -221,6 +224,7 @@ function BarberProfile({ barber, shopServices, onBack }: { barber: any; shopServ
           experience_years: experienceYears, languages, instagram_handle: instagram || null,
           is_active: isActive, avatar_url: avatarUrl || null,
           service_ids: linkedServices,
+          service_prices: servicePrices,
         }),
       })
       const json = await res.json()
@@ -349,6 +353,8 @@ function BarberProfile({ barber, shopServices, onBack }: { barber: any; shopServ
           shopServices={shopServices}
           linkedServices={linkedServices}
           setLinkedServices={setLinkedServices}
+          servicePrices={servicePrices}
+          setServicePrices={setServicePrices}
         />
       )}
     </div>
@@ -562,8 +568,9 @@ function PortfolioTab({ portfolio, uploading, onUpload, onDelete }: {
 
 /* ─── Services Tab ─── */
 
-function ServicesTab({ shopServices, linkedServices, setLinkedServices }: {
+function ServicesTab({ shopServices, linkedServices, setLinkedServices, servicePrices, setServicePrices }: {
   shopServices: any[]; linkedServices: string[]; setLinkedServices: (ids: string[]) => void
+  servicePrices: Record<string, string>; setServicePrices: (v: Record<string, string>) => void
 }) {
   const toggle = (id: string) => {
     setLinkedServices(
@@ -572,12 +579,13 @@ function ServicesTab({ shopServices, linkedServices, setLinkedServices }: {
         : [...linkedServices, id]
     )
   }
+  const setPrice = (id: string, v: string) => setServicePrices({ ...servicePrices, [id]: v })
 
   return (
     <div className="space-y-4">
       <div className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-5">
-        <p className="text-saloo-dark/50 text-xs uppercase tracking-wider mb-1">Link Services</p>
-        <p className="text-saloo-dark/30 text-xs mb-4">Select which services this barber provides. Customers will see this on the barber&apos;s profile.</p>
+        <p className="text-saloo-dark/50 text-xs uppercase tracking-wider mb-1">Link Services &amp; Pricing</p>
+        <p className="text-saloo-dark/30 text-xs mb-4">Select which services this barber provides. Leave price blank to use the shop&apos;s default — or set a custom price for this barber.</p>
 
         {shopServices.length === 0 ? (
           <p className="text-saloo-dark/30 text-sm text-center py-6">No services found. Add services in the Services tab first.</p>
@@ -586,20 +594,34 @@ function ServicesTab({ shopServices, linkedServices, setLinkedServices }: {
             {shopServices.map((s: any) => {
               const linked = linkedServices.includes(s.id)
               return (
-                <button key={s.id} onClick={() => toggle(s.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl border text-left transition-all ${
-                    linked ? 'border-saloo-pink/30 bg-saloo-pink/5' : 'border-white/80 bg-white/40 hover:bg-white/60'
+                <div key={s.id}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl border transition-all ${
+                    linked ? 'border-saloo-pink/30 bg-saloo-pink/5' : 'border-white/80 bg-white/40'
                   }`}>
-                  <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all ${
-                    linked ? 'border-saloo-pink bg-saloo-pink' : 'border-saloo-dark/15'
-                  }`}>
-                    {linked && <span className="text-white text-xs">✓</span>}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-saloo-dark">{s.name}</p>
-                    <p className="text-xs text-saloo-dark/40">{s.category} · {s.duration_min} min · ₹{s.price}</p>
-                  </div>
-                </button>
+                  <button onClick={() => toggle(s.id)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                    <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0 ${
+                      linked ? 'border-saloo-pink bg-saloo-pink' : 'border-saloo-dark/15'
+                    }`}>
+                      {linked && <span className="text-white text-xs">✓</span>}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-saloo-dark truncate">{s.name}</p>
+                      <p className="text-xs text-saloo-dark/40">{s.category} · {s.duration_min} min · shop ₹{s.price}</p>
+                    </div>
+                  </button>
+                  {linked && (
+                    <div className="flex items-center gap-1 bg-white border border-saloo-dark/15 rounded-lg px-2 py-1.5 shrink-0">
+                      <span className="text-saloo-dark/40 text-sm">₹</span>
+                      <input
+                        type="number" min={0}
+                        value={servicePrices[s.id] ?? ''}
+                        onChange={e => setPrice(s.id, e.target.value)}
+                        placeholder={String(s.price)}
+                        className="w-16 bg-transparent text-sm text-saloo-dark text-right focus:outline-none"
+                      />
+                    </div>
+                  )}
+                </div>
               )
             })}
           </div>

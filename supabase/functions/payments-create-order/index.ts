@@ -3,6 +3,7 @@
 import { handleCors, json, error } from '../_shared/cors.ts'
 import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
 import { createOrder, IS_DEV_MODE } from '../_shared/razorpay.ts'
+import { effectivePrices } from '../_shared/pricing.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
@@ -38,13 +39,10 @@ Deno.serve(async (req) => {
       .single()
     const advancePct = (shop?.advance_percentage ?? 10) / 100
 
-    // Fetch services to compute advance amount
-    const { data: services } = await supabase
-      .from('services')
-      .select('price')
-      .in('id', [...hold.service_ids, ...hold.addon_ids])
-
-    const total_amount = services?.reduce((sum, s) => sum + s.price, 0) ?? 0
+    // Compute advance from effective (per-barber) prices
+    const priceMap = await effectivePrices(supabase, hold.barber_id, [...hold.service_ids, ...hold.addon_ids])
+    let total_amount = 0
+    for (const p of priceMap.values()) total_amount += p.price
     const advance_paise = Math.ceil(total_amount * advancePct) * 100  // in paise
 
     // Create Razorpay order
