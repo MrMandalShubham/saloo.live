@@ -5,7 +5,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ShopPhotoCarousel } from '@/components/customer/ShopPhotoCarousel'
 import { ShopTabs } from '@/components/customer/ShopTabs'
+import { formatTime } from '@saloo/lib'
 import type { Metadata } from 'next'
+
+const DAY_LABELS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+const DAY_ORDER = [1, 2, 3, 4, 5, 6, 0] // Mon → Sun
 
 async function fetchShop(id: string) {
   const supabase = await createClient()
@@ -100,6 +104,31 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
         </div>
       )}
 
+      {/* Timings */}
+      {(shop.hours?.length ?? 0) > 0 && (
+        <section className="bg-white rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
+          <h2 className="font-syne font-bold text-lg text-navy mb-4">Opening Hours</h2>
+          <div className="space-y-1">
+            {DAY_ORDER.map((dow) => {
+              const h = (shop.hours ?? []).find((x: any) => x.day_of_week === dow)
+              const isToday = new Date().getDay() === dow
+              const closed = !h || h.is_closed
+              return (
+                <div key={dow} className={`flex items-center justify-between py-2 text-sm ${isToday ? 'font-semibold text-navy' : 'text-secondary'}`}>
+                  <span className="flex items-center gap-2">
+                    {DAY_LABELS[dow]}
+                    {isToday && <span className="text-[10px] bg-saloo-teal/15 text-saloo-teal px-1.5 py-0.5 rounded-full font-bold">Today</span>}
+                  </span>
+                  <span className={closed ? 'text-red-400' : ''}>
+                    {closed ? 'Closed' : `${formatTime(h.open_time)} – ${formatTime(h.close_time)}`}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
       {/* Services / Barbers / Styles tabs */}
       <ShopTabs
         services={services}
@@ -137,6 +166,43 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
           </div>
         </section>
       )}
+
+      {/* Policies */}
+      <section className="bg-white rounded-2xl border border-border p-5 sm:p-6 shadow-sm">
+        <h2 className="font-syne font-bold text-lg text-navy mb-4">Booking Policies</h2>
+        <div className="space-y-3">
+          <div className="flex gap-3">
+            <span className="text-base shrink-0">💳</span>
+            <div>
+              <p className="text-sm font-semibold text-navy">Advance payment</p>
+              <p className="text-xs text-muted">{shop.advance_percentage ?? 10}% of the total is paid online to confirm your booking. The rest is paid at the shop.</p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-base shrink-0">{shop.auto_confirm_bookings ? '⚡' : '✅'}</span>
+            <div>
+              <p className="text-sm font-semibold text-navy">Confirmation</p>
+              <p className="text-xs text-muted">{shop.auto_confirm_bookings ? 'Bookings are confirmed instantly.' : 'The barber confirms your booking after you pay the advance.'}</p>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <span className="text-base shrink-0">🕑</span>
+            <div>
+              <p className="text-sm font-semibold text-navy">Cancellation &amp; reschedule</p>
+              <p className="text-xs text-muted">Free cancellation or reschedule up to 2 hours before your slot (full advance refunded). Within 2 hours, 50% of the advance is retained.</p>
+            </div>
+          </div>
+          {shop.policies && (
+            <div className="flex gap-3 border-t border-border/60 pt-3">
+              <span className="text-base shrink-0">📋</span>
+              <div>
+                <p className="text-sm font-semibold text-navy">Shop policies</p>
+                <p className="text-xs text-muted whitespace-pre-line">{shop.policies}</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Book / Queue CTA */}
       <div className="fixed bottom-[68px] left-0 right-0 md:static md:bottom-0 md:mt-0 bg-white/80 backdrop-blur-lg border-t md:border md:rounded-2xl border-border/60 p-4 z-40 shadow-royal-lg md:shadow-sm">

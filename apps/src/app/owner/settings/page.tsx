@@ -118,8 +118,8 @@ export default function OwnerSettingsPage() {
   function handleSave() {
     if (!form) return
     setErr('')
-    const { name, description, phone, email, address, city, state, pincode, features, photos, social_instagram, social_facebook, gst_number, payout_method, payout_upi_id, payout_bank_account, payout_bank_ifsc, payout_bank_name, payout_phone } = form
-    updateMutation.mutate({ name, description, phone, email, address, city, state, pincode, features, photos, social_instagram, social_facebook, gst_number, payout_method, payout_upi_id, payout_bank_account, payout_bank_ifsc, payout_bank_name, payout_phone })
+    const { name, description, phone, email, address, city, state, pincode, features, photos, social_instagram, social_facebook, gst_number, policies, payout_method, payout_upi_id, payout_bank_account, payout_bank_ifsc, payout_bank_name, payout_phone } = form
+    updateMutation.mutate({ name, description, phone, email, address, city, state, pincode, features, photos, social_instagram, social_facebook, gst_number, policies, payout_method, payout_upi_id, payout_bank_account, payout_bank_ifsc, payout_bank_name, payout_phone })
   }
 
   async function handleSignOut() {
@@ -263,6 +263,7 @@ export default function OwnerSettingsPage() {
             <FI label="Instagram" value={form.social_instagram ?? ''} onChange={v => setForm({ ...form, social_instagram: v })} placeholder="@yoursalon" />
             <FI label="Facebook" value={form.social_facebook ?? ''} onChange={v => setForm({ ...form, social_facebook: v })} placeholder="facebook.com/yoursalon" />
             <FI label="GST Number" value={form.gst_number ?? ''} onChange={v => setForm({ ...form, gst_number: v })} placeholder="Optional" />
+            <FI label="Policies" value={form.policies ?? ''} onChange={v => setForm({ ...form, policies: v })} multiline placeholder="e.g. Please arrive 5 mins early. Kids under 5 free." />
           </div>
         ) : (
           <div className="space-y-0">
@@ -274,6 +275,7 @@ export default function OwnerSettingsPage() {
             {shop.social_instagram && <Row label="Instagram" value={shop.social_instagram} />}
             {shop.social_facebook && <Row label="Facebook" value={shop.social_facebook} />}
             {shop.gst_number && <Row label="GST" value={shop.gst_number} />}
+            {shop.policies && <Row label="Policies" value={shop.policies} />}
             <Row label="Status" value={shop.status} />
             <Row label="Rating" value={`${shop.rating > 0 ? Number(shop.rating).toFixed(1) : '—'} (${shop.review_count ?? 0} reviews)`} isLast />
           </div>
