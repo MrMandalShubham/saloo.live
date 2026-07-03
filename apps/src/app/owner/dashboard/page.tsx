@@ -63,7 +63,7 @@ export default async function OwnerDashboardPage() {
 
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center py-32 text-center animate-float">
+      <div className="flex flex-col items-center justify-center py-32 text-center">
         <div className="w-16 h-16 rounded-2xl bg-white/60 backdrop-blur-md border border-white/50 shadow-glass flex items-center justify-center mb-4">
           <span className="text-2xl">🏪</span>
         </div>
@@ -130,7 +130,7 @@ export default async function OwnerDashboardPage() {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   return (
-    <div className="space-y-8 animate-fade-up relative z-10">
+    <div className="space-y-8 relative z-10">
       {/* Header */}
       <div>
         <p className="text-saloo-dark/60 text-sm font-medium">{greeting}</p>
@@ -139,7 +139,7 @@ export default async function OwnerDashboardPage() {
 
       {/* Verification pending banner */}
       {shop.status === 'pending' && (
-        <div className="bg-amber-100/60 backdrop-blur-md border border-amber-300 rounded-2xl p-4 flex items-start gap-3 shadow-sm animate-float">
+        <div className="bg-amber-100/60 backdrop-blur-md border border-amber-300 rounded-2xl p-4 flex items-start gap-3 shadow-sm">
           <span className="text-amber-500 text-lg shrink-0 mt-0.5">◷</span>
           <div>
             <p className="text-amber-700 text-sm font-semibold">Verification Pending</p>
@@ -179,14 +179,14 @@ export default async function OwnerDashboardPage() {
 
       {/* Rating row */}
       <div className="flex gap-3">
-        <div className="bg-white/60 backdrop-blur-md border border-white/80 shadow-sm rounded-xl px-5 py-3 flex items-center gap-3 animate-float" style={{ animationDelay: '0.2s' }}>
+        <div className="bg-white/60 backdrop-blur-md border border-white/80 shadow-sm rounded-xl px-5 py-3 flex items-center gap-3">
           <span className="text-saloo-pink text-lg">★</span>
           <div>
             <p className="font-syne font-bold text-saloo-dark text-lg leading-none">{data.avg_rating?.toFixed(1)}</p>
             <p className="text-saloo-dark/70 font-medium text-xs mt-0.5">Avg rating</p>
           </div>
         </div>
-        <div className="bg-white/60 backdrop-blur-md border border-white/80 shadow-sm rounded-xl px-5 py-3 flex items-center gap-3 animate-float" style={{ animationDelay: '0.4s' }}>
+        <div className="bg-white/60 backdrop-blur-md border border-white/80 shadow-sm rounded-xl px-5 py-3 flex items-center gap-3">
           <span className="text-saloo-dark/30 text-lg">◎</span>
           <div>
             <p className="font-syne font-bold text-saloo-dark text-lg leading-none">{data.total_reviews}</p>
@@ -199,14 +199,14 @@ export default async function OwnerDashboardPage() {
       <div>
         <p className="text-saloo-dark/60 font-bold text-xs uppercase tracking-widest mb-4">Today's Schedule</p>
         {data.upcoming_today.length === 0 ? (
-          <div className="bg-white/60 backdrop-blur-md border border-white/80 shadow-sm rounded-2xl p-10 text-center animate-float">
+          <div className="bg-white/60 backdrop-blur-md border border-white/80 shadow-sm rounded-2xl p-10 text-center">
             <p className="text-saloo-dark/60 font-medium text-sm">No bookings today</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {data.upcoming_today.map((b: any, index: number) => (
+            {data.upcoming_today.map((b: any) => (
               <Link key={b.id} href={`/owner/bookings/${b.id}`}
-                className="bg-white/60 backdrop-blur-md border border-white/80 shadow-sm hover:shadow-glass-lg hover:-translate-y-1 hover:bg-white/80 rounded-xl p-4 flex items-center justify-between transition-all duration-300 group animate-float" style={{ animationDelay: `${index * 0.15}s` }}>
+                className="bg-white/60 backdrop-blur-md border border-white/80 shadow-sm hover:shadow-glass-lg hover:bg-white/80 rounded-xl p-4 flex items-center justify-between transition-all duration-300 group">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 mb-1">
                     <span className="text-saloo-dark font-bold text-sm">{b.start_time} – {b.end_time}</span>
@@ -241,9 +241,9 @@ export default async function OwnerDashboardPage() {
             { label: 'Promotions',   href: '/owner/promotions',   icon: '✦' },
             { label: 'Reviews',      href: '/owner/reviews',      icon: '★' },
             { label: 'Settings',     href: '/owner/settings',     icon: '◐' },
-          ].map((a, i) => (
+          ].map((a) => (
             <Link key={a.href} href={a.href}
-              className="bg-white/60 backdrop-blur-md hover:bg-white border border-white/80 shadow-sm hover:shadow-glow-pink hover:-translate-y-1 rounded-xl p-3 flex flex-col items-center gap-1.5 transition-all duration-300 animate-float" style={{ animationDelay: `${i * 0.1}s` }}>
+              className="bg-white/60 backdrop-blur-md hover:bg-white border border-white/80 shadow-sm hover:shadow-glow-pink rounded-xl p-3 flex flex-col items-center gap-1.5 transition-all duration-300">
               <span className="text-saloo-pink text-xl leading-none">{a.icon}</span>
               <span className="text-saloo-dark/80 text-[10px] font-bold text-center leading-tight">{a.label}</span>
             </Link>
@@ -256,7 +256,7 @@ export default async function OwnerDashboardPage() {
 
 function StatCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="bg-white/60 backdrop-blur-md border border-white/80 rounded-2xl p-5 shadow-sm hover:-translate-y-1 hover:shadow-glow-pink transition-all duration-300 animate-float">
+    <div className="bg-white/60 backdrop-blur-md border border-white/80 rounded-2xl p-5 shadow-sm hover:shadow-glow-pink transition-all duration-300">
       <p className="text-saloo-dark/70 font-bold text-xs uppercase tracking-wider mb-3">{label}</p>
       <p className={`font-syne text-2xl font-bold ${accent ? 'text-saloo-pink' : 'text-saloo-dark'}`}>{value}</p>
     </div>
