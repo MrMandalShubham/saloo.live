@@ -26,6 +26,11 @@ export function ShopTabs({
   const serviceById: Record<string, any> = {}
   for (const s of [...services, ...addons]) serviceById[s.id] = s
 
+  // Group service variants under their parent
+  const variantsByParent: Record<string, any[]> = {}
+  for (const s of services) if (s.parent_service_id) (variantsByParent[s.parent_service_id] ??= []).push(s)
+  const topServices = services.filter((s: any) => !s.parent_service_id)
+
   // Load current user's favourite barbers for this shop
   useEffect(() => {
     const barberIds = barbers.map((b: any) => b.id)
@@ -90,18 +95,38 @@ export function ShopTabs({
       {tab === 'services' && (
         <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
           <div className="space-y-0.5">
-            {services.map((svc: any, idx: number) => (
-              <div key={svc.id} className={`flex items-center justify-between py-3.5 ${idx < services.length - 1 ? 'border-b border-border/60' : ''}`}>
-                <div>
-                  <p className="font-semibold text-navy">{svc.name}</p>
-                  <p className="text-xs text-muted mt-0.5 flex items-center gap-1">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                    {formatDuration(svc.duration_min)}
-                  </p>
+            {topServices.map((svc: any, idx: number) => {
+              const variants = variantsByParent[svc.id]
+              const last = idx === topServices.length - 1
+              // Parent with variants → list options under it
+              if (variants && variants.length > 0) {
+                return (
+                  <div key={svc.id} className={`py-3.5 ${!last ? 'border-b border-border/60' : ''}`}>
+                    <p className="font-semibold text-navy">{svc.name}</p>
+                    <div className="mt-1.5 space-y-1">
+                      {variants.map((v: any) => (
+                        <div key={v.id} className="flex items-center justify-between pl-3">
+                          <p className="text-sm text-secondary">{v.name} <span className="text-muted text-xs">· {formatDuration(v.duration_min)}</span></p>
+                          <p className="font-semibold text-saloo-teal text-sm">{formatINR(v.price)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              }
+              return (
+                <div key={svc.id} className={`flex items-center justify-between py-3.5 ${!last ? 'border-b border-border/60' : ''}`}>
+                  <div>
+                    <p className="font-semibold text-navy">{svc.name}</p>
+                    <p className="text-xs text-muted mt-0.5 flex items-center gap-1">
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                      {formatDuration(svc.duration_min)}
+                    </p>
+                  </div>
+                  <p className="font-syne font-bold text-saloo-teal text-lg">{formatINR(svc.price)}</p>
                 </div>
-                <p className="font-syne font-bold text-saloo-teal text-lg">{formatINR(svc.price)}</p>
-              </div>
-            ))}
+              )
+            })}
           </div>
           {addons.length > 0 && (
             <div className="mt-4 pt-4 border-t border-border">

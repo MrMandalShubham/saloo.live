@@ -67,7 +67,10 @@ export default function BookingFlowPage() {
   const slots = availData?.slots ?? []
   const isDayClosed = availData?.is_closed ?? false
 
-  const services = (shop?.services ?? []).filter((s: any) => !s.is_addon)
+  const allMain = (shop?.services ?? []).filter((s: any) => !s.is_addon)
+  const childrenByParent: Record<string, any[]> = {}
+  for (const s of allMain) if (s.parent_service_id) (childrenByParent[s.parent_service_id] ??= []).push(s)
+  const services = allMain.filter((s: any) => !s.parent_service_id) // top-level: standalone + parents
   const addons = (shop?.services ?? []).filter((s: any) => s.is_addon)
   const barbers = shop?.barbers ?? []
   const total = selectedServices.reduce((sum: number, s: any) => sum + Number(s.price), 0)
@@ -86,6 +89,14 @@ export default function BookingFlowPage() {
       ? prev.filter(s => s.id !== svc.id)
       : [...prev, svc]
     )
+
+  // Variants of one parent are single-select: picking one deselects its siblings
+  const selectVariant = (parentId: string, v: any) =>
+    setSelectedServices(prev => {
+      const siblingIds = (childrenByParent[parentId] ?? []).map((x: any) => x.id)
+      const without = prev.filter(s => !siblingIds.includes(s.id))
+      return prev.some(s => s.id === v.id) ? without : [...without, v]
+    })
 
   // ── Pre-fill from query params: "repeat my last cut" (services+barber) or favourite barber ──
   useEffect(() => {
@@ -307,6 +318,40 @@ export default function BookingFlowPage() {
             ) : (
               <div className="divide-y divide-border">
                 {services.map((svc: any) => {
+                  const variants = childrenByParent[svc.id]
+                  // Parent with variants → pick one (single-select)
+                  if (variants && variants.length > 0) {
+                    const minPrice = Math.min(...variants.map((v: any) => Number(v.price)))
+                    return (
+                      <div key={svc.id} className="py-3.5">
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium text-navy">{svc.name}</p>
+                          <span className="text-xs text-gray-400">from {formatINR(minPrice)}</span>
+                        </div>
+                        <div className="mt-2 space-y-1.5">
+                          {variants.map((v: any) => {
+                            const selected = selectedServices.some(s => s.id === v.id)
+                            return (
+                              <button key={v.id} onClick={() => selectVariant(svc.id, v)}
+                                className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl border text-left transition-colors ${selected ? 'border-saloo-teal bg-saloo-teal/5' : 'border-border hover:border-saloo-teal/40'}`}>
+                                <div>
+                                  <p className="text-sm font-medium text-navy">{v.name}</p>
+                                  <p className="text-xs text-gray-400">{v.duration_min} min</p>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="font-syne font-bold text-sm">{formatINR(v.price)}</span>
+                                  <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selected ? 'border-saloo-teal' : 'border-gray-300'}`}>
+                                    {selected && <div className="w-2 h-2 rounded-full bg-saloo-teal" />}
+                                  </div>
+                                </div>
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  }
+                  // Standalone service (multi-select)
                   const selected = selectedServices.some(s => s.id === svc.id)
                   return (
                     <button key={svc.id} onClick={() => toggleService(svc)}

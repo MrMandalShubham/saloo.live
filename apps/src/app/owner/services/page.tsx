@@ -18,7 +18,7 @@ const CATEGORIES = [
   { key: 'other', label: 'Other' },
 ]
 const DURATIONS = [15, 30, 45, 60, 90, 120]
-const EMPTY = { name: '', category: 'hair', duration_min: 30, price: '', description: '', is_addon: false, is_active: true, image_url: '' }
+const EMPTY = { name: '', category: 'hair', duration_min: 30, price: '', description: '', is_addon: false, is_active: true, image_url: '', parent_service_id: '' }
 
 async function getToken() {
   const { data: { session } } = await createClient().auth.getSession()
@@ -102,7 +102,7 @@ export default function OwnerServicesPage() {
   }
 
   function openEdit(s: any) {
-    setForm({ name: s.name, category: s.category, duration_min: s.duration_min, price: String(s.price), description: s.description ?? '', is_addon: s.is_addon, is_active: s.is_active, image_url: s.image_url ?? '' })
+    setForm({ name: s.name, category: s.category, duration_min: s.duration_min, price: String(s.price), description: s.description ?? '', is_addon: s.is_addon, is_active: s.is_active, image_url: s.image_url ?? '', parent_service_id: s.parent_service_id ?? '' })
     setImagePreview(s.image_url || null)
     setEditId(s.id); setShowForm(true)
   }
@@ -120,6 +120,10 @@ export default function OwnerServicesPage() {
     if (!byCategory[s.category]) byCategory[s.category] = []
     byCategory[s.category]!.push(s)
   }
+
+  const serviceById: Record<string, any> = Object.fromEntries((services ?? []).map((s: any) => [s.id, s]))
+  // Services that can be a parent: standalone (non-addon, non-variant), excluding the one being edited
+  const parentOptions = (services ?? []).filter((s: any) => !s.is_addon && !s.parent_service_id && s.id !== editId)
 
   const catLabel = (key: string) => CATEGORIES.find(c => c.key === key)?.label ?? key
 
@@ -173,6 +177,19 @@ export default function OwnerServicesPage() {
 
           <FI label="Price (₹)" value={form.price} onChange={v => setForm({ ...form, price: v })} type="number" />
           <FI label="Description (optional)" value={form.description} onChange={v => setForm({ ...form, description: v })} />
+
+          {/* Variant of */}
+          {!form.is_addon && parentOptions.length > 0 && (
+            <div>
+              <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2">Variant of (optional)</label>
+              <select value={form.parent_service_id ?? ''} onChange={e => setForm({ ...form, parent_service_id: e.target.value })}
+                className="w-full bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm focus:outline-none focus:border-saloo-pink/40 transition-colors">
+                <option value="">— Standalone service —</option>
+                {parentOptions.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <p className="text-saloo-dark/40 text-xs mt-1.5">Make this a size/option of another service (e.g. Hair Color → Roots, Full). Customers pick one variant.</p>
+            </div>
+          )}
 
           {/* Image upload (optional) */}
           <div>
@@ -243,9 +260,11 @@ export default function OwnerServicesPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-saloo-dark font-medium text-sm">
+                      {s.parent_service_id && <span className="text-saloo-dark/30 mr-1">↳</span>}
                       {s.name}
                       {!s.is_active && <span className="text-saloo-dark/40 text-xs ml-2">(inactive)</span>}
                       {s.is_addon && <span className="text-saloo-pink/50 text-xs ml-2">add-on</span>}
+                      {s.parent_service_id && <span className="text-saloo-teal/70 text-xs ml-2">variant of {serviceById[s.parent_service_id]?.name ?? '—'}</span>}
                     </p>
                     <p className="text-saloo-dark/60 text-xs mt-0.5">{s.duration_min}min · {formatINR(s.price)}</p>
                   </div>
