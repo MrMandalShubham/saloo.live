@@ -231,6 +231,7 @@ export default async function OwnerDashboardPage() {
           {[
             { label: 'Bookings',     href: '/owner/bookings',     icon: '◈' },
             { label: 'Live Queue',   href: '/owner/queue',        icon: '⧖' },
+            { label: 'Calendar',     href: '/owner/calendar',     icon: '▤' },
             { label: 'Wallet',       href: '/owner/wallet',       icon: '◉' },
             { label: 'Earnings',     href: '/owner/earnings',     icon: '₹' },
             { label: 'Services',     href: '/owner/services',     icon: '✂' },

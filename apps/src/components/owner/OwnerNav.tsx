@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: 'Dashboard',    href: '/owner/dashboard',   icon: '▦' },
   { label: 'Queue',        href: '/owner/queue',       icon: '⧖' },
   { label: 'Bookings',     href: '/owner/bookings',    icon: '◈' },
+  { label: 'Calendar',     href: '/owner/calendar',    icon: '▤' },
   { label: 'Wallet',       href: '/owner/wallet',      icon: '◉' },
   { label: 'Earnings',     href: '/owner/earnings',    icon: '₹' },
   { label: 'Services',     href: '/owner/services',    icon: '✂' },
