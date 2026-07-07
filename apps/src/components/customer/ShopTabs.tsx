@@ -2,9 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import Image from 'next/image'
+import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { formatINR, formatDuration } from '@saloo/lib'
+
+const BASE = process.env['NEXT_PUBLIC_SUPABASE_URL']
+const ANON = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
 
 type Tab = 'services' | 'barbers' | 'styles'
 
@@ -30,6 +35,17 @@ export function ShopTabs({
   const variantsByParent: Record<string, any[]> = {}
   for (const s of services) if (s.parent_service_id) (variantsByParent[s.parent_service_id] ??= []).push(s)
   const topServices = services.filter((s: any) => !s.parent_service_id)
+
+  // Styles this shop's barbers can do (matched by haircut keywords)
+  const shopTags = [...new Set(barbers.flatMap((b: any) => b.haircut_tags ?? []))]
+  const { data: shopStyles = [] } = useQuery({
+    queryKey: ['shop-styles', shopTags.join(',')],
+    queryFn: async () => {
+      const res = await fetch(`${BASE}/functions/v1/hairstyles-list?tags=${encodeURIComponent(shopTags.join(','))}`, { headers: { apikey: ANON } })
+      return (await res.json()).data ?? []
+    },
+    enabled: tab === 'styles' && shopTags.length > 0,
+  })
 
   // Load current user's favourite barbers for this shop
   useEffect(() => {
@@ -250,13 +266,33 @@ export function ShopTabs({
 
       {tab === 'styles' && (
         <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
-          <div className="text-center py-10">
-            <div className="w-14 h-14 rounded-2xl bg-lavender flex items-center justify-center mx-auto mb-3">
-              <span className="text-2xl">💇</span>
+          {shopStyles.length > 0 ? (
+            <>
+              <div className="flex items-center justify-between mb-3">
+                <p className="font-syne font-bold text-navy">Styles this shop does</p>
+                <Link href="/styles" className="text-saloo-teal text-xs font-semibold">Browse all →</Link>
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {shopStyles.slice(0, 9).map((s: any) => (
+                  <Link key={s.id} href={`/styles/${s.id}`} className="relative rounded-xl overflow-hidden aspect-[3/4] bg-lavender group">
+                    <img src={s.image_url} alt={s.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1.5">
+                      <p className="text-white text-[10px] font-medium leading-tight truncate">{s.name}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="text-center py-10">
+              <div className="w-14 h-14 rounded-2xl bg-lavender flex items-center justify-center mx-auto mb-3">
+                <span className="text-2xl">💇</span>
+              </div>
+              <p className="font-syne font-bold text-navy">Find a hairstyle</p>
+              <p className="text-muted text-sm mt-1 mb-3">Browse looks and show your barber</p>
+              <Link href="/styles" className="inline-block bg-saloo-teal text-navy font-syne font-bold text-sm px-5 py-2.5 rounded-xl">Open Style Gallery</Link>
             </div>
-            <p className="font-syne font-bold text-navy">Coming Soon</p>
-            <p className="text-muted text-sm mt-1">Hairstyle gallery & inspiration</p>
-          </div>
+          )}
         </div>
       )}
     </div>

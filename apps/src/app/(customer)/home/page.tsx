@@ -200,6 +200,20 @@ export default async function HomePage() {
         </div>
       </Link>
 
+      {/* Discover Hairstyles */}
+      <Link href="/styles"
+        className="flex items-center gap-4 bg-gradient-to-br from-saloo-teal/90 to-saloo-teal rounded-2xl px-5 py-4 hover:-translate-y-0.5 transition-transform group relative overflow-hidden">
+        <div className="absolute top-[-30%] right-[-5%] w-32 h-32 rounded-full bg-white/15 blur-2xl" />
+        <div className="relative z-10 flex items-center gap-4 w-full">
+          <div className="text-2xl">💇</div>
+          <div className="flex-1">
+            <p className="font-syne font-bold text-navy">Find Your Hairstyle</p>
+            <p className="text-navy/70 text-xs mt-0.5">Browse looks by face shape & show your barber</p>
+          </div>
+          <span className="text-navy text-xl group-hover:translate-x-1 transition-transform">→</span>
+        </div>
+      </Link>
+
       {/* Nearby Shops */}
       <section>
         <div className="flex items-center gap-2 mb-1">

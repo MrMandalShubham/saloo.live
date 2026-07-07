@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
+import { CUT_KEYWORDS } from '@/lib/hairstyles'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ''
@@ -193,6 +194,7 @@ function BarberProfile({ barber, shopServices, onBack }: { barber: any; shopServ
   const [email, setEmail] = useState(barber.email ?? '')
   const [bio, setBio] = useState(barber.bio ?? '')
   const [specialties, setSpecialties] = useState<string[]>(barber.specialties ?? [])
+  const [haircutTags, setHaircutTags] = useState<string[]>(barber.haircut_tags ?? [])
   const [experienceLevel, setExperienceLevel] = useState(barber.experience_level ?? 'junior')
   const [experienceYears, setExperienceYears] = useState(barber.experience_years ?? 0)
   const [languages, setLanguages] = useState<string[]>(barber.languages ?? [])
@@ -220,7 +222,7 @@ function BarberProfile({ barber, shopServices, onBack }: { barber: any; shopServ
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', apikey: ANON_KEY },
         body: JSON.stringify({
-          name, phone, email, bio, specialties, experience_level: experienceLevel,
+          name, phone, email, bio, specialties, haircut_tags: haircutTags, experience_level: experienceLevel,
           experience_years: experienceYears, languages, instagram_handle: instagram || null,
           is_active: isActive, avatar_url: avatarUrl || null,
           service_ids: linkedServices,
@@ -330,6 +332,7 @@ function BarberProfile({ barber, shopServices, onBack }: { barber: any; shopServ
           name={name} setName={setName} phone={phone} setPhone={setPhone}
           email={email} setEmail={setEmail} bio={bio} setBio={setBio}
           specialties={specialties} setSpecialties={setSpecialties}
+          haircutTags={haircutTags} setHaircutTags={setHaircutTags}
           experienceLevel={experienceLevel} setExperienceLevel={setExperienceLevel}
           experienceYears={experienceYears} setExperienceYears={setExperienceYears}
           languages={languages} setLanguages={setLanguages}
@@ -365,7 +368,7 @@ function BarberProfile({ barber, shopServices, onBack }: { barber: any; shopServ
 
 function ProfileTab({
   name, setName, phone, setPhone, email, setEmail, bio, setBio,
-  specialties, setSpecialties, experienceLevel, setExperienceLevel,
+  specialties, setSpecialties, haircutTags, setHaircutTags, experienceLevel, setExperienceLevel,
   experienceYears, setExperienceYears, languages, setLanguages,
   instagram, setInstagram, isActive, setIsActive,
   avatarUrl, onAvatarUpload,
@@ -448,6 +451,23 @@ function ProfileTab({
               <button key={s} onClick={() => setSpecialties(active ? specialties.filter((x: string) => x !== s) : [...specialties, s])}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   active ? 'bg-saloo-pink/10 text-saloo-pink border border-saloo-pink/30' : 'bg-white/60 text-saloo-dark/40 border border-white/80 hover:bg-white/80'
+                }`}>{s}</button>
+            )
+          })}
+        </div>
+      </div>
+
+      {/* Haircut types (matched to the style gallery) */}
+      <div className="bg-white/60 backdrop-blur-md shadow-sm border border-white/80 rounded-2xl p-5 space-y-3">
+        <p className="text-saloo-dark/50 text-xs uppercase tracking-wider">Haircut Types</p>
+        <p className="text-saloo-dark/30 text-xs">Pick the cuts this barber does — customers browsing the Styles gallery will be matched to them.</p>
+        <div className="flex flex-wrap gap-2">
+          {CUT_KEYWORDS.map(s => {
+            const active = haircutTags.includes(s)
+            return (
+              <button key={s} onClick={() => setHaircutTags(active ? haircutTags.filter((x: string) => x !== s) : [...haircutTags, s])}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                  active ? 'bg-saloo-teal/15 text-saloo-teal border border-saloo-teal/40' : 'bg-white/60 text-saloo-dark/40 border border-white/80 hover:bg-white/80'
                 }`}>{s}</button>
             )
           })}

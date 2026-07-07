@@ -42,6 +42,7 @@ export default function BookingFlowPage() {
 
   const [step, setStep] = useState(0)
   const [prefilled, setPrefilled] = useState(false)
+  const refPhoto = searchParams.get('ref') || null // "book this look" reference photo
   const [selectedServices, setSelectedServices] = useState<any[]>([])
   const [selectedBarber, setSelectedBarber] = useState<any>(null)
   const [selectedDate, setSelectedDate] = useState('')
@@ -273,6 +274,7 @@ export default function BookingFlowPage() {
         razorpay_signature: sig,
         instructions: instructions || undefined,
         promo_id: promo?.id ?? undefined,
+        reference_photo_url: refPhoto ?? undefined,
       }),
     })
     const json = await res.json()
@@ -661,6 +663,16 @@ export default function BookingFlowPage() {
                   <span className="text-gray-600">{formatINR(Math.max(0, holdData.total_amount - holdData.advance_amount - (promo?.discount ?? 0)))}</span>
                 </div>
               </div>
+
+              {refPhoto && (
+                <div className="flex items-center gap-3 bg-saloo-teal/5 border border-saloo-teal/20 rounded-xl p-3">
+                  <img src={refPhoto} alt="Reference" className="w-14 h-14 rounded-lg object-cover border border-border" />
+                  <div>
+                    <p className="text-sm font-semibold text-navy">Reference look attached</p>
+                    <p className="text-xs text-gray-400">Your barber will see this photo</p>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">Special Instructions <span className="font-normal text-gray-400">(optional)</span></label>

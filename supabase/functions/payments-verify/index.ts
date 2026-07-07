@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
   if (!user) return error(authErr ?? 'Unauthorized', 401)
 
   try {
-    const { hold_id, razorpay_order_id, razorpay_payment_id, razorpay_signature, instructions, promo_id } = await req.json()
+    const { hold_id, razorpay_order_id, razorpay_payment_id, razorpay_signature, instructions, promo_id, reference_photo_url } = await req.json()
 
     if (!hold_id || !razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
       return error('Payment verification params are required', 400)
@@ -86,6 +86,7 @@ Deno.serve(async (req) => {
         discount_amount,
         promotion_id,
         instructions: instructions ?? null,
+        reference_photo_url: reference_photo_url ?? null,
       })
       .select()
       .single()

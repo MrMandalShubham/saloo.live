@@ -9,6 +9,7 @@ import { createClient } from '@/lib/supabase/client'
 const BOTTOM_NAV = [
   { href: '/home',          label: 'Home',     icon: '⌂' },
   { href: '/search',        label: 'Explore',  icon: '◎' },
+  { href: '/styles',        label: 'Styles',   icon: '✂' },
   { href: '/bookings',      label: 'Bookings', icon: '◈' },
   { href: '/notifications', label: 'Alerts',   icon: '◉' },
   { href: '/profile',       label: 'Profile',  icon: '◷' },
