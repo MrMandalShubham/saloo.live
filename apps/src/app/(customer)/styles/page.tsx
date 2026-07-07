@@ -4,26 +4,23 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
-import { FACE_SHAPES, HAIR_TYPES, CUT_KEYWORDS, GENDERS } from '@/lib/hairstyles'
+import { FACE_SHAPES, HAIR_TYPES } from '@/lib/hairstyles'
 
 const BASE = process.env['NEXT_PUBLIC_SUPABASE_URL']
 const ANON = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
 
 export default function StylesPage() {
-  const [gender, setGender] = useState('men')
   const [face, setFace] = useState<string | null>(null)
   const [hair, setHair] = useState<string | null>(null)
-  const [tag, setTag] = useState<string | null>(null)
   const [userId, setUserId] = useState<string | null>(null)
   const [favs, setFavs] = useState<Set<string>>(new Set())
 
   const { data: styles = [], isLoading } = useQuery({
-    queryKey: ['hairstyles', gender, face, hair, tag],
+    queryKey: ['hairstyles', face, hair],
     queryFn: async () => {
-      const p = new URLSearchParams({ gender })
+      const p = new URLSearchParams()
       if (face) p.set('face_shape', face)
       if (hair) p.set('hair_type', hair)
-      if (tag) p.set('tag', tag)
       const { data: { session } } = await createClient().auth.getSession()
       const res = await fetch(`${BASE}/functions/v1/hairstyles-list?${p}`, {
         headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: ANON },
@@ -69,11 +66,6 @@ export default function StylesPage() {
         <p className="text-muted text-sm mt-0.5">Find a look, then show your barber</p>
       </div>
 
-      {/* Gender */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-none">
-        {GENDERS.map(g => <Chip key={g.key} active={gender === g.key} onClick={() => setGender(g.key)}>{g.label}</Chip>)}
-      </div>
-
       {/* Face shape */}
       <div>
         <p className="text-[11px] font-bold text-muted uppercase tracking-widest mb-2">Face shape</p>
@@ -83,21 +75,12 @@ export default function StylesPage() {
         </div>
       </div>
 
-      {/* Hair type + cut keyword */}
-      <div className="grid grid-cols-1 gap-3">
-        <div>
-          <p className="text-[11px] font-bold text-muted uppercase tracking-widest mb-2">Hair type</p>
-          <div className="flex gap-2 overflow-x-auto scrollbar-none">
-            <Chip active={!hair} onClick={() => setHair(null)}>All</Chip>
-            {HAIR_TYPES.map(h => <Chip key={h} active={hair === h} onClick={() => setHair(h)}>{h}</Chip>)}
-          </div>
-        </div>
-        <div>
-          <p className="text-[11px] font-bold text-muted uppercase tracking-widest mb-2">Style</p>
-          <div className="flex gap-2 overflow-x-auto scrollbar-none">
-            <Chip active={!tag} onClick={() => setTag(null)}>All</Chip>
-            {CUT_KEYWORDS.map(t => <Chip key={t} active={tag === t} onClick={() => setTag(t)}>{t}</Chip>)}
-          </div>
+      {/* Hair type */}
+      <div>
+        <p className="text-[11px] font-bold text-muted uppercase tracking-widest mb-2">Hair type</p>
+        <div className="flex gap-2 overflow-x-auto scrollbar-none">
+          <Chip active={!hair} onClick={() => setHair(null)}>All</Chip>
+          {HAIR_TYPES.map(h => <Chip key={h} active={hair === h} onClick={() => setHair(h)}>{h}</Chip>)}
         </div>
       </div>
 
