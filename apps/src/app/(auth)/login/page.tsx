@@ -97,7 +97,7 @@ function LoginPage() {
             <div className="w-16 h-16 rounded-2xl bg-gold/15 border border-gold/40 flex items-center justify-center">
               <span className="font-syne font-bold text-gold text-2xl">✂</span>
             </div>
-            <span className="font-syne text-3xl font-bold text-white tracking-wide">Saloo</span>
+            <span className="font-syne text-3xl font-bold text-white tracking-wide">LooksOn</span>
           </Link>
           <p className="text-white/40 text-sm mt-2">Your premium barber, booked.</p>
         </div>

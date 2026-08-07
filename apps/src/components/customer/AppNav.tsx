@@ -238,7 +238,7 @@ export function AppNav({ isGuest = false }: { isGuest?: boolean }) {
             <div className="w-8 h-8 rounded-lg bg-saloo-teal/15 border border-saloo-teal/40 flex items-center justify-center group-hover:border-saloo-teal/70 transition-colors">
               <span className="font-syne font-bold text-saloo-teal text-sm">✂</span>
             </div>
-            <span className="font-syne text-xl font-bold text-saloo-dark tracking-wide">Saloo</span>
+            <span className="font-syne text-xl font-bold text-saloo-dark tracking-wide">LooksOn</span>
           </Link>
 
           {/* Desktop nav */}

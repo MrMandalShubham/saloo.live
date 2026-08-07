@@ -46,11 +46,11 @@ export default function ReferPage() {
   })
 
   const code = data?.code ?? ''
-  const shareText = `Join me on Saloo and book your next haircut! Use my code ${code} to get bonus points on your first booking. https://saloo.live`
+  const shareText = `Join me on LooksOn and book your next haircut! Use my code ${code} to get bonus points on your first booking. https://saloo.live`
 
   async function handleShare() {
     if (navigator.share) {
-      try { await navigator.share({ title: 'Join me on Saloo', text: shareText }) } catch {}
+      try { await navigator.share({ title: 'Join me on LooksOn', text: shareText }) } catch {}
     } else {
       await navigator.clipboard.writeText(shareText)
       setCopied(true); setTimeout(() => setCopied(false), 2000)

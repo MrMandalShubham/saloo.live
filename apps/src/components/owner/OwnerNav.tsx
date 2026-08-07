@@ -229,7 +229,7 @@ export function OwnerNav() {
             <div className="w-7 h-7 rounded-lg bg-saloo-pink/15 border border-saloo-pink/30 flex items-center justify-center">
               <span className="text-saloo-pink text-xs font-bold">✂</span>
             </div>
-            <span className="font-syne font-bold text-saloo-dark text-lg tracking-wide">Saloo</span>
+            <span className="font-syne font-bold text-saloo-dark text-lg tracking-wide">LooksOn</span>
           </div>
           <p className="text-saloo-dark/70 text-xs mt-2 tracking-wide font-medium">Owner Portal</p>
         </div>
@@ -295,7 +295,7 @@ export function OwnerNav() {
           <div className="w-6 h-6 rounded-lg bg-saloo-pink/15 border border-saloo-pink/30 flex items-center justify-center">
             <span className="text-saloo-pink text-[10px]">✂</span>
           </div>
-          <span className="font-syne font-bold text-saloo-dark text-base">Saloo</span>
+          <span className="font-syne font-bold text-saloo-dark text-base">LooksOn</span>
           <span className="text-saloo-dark/70 text-xs ml-1 font-medium">Owner</span>
         </div>
 

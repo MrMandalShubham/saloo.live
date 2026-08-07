@@ -52,7 +52,7 @@ function ConfirmPage() {
           <div className="w-14 h-14 rounded-2xl bg-gold/15 border border-gold/40 flex items-center justify-center">
             <span className="font-syne font-bold text-gold text-2xl">✂</span>
           </div>
-          <span className="font-syne text-2xl font-bold text-white tracking-wide">Saloo</span>
+          <span className="font-syne text-2xl font-bold text-white tracking-wide">LooksOn</span>
         </Link>
 
         {/* Envelope illustration */}
@@ -90,7 +90,7 @@ function ConfirmPage() {
           <ol className="space-y-3">
             {[
               'Open your email inbox',
-              `Find the email from Saloo${isRecovery ? ' with subject "Reset your password"' : ''}`,
+              `Find the email from LooksOn${isRecovery ? ' with subject "Reset your password"' : ''}`,
               `Click the "${isRecovery ? 'Reset Password' : 'Confirm your email'}" button`,
               isRecovery ? 'Set your new password' : 'You\'ll be signed in automatically',
             ].map((step, i) => (

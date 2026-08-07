@@ -223,7 +223,7 @@ export default function ProfilePage() {
       {/* Sign out */}
       <div className="bg-white border border-border rounded-2xl overflow-hidden shadow-sm">
         <div className="px-5 py-3 border-b border-border/60">
-          <p className="text-[11px] text-muted font-bold uppercase tracking-widest">Version 1.0.0 · Saloo</p>
+          <p className="text-[11px] text-muted font-bold uppercase tracking-widest">Version 1.0.0 · LooksOn</p>
         </div>
         <button
           onClick={handleSignOut}

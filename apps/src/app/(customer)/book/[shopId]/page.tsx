@@ -191,7 +191,7 @@ export default function BookingFlowPage() {
         amount: String(amount),
         currency: 'INR',
         order_id: razorpay_order_id,
-        name: 'Saloo',
+        name: 'LooksOn',
         description: `Booking at ${shop?.name}`,
         image: '/icons/icon-192x192.png',
         prefill: {
@@ -703,7 +703,7 @@ export default function BookingFlowPage() {
             </div>
             <h3 className="font-syne font-bold text-xl text-navy">Almost there!</h3>
             <p className="text-gray-600 text-sm leading-relaxed">
-              Create your Saloo profile to complete the booking. It only takes a minute!
+              Create your LooksOn profile to complete the booking. It only takes a minute!
             </p>
             <div className="space-y-2 pt-2">
               <button

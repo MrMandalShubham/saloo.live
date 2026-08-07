@@ -41,7 +41,7 @@ export default async function AdminDashboardPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-saloo-dark text-2xl font-bold" style={{ fontFamily: 'Syne, sans-serif' }}>Platform Dashboard</h1>
-        <p className="text-saloo-dark/60 text-sm mt-1">Real-time overview of Saloo marketplace</p>
+        <p className="text-saloo-dark/60 text-sm mt-1">Real-time overview of LooksOn marketplace</p>
       </div>
 
       {/* KPI grid */}

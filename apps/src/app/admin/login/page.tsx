@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
             <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
               <span className="text-2xl">🛡️</span>
             </div>
-            <span className="font-syne text-2xl font-bold text-saloo-dark tracking-wide">Saloo Admin</span>
+            <span className="font-syne text-2xl font-bold text-saloo-dark tracking-wide">LooksOn Admin</span>
           </Link>
           <p className="text-saloo-dark/50 text-xs mt-1">Restricted access — authorized personnel only</p>
         </div>

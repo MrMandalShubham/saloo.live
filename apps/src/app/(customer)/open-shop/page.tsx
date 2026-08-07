@@ -24,7 +24,7 @@ const CODE_OF_CONDUCT = [
 ]
 
 const TERMS = [
-  { heading: 'Platform Commission', body: 'Saloo charges a small commission on each completed booking. Current rates are shown in your Owner Dashboard. Rates may change with 30 days advance notice.' },
+  { heading: 'Platform Commission', body: 'LooksOn charges a small commission on each completed booking. Current rates are shown in your Owner Dashboard. Rates may change with 30 days advance notice.' },
   { heading: 'Verification Process', body: 'After submitting your shop details, our team reviews your application within 2–5 business days. You may be contacted for additional documents.' },
   { heading: 'Account Suspension', body: 'We reserve the right to suspend or permanently remove shops that violate the code of conduct, receive consistent negative feedback, or engage in fraudulent activity.' },
   { heading: 'Data & Privacy', body: 'Your shop and customer booking data is stored securely. We never share individual customer data with third parties without consent.' },
@@ -99,7 +99,7 @@ export default function OpenShopPage() {
           <p className="text-green-600 text-sm mt-1 font-semibold">Verified & Active</p>
         </div>
         <p className="text-secondary text-sm">
-          Your shop is live on Saloo. Head to your dashboard to manage bookings, team, and analytics.
+          Your shop is live on LooksOn. Head to your dashboard to manage bookings, team, and analytics.
         </p>
         <Link href="/owner/dashboard"
           className="inline-flex items-center gap-2 bg-saloo-teal text-white font-syne font-bold px-8 py-4 rounded-2xl hover:bg-saloo-teal/90 transition-all active:scale-[0.98]">
@@ -175,10 +175,10 @@ export default function OpenShopPage() {
         </div>
         <h1 className="font-syne font-bold text-3xl sm:text-4xl text-ink leading-tight">
           Grow Your Barbershop<br />
-          <span className="text-saloo-teal">with Saloo</span>
+          <span className="text-saloo-teal">with LooksOn</span>
         </h1>
         <p className="text-secondary text-base leading-relaxed max-w-md mx-auto">
-          Join hundreds of barbershops already using Saloo to manage bookings, payments, and their team — all in one place.
+          Join hundreds of barbershops already using LooksOn to manage bookings, payments, and their team — all in one place.
         </p>
       </div>
 
@@ -252,7 +252,7 @@ export default function OpenShopPage() {
           <p className="text-ink/70 text-sm leading-relaxed">
             I have read and agree to the <span className="text-saloo-teal font-semibold">Code of Conduct</span> and{' '}
             <span className="text-saloo-teal font-semibold">Terms & Conditions</span> above. I understand that my shop
-            application will be reviewed by the Saloo team before going live.
+            application will be reviewed by the LooksOn team before going live.
           </p>
         </label>
 

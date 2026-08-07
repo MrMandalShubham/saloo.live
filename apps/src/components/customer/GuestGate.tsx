@@ -32,7 +32,7 @@ export function GuestGate({ children }: { children: React.ReactNode }) {
           Profile Required
         </h2>
         <p className="text-gray-500 text-sm max-w-xs mb-6 leading-relaxed">
-          Create your Saloo profile to access this section. It&apos;s quick and free!
+          Create your LooksOn profile to access this section. It&apos;s quick and free!
         </p>
         <button
           onClick={() => router.push('/login')}

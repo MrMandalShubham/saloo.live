@@ -21,7 +21,7 @@ export default function AdminSettingsPage() {
 
       <div className="space-y-3">
         {[
-          { label: 'Platform Name', value: 'Saloo — Online Barber Booking' },
+          { label: 'Platform Name', value: 'LooksOn — Online Barber Booking' },
           { label: 'Support Email', value: 'support@saloo.in' },
           { label: 'Razorpay Mode', value: 'Test (Switch to Live in Razorpay Dashboard)' },
           { label: 'FCM Status', value: 'Active' },

@@ -97,7 +97,7 @@ export default function GroupBookingPage() {
 
       const rzp = new Razorpay({
         key: key_id, amount: String(amount), currency: 'INR', order_id: razorpay_order_id,
-        name: 'Saloo', description: `Group booking · ${members.length} people`,
+        name: 'LooksOn', description: `Group booking · ${members.length} people`,
         theme: { color: '#008B7D' },
         handler: (p: any) => finish(p.razorpay_payment_id, p.razorpay_signature).catch((e: any) => setErr(e.message)),
         modal: { ondismiss: () => setBusy(false) },

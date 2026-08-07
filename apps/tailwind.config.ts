@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 /*
- * Saloo — 9-Color Design System (FINAL)
+ * LooksOn — 9-Color Design System (FINAL)
  * ──────────────────────────────────────
  * Core 6 from palette:
  *   1. saloo-pink    #FF005F   — hot pink, primary CTA

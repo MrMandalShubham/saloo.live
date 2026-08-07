@@ -28,8 +28,8 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
   if (!shop) return {}
   const rating = shop.rating ?? shop.avg_rating ?? 0
   return {
-    title: `${shop.name} — Saloo`,
-    description: `Book a haircut at ${shop.name} on Saloo. ${rating > 0 ? `Rated ${Number(rating).toFixed(1)}★.` : ''} ${shop.address}`,
+    title: `${shop.name} — LooksOn`,
+    description: `Book a haircut at ${shop.name} on LooksOn. ${rating > 0 ? `Rated ${Number(rating).toFixed(1)}★.` : ''} ${shop.address}`,
   }
 }
 
