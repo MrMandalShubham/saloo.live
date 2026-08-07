@@ -7,7 +7,6 @@ import Image from 'next/image'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { formatINR, formatDuration } from '@saloo/lib'
-import { ShopStore } from './ShopStore'
 
 const BASE = process.env['NEXT_PUBLIC_SUPABASE_URL']
 const ANON = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
@@ -18,16 +17,10 @@ export function ShopTabs({
   services,
   addons,
   barbers,
-  shopId,
-  shopName,
-  storeEnabled,
 }: {
   services: any[]
   addons: any[]
   barbers: any[]
-  shopId?: string
-  shopName?: string
-  storeEnabled?: boolean
 }) {
   const [tab, setTab] = useState<Tab>('services')
   const router = useRouter()
@@ -92,7 +85,6 @@ export function ShopTabs({
     { key: 'services', label: 'Services', icon: '✂' },
     { key: 'barbers', label: 'Barbers', icon: '👤' },
     { key: 'styles', label: 'Styles', icon: '💇' },
-    ...(storeEnabled && shopId ? [{ key: 'products' as Tab, label: 'Shop', icon: '🛍️' }] : []),
   ]
 
   return (
@@ -304,9 +296,6 @@ export function ShopTabs({
         </div>
       )}
 
-      {tab === 'products' && shopId && (
-        <ShopStore shopId={shopId} shopName={shopName ?? 'Shop'} />
-      )}
     </div>
   )
 }

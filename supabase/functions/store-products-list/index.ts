@@ -1,34 +1,35 @@
+// LooksOn Supplies catalog for shop owners (platform products) + their wallet balance.
 import { handleCors, json, error } from '../_shared/cors.ts'
-import { createAdminClient } from '../_shared/supabase-admin.ts'
+import { getAuthUser, createAdminClient } from '../_shared/supabase-admin.ts'
 
 Deno.serve(async (req) => {
   const cors = handleCors(req)
   if (cors) return cors
 
+  const { user, error: authErr } = await getAuthUser(req)
+  if (!user) return error(authErr ?? 'Unauthorized', 401)
+
   try {
-    const url = new URL(req.url)
-    const shopId = url.searchParams.get('shop_id')
-    if (!shopId) return error('shop_id required', 400)
-
     const supabase = createAdminClient()
-
-    const { data: shop } = await supabase
-      .from('shops').select('id, store_enabled').eq('id', shopId).single()
-    if (!shop || !shop.store_enabled) {
-      return json({ data: { store_enabled: false, products: [] }, error: null }, 200, 30)
-    }
 
     const { data: products } = await supabase
       .from('store_products')
       .select('id, name, description, price, image_url, category, stock')
-      .eq('shop_id', shopId)
       .eq('is_active', true)
       .order('sort_order', { ascending: true })
       .order('created_at', { ascending: false })
 
-    return json({ data: { store_enabled: true, products: products ?? [] }, error: null }, 200, 30)
+    // Buyer's shop wallet balance (for pay-from-wallet)
+    let wallet_balance = 0
+    const { data: shop } = await supabase.from('shops').select('id').eq('owner_id', user.id).single()
+    if (shop) {
+      const { data: wallet } = await supabase.from('wallets').select('balance').eq('shop_id', shop.id).single()
+      wallet_balance = Number(wallet?.balance ?? 0)
+    }
+
+    return json({ data: { products: products ?? [], wallet_balance }, error: null })
   } catch (err) {
     console.error('store-products-list error:', err)
-    return error('Failed to load products', 500)
+    return error('Failed to load catalog', 500)
   }
 })

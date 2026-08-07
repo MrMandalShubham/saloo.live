@@ -1,185 +1,143 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useQuery } from '@tanstack/react-query'
+import Script from 'next/script'
 import { createClient } from '@/lib/supabase/client'
 import { formatINR } from '@saloo/lib'
 
 const BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-async function getToken() {
+async function sess() {
   const { data: { session } } = await createClient().auth.getSession()
-  return session!.access_token
+  return session
 }
 
-const EMPTY = { id: null as string | null, name: '', description: '', price: '', category: '', stock: '', image_url: '', is_active: true }
+export default function OwnerSuppliesPage() {
+  const router = useRouter()
+  const [cart, setCart] = useState<Record<string, number>>({})
+  const [busy, setBusy] = useState(false)
+  const [payWith, setPayWith] = useState<'razorpay' | 'wallet'>('razorpay')
 
-export default function OwnerStorePage() {
-  const qc = useQueryClient()
-  const supabase = createClient()
-  const [shop, setShop] = useState<any>(null)
-  const [form, setForm] = useState<any>({ ...EMPTY })
-  const [showForm, setShowForm] = useState(false)
-  const [uploading, setUploading] = useState(false)
-  const [err, setErr] = useState('')
-  const fileRef = useRef<HTMLInputElement>(null)
-
-  // Load shop (store settings)
-  useEffect(() => {
-    (async () => {
-      const res = await fetch(`${BASE}/functions/v1/owner-shop-get`, { headers: { Authorization: `Bearer ${await getToken()}`, apikey: ANON } })
-      setShop((await res.json()).data)
-    })()
-  }, [])
-
-  const { data: products = [], isLoading } = useQuery({
-    queryKey: ['owner-store-products', shop?.id],
+  const { data, isLoading } = useQuery({
+    queryKey: ['supplies-catalog'],
     queryFn: async () => {
-      const { data } = await (supabase as any).from('store_products').select('*').eq('shop_id', shop.id).order('sort_order').order('created_at', { ascending: false })
-      return data ?? []
+      const s = await sess()
+      const res = await fetch(`${BASE}/functions/v1/store-products-list`, { headers: { Authorization: `Bearer ${s?.access_token}` } })
+      return (await res.json()).data
     },
-    enabled: !!shop?.id,
   })
 
-  async function toggleStore(enabled: boolean) {
-    await fetch(`${BASE}/functions/v1/owner-shop-update`, {
-      method: 'POST', headers: { Authorization: `Bearer ${await getToken()}`, 'Content-Type': 'application/json', apikey: ANON },
-      body: JSON.stringify({ store_enabled: enabled }),
-    })
-    setShop((s: any) => ({ ...s, store_enabled: enabled }))
-  }
+  const products = data?.products ?? []
+  const walletBalance = data?.wallet_balance ?? 0
+  const setQty = (id: string, q: number) => setCart(c => { const n = { ...c }; if (q <= 0) delete n[id]; else n[id] = q; return n })
+  const cartItems = products.filter((p: any) => cart[p.id] > 0)
+  const total = cartItems.reduce((s: number, p: any) => s + Number(p.price) * cart[p.id], 0)
+  const count = Object.values(cart).reduce((s, q) => s + q, 0)
+  const canWallet = walletBalance >= total && total > 0
 
-  async function uploadImage(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0]
-    if (!file || !shop?.id) return
-    setUploading(true); setErr('')
+  async function checkout() {
+    setBusy(true)
     try {
-      const ext = file.name.split('.').pop()
-      const path = `${shop.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-      const { error: upErr } = await supabase.storage.from('store-products').upload(path, file, { upsert: true })
-      if (upErr) throw upErr
-      const { data: { publicUrl } } = supabase.storage.from('store-products').getPublicUrl(path)
-      setForm((f: any) => ({ ...f, image_url: publicUrl }))
-    } catch (e: any) { setErr(e.message ?? 'Upload failed') } finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }
-  }
+      const s = await sess()
+      const items = Object.entries(cart).map(([product_id, quantity]) => ({ product_id, quantity }))
+      const method = payWith === 'wallet' && canWallet ? 'wallet' : 'razorpay'
+      const res = await fetch(`${BASE}/functions/v1/store-order-create`, {
+        method: 'POST', headers: { Authorization: `Bearer ${s?.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items, payment_method: method }),
+      })
+      const json = await res.json()
+      if (json.error) throw new Error(json.error.message ?? json.error)
 
-  async function save() {
-    setErr('')
-    if (!form.name || !form.price) { setErr('Name and price required'); return }
-    const payload = {
-      shop_id: shop.id, name: form.name, description: form.description || null,
-      price: parseFloat(form.price), category: form.category || null,
-      stock: parseInt(form.stock) || 0, image_url: form.image_url || null, is_active: form.is_active,
-      updated_at: new Date().toISOString(),
-    }
-    const sb = supabase as any
-    const q = form.id
-      ? sb.from('store_products').update(payload).eq('id', form.id)
-      : sb.from('store_products').insert(payload)
-    const { error: dbErr } = await q
-    if (dbErr) { setErr(dbErr.message); return }
-    setShowForm(false); setForm({ ...EMPTY }); qc.invalidateQueries({ queryKey: ['owner-store-products'] })
-  }
+      if (json.data.paid) { setCart({}); router.push('/owner/orders'); return } // wallet paid instantly
 
-  async function remove(id: string) {
-    if (!confirm('Delete this product?')) return
-    await (supabase as any).from('store_products').delete().eq('id', id)
-    qc.invalidateQueries({ queryKey: ['owner-store-products'] })
-  }
-
-  function openEdit(p: any) {
-    setForm({ id: p.id, name: p.name, description: p.description ?? '', price: String(p.price), category: p.category ?? '', stock: String(p.stock), image_url: p.image_url ?? '', is_active: p.is_active })
-    setShowForm(true); setErr('')
+      const { order_id, razorpay_order_id, amount, key_id, dev_mode } = json.data
+      const finish = async (pid: string, sig: string) => {
+        const v = await fetch(`${BASE}/functions/v1/store-order-verify`, {
+          method: 'POST', headers: { Authorization: `Bearer ${s?.access_token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ order_id, razorpay_order_id, razorpay_payment_id: pid, razorpay_signature: sig }),
+        })
+        const vj = await v.json(); if (vj.error) throw new Error(vj.error.message ?? vj.error)
+        setCart({}); router.push('/owner/orders')
+      }
+      const Razorpay = (window as any).Razorpay
+      if (dev_mode || !Razorpay) { await finish(`pay_demo_${Date.now()}`, 'demo_sig'); return }
+      const rzp = new Razorpay({
+        key: key_id, amount: String(amount), currency: 'INR', order_id: razorpay_order_id,
+        name: 'LooksOn Supplies', description: `${count} item${count > 1 ? 's' : ''}`, theme: { color: '#008B7D' },
+        handler: (p: any) => finish(p.razorpay_payment_id, p.razorpay_signature).catch((e: any) => alert(e.message)),
+        modal: { ondismiss: () => setBusy(false) },
+      })
+      rzp.open()
+    } catch (e: any) { alert(e.message); setBusy(false) }
   }
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-syne text-2xl font-bold text-saloo-dark">Store</h1>
-          <p className="text-saloo-dark/50 text-sm mt-0.5">Sell products to your customers</p>
-        </div>
-        <button onClick={() => { setForm({ ...EMPTY }); setShowForm(!showForm); setErr('') }}
-          className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${showForm ? 'bg-white/80 text-saloo-dark/80' : 'bg-saloo-pink text-saloo-cream hover:bg-saloo-pink/90'}`}>
-          {showForm ? 'Cancel' : '+ Add Product'}
-        </button>
-      </div>
-
-      {/* Store toggle + commission */}
-      {shop && (
-        <div className="bg-white/60 backdrop-blur-md border border-white/80 rounded-2xl p-5 flex items-center justify-between">
+    <>
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
+      <div className="max-w-3xl space-y-5 pb-24">
+        <div className="flex items-end justify-between">
           <div>
-            <p className="font-semibold text-saloo-dark text-sm">Store {shop.store_enabled ? 'live' : 'off'}</p>
-            <p className="text-saloo-dark/50 text-xs mt-0.5">LooksOn commission: {shop.store_commission_rate ?? 10}% per sale · you keep the rest in your wallet</p>
+            <h1 className="font-syne text-2xl font-bold text-saloo-dark">Supplies</h1>
+            <p className="text-saloo-dark/50 text-sm mt-0.5">Order stock from LooksOn at wholesale</p>
           </div>
-          <button onClick={() => toggleStore(!shop.store_enabled)}
-            className={`w-12 h-7 rounded-full relative transition-colors ${shop.store_enabled ? 'bg-green-500' : 'bg-saloo-dark/20'}`}>
-            <span className={`absolute top-1 w-5 h-5 bg-white rounded-full shadow transition-all ${shop.store_enabled ? 'left-6' : 'left-1'}`} />
-          </button>
+          <div className="text-right"><p className="font-syne font-bold text-green-600">{formatINR(walletBalance)}</p><p className="text-saloo-dark/40 text-[10px] uppercase tracking-widest font-bold">wallet</p></div>
         </div>
-      )}
 
-      {/* Form */}
-      {showForm && (
-        <div className="bg-white/60 backdrop-blur-md border border-white/80 rounded-2xl p-6 space-y-4">
-          {err && <p className="text-red-500 text-sm bg-red-400/5 border border-red-400/20 rounded-lg px-3 py-2">{err}</p>}
-          <input ref={fileRef} type="file" accept="image/*" onChange={uploadImage} className="hidden" />
-          <div className="flex items-center gap-4">
-            {form.image_url ? <img src={form.image_url} alt="" className="w-20 h-20 rounded-xl object-cover border border-white/80" />
-              : <div className="w-20 h-20 rounded-xl border-2 border-dashed border-saloo-dark/20 flex items-center justify-center text-saloo-dark/30 text-xs">No image</div>}
-            <button onClick={() => fileRef.current?.click()} disabled={uploading} className="px-4 py-2 bg-white/80 border border-white/80 rounded-xl text-sm font-semibold text-saloo-dark/70 disabled:opacity-40">{uploading ? 'Uploading…' : 'Upload photo'}</button>
-          </div>
-          <FI label="Name" value={form.name} onChange={(v: string) => setForm({ ...form, name: v })} />
-          <FI label="Description" value={form.description} onChange={(v: string) => setForm({ ...form, description: v })} />
-          <div className="grid grid-cols-3 gap-3">
-            <FI label="Price (₹)" value={form.price} onChange={(v: string) => setForm({ ...form, price: v })} type="number" />
-            <FI label="Stock" value={form.stock} onChange={(v: string) => setForm({ ...form, stock: v })} type="number" />
-            <FI label="Category" value={form.category} onChange={(v: string) => setForm({ ...form, category: v })} />
-          </div>
-          <label className="flex items-center gap-2 text-sm text-saloo-dark/70">
-            <input type="checkbox" checked={form.is_active} onChange={e => setForm({ ...form, is_active: e.target.checked })} className="w-4 h-4 accent-saloo-pink" /> Active (visible to customers)
-          </label>
-          <button onClick={save} className="w-full py-3 bg-saloo-pink text-saloo-cream rounded-xl font-syne font-bold text-sm">{form.id ? 'Save Changes' : 'Add Product'}</button>
-        </div>
-      )}
-
-      {/* Product list */}
-      {isLoading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-40 bg-white/60 rounded-2xl animate-pulse" />)}</div>
-      ) : products.length === 0 ? (
-        <p className="text-saloo-dark/40 text-sm text-center py-16">No products yet. Add your first one.</p>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {products.map((p: any) => (
-            <div key={p.id} className="bg-white/60 border border-white/80 rounded-2xl overflow-hidden">
-              <div className="aspect-square bg-lavender relative">
-                {p.image_url ? <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl">📦</div>}
-                {!p.is_active && <span className="absolute top-2 left-2 bg-black/60 text-white text-[9px] px-2 py-0.5 rounded-full">hidden</span>}
-                {p.stock === 0 && <span className="absolute top-2 right-2 bg-red-500/90 text-white text-[9px] px-2 py-0.5 rounded-full">out of stock</span>}
-              </div>
-              <div className="p-2.5">
-                <p className="text-saloo-dark font-semibold text-xs truncate">{p.name}</p>
-                <p className="text-saloo-dark/60 text-[11px]">{formatINR(p.price)} · {p.stock} in stock</p>
-                <div className="flex gap-1 mt-2">
-                  <button onClick={() => openEdit(p)} className="flex-1 py-1.5 bg-white/80 text-saloo-dark/70 text-[11px] font-medium rounded-lg">Edit</button>
-                  <button onClick={() => remove(p.id)} className="px-2 py-1.5 bg-red-500/10 text-red-400 text-[11px] rounded-lg">Del</button>
+        {isLoading ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">{[1, 2, 3].map(i => <div key={i} className="h-48 bg-white/60 rounded-2xl animate-pulse" />)}</div>
+        ) : products.length === 0 ? (
+          <div className="bg-white/60 backdrop-blur-md border border-white/80 rounded-2xl p-10 text-center"><p className="text-saloo-dark/40 text-sm">No supplies available yet. Check back soon.</p></div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            {products.map((p: any) => {
+              const qty = cart[p.id] ?? 0
+              const oos = p.stock <= 0
+              return (
+                <div key={p.id} className="bg-white/60 border border-white/80 rounded-2xl overflow-hidden">
+                  <div className="aspect-square bg-lavender relative">
+                    {p.image_url ? <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-3xl">📦</div>}
+                    {oos && <div className="absolute inset-0 bg-white/60 flex items-center justify-center"><span className="text-xs font-bold text-red-500">Out of stock</span></div>}
+                  </div>
+                  <div className="p-3">
+                    <p className="font-semibold text-saloo-dark text-sm truncate">{p.name}</p>
+                    {p.description && <p className="text-saloo-dark/40 text-[11px] truncate">{p.description}</p>}
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="font-syne font-bold text-saloo-dark">{formatINR(p.price)}</span>
+                      {qty === 0 ? (
+                        <button disabled={oos} onClick={() => setQty(p.id, 1)} className="bg-saloo-pink text-white text-xs font-bold px-3 py-1.5 rounded-lg disabled:opacity-30">Add</button>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => setQty(p.id, qty - 1)} className="w-6 h-6 rounded-md bg-saloo-dark/10 text-saloo-dark font-bold">−</button>
+                          <span className="text-sm font-bold text-saloo-dark w-4 text-center">{qty}</span>
+                          <button disabled={qty >= p.stock} onClick={() => setQty(p.id, qty + 1)} className="w-6 h-6 rounded-md bg-saloo-dark/10 text-saloo-dark font-bold disabled:opacity-30">+</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
+              )
+            })}
+          </div>
+        )}
 
-function FI({ label, value, onChange, type = 'text' }: { label: string; value: string; onChange: (v: string) => void; type?: string }) {
-  return (
-    <div>
-      <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-2">{label}</label>
-      <input type={type} value={value} onChange={e => onChange(e.target.value)}
-        className="w-full bg-white/60 border border-white/80 rounded-xl px-4 py-3 text-saloo-dark text-sm focus:outline-none focus:border-saloo-pink/40" />
-    </div>
+        {/* Checkout bar */}
+        {count > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 lg:left-56 z-40 bg-white/90 backdrop-blur-xl border-t border-white/80 p-4">
+            <div className="max-w-3xl mx-auto space-y-2">
+              <div className="flex gap-2">
+                <button onClick={() => setPayWith('razorpay')} className={`flex-1 py-2 rounded-lg text-xs font-bold border ${payWith === 'razorpay' ? 'bg-saloo-pink/10 border-saloo-pink/40 text-saloo-pink' : 'border-saloo-dark/15 text-saloo-dark/50'}`}>Pay online</button>
+                <button onClick={() => canWallet && setPayWith('wallet')} disabled={!canWallet} className={`flex-1 py-2 rounded-lg text-xs font-bold border disabled:opacity-40 ${payWith === 'wallet' && canWallet ? 'bg-green-500/10 border-green-500/40 text-green-600' : 'border-saloo-dark/15 text-saloo-dark/50'}`}>Use wallet {!canWallet && '(low)'}</button>
+              </div>
+              <button onClick={checkout} disabled={busy} className="w-full flex items-center justify-between bg-saloo-dark text-white rounded-xl px-5 py-3.5 disabled:opacity-60">
+                <span className="font-semibold text-sm">{count} item{count > 1 ? 's' : ''} · {formatINR(total)}</span>
+                <span className="font-syne font-bold">{busy ? 'Processing…' : payWith === 'wallet' && canWallet ? 'Pay from wallet →' : 'Checkout →'}</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   )
 }
