@@ -134,6 +134,9 @@ export default async function ShopPage({ params }: { params: { id: string } }) {
         services={services}
         addons={addons}
         barbers={shop.barbers ?? []}
+        shopId={shop.id}
+        shopName={shop.name}
+        storeEnabled={shop.store_enabled}
       />
 
       {/* Reviews */}
