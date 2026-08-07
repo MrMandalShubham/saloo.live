@@ -69,7 +69,7 @@ export default function SplashPage() {
 
         {/* Brand name */}
         <div className="flex items-center gap-0 overflow-hidden">
-          {'SALOO'.split('').map((letter, i) => (
+          {'LOOKSON'.split('').map((letter, i) => (
             <span
               key={i}
               className={`font-syne text-4xl sm:text-5xl font-bold tracking-wider transition-all duration-500 ${
@@ -80,7 +80,7 @@ export default function SplashPage() {
                     : 'opacity-100 translate-y-0'
               }`}
               style={{
-                color: i < 3 ? '#E85A78' : '#5EEAD4',
+                color: i < 5 ? '#E85A78' : '#5EEAD4',
                 transitionDelay: `${(phase === 'reveal' ? i * 80 : 0)}ms`,
               }}
             >
