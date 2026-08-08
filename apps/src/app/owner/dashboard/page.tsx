@@ -229,21 +229,21 @@ export default async function OwnerDashboardPage() {
         <p className="text-saloo-dark/60 font-bold text-xs uppercase tracking-widest mb-4">Quick Actions</p>
         <div className="grid grid-cols-4 sm:grid-cols-4 lg:grid-cols-8 gap-3">
           {[
-            { label: 'Bookings',     href: '/owner/bookings',     icon: '◈' },
-            { label: 'Live Queue',   href: '/owner/queue',        icon: '⧖' },
-            { label: 'Calendar',     href: '/owner/calendar',     icon: '▤' },
-            { label: 'Wallet',       href: '/owner/wallet',       icon: '◉' },
-            { label: 'Earnings',     href: '/owner/earnings',     icon: '₹' },
-            { label: 'Services',     href: '/owner/services',     icon: '✂' },
+            { label: 'Bookings',     href: '/owner/bookings',     icon: '📅' },
+            { label: 'Live Queue',   href: '/owner/queue',        icon: '⏳' },
+            { label: 'Calendar',     href: '/owner/calendar',     icon: '🗓️' },
+            { label: 'Wallet',       href: '/owner/wallet',       icon: '👛' },
+            { label: 'Earnings',     href: '/owner/earnings',     icon: '💰' },
+            { label: 'Services',     href: '/owner/services',     icon: '✂️' },
             { label: 'Supplies',     href: '/owner/store',        icon: '🛍️' },
             { label: 'My Orders',    href: '/owner/orders',       icon: '📦' },
-            { label: 'Availability', href: '/owner/availability', icon: '◷' },
-            { label: 'Analytics',   href: '/owner/analytics',    icon: '◎' },
-            { label: 'Team',         href: '/owner/team',         icon: '◉' },
-            { label: 'Attendance',   href: '/owner/attendance',   icon: '◴' },
-            { label: 'Promotions',   href: '/owner/promotions',   icon: '✦' },
-            { label: 'Reviews',      href: '/owner/reviews',      icon: '★' },
-            { label: 'Settings',     href: '/owner/settings',     icon: '◐' },
+            { label: 'Availability', href: '/owner/availability', icon: '📆' },
+            { label: 'Analytics',   href: '/owner/analytics',    icon: '📊' },
+            { label: 'Team',         href: '/owner/team',         icon: '👥' },
+            { label: 'Attendance',   href: '/owner/attendance',   icon: '⏰' },
+            { label: 'Promotions',   href: '/owner/promotions',   icon: '🎁' },
+            { label: 'Reviews',      href: '/owner/reviews',      icon: '⭐' },
+            { label: 'Settings',     href: '/owner/settings',     icon: '⚙️' },
           ].map((a) => (
             <Link key={a.href} href={a.href}
               className="bg-white/60 backdrop-blur-md hover:bg-white border border-white/80 shadow-sm hover:shadow-glow-pink rounded-xl p-3 flex flex-col items-center gap-1.5 transition-all duration-300">

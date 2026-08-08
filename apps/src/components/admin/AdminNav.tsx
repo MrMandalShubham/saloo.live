@@ -4,16 +4,16 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard', href: '/admin/dashboard', icon: '▦' },
-  { label: 'Shops', href: '/admin/shops', icon: '✂' },
-  { label: 'Users', href: '/admin/users', icon: '◉' },
-  { label: 'Hairstyles', href: '/admin/hairstyles', icon: '✁' },
+  { label: 'Dashboard', href: '/admin/dashboard', icon: '🏠' },
+  { label: 'Shops', href: '/admin/shops', icon: '💈' },
+  { label: 'Users', href: '/admin/users', icon: '👥' },
+  { label: 'Hairstyles', href: '/admin/hairstyles', icon: '💇' },
   { label: 'Store', href: '/admin/store', icon: '🛍️' },
   { label: 'Orders', href: '/admin/orders', icon: '📦' },
-  { label: 'Disputes', href: '/admin/disputes', icon: '◈' },
-  { label: 'Analytics', href: '/admin/analytics', icon: '◎' },
-  { label: 'Notifications', href: '/admin/notifications', icon: '◇' },
-  { label: 'Settings', href: '/admin/settings', icon: '◐' },
+  { label: 'Disputes', href: '/admin/disputes', icon: '⚖️' },
+  { label: 'Analytics', href: '/admin/analytics', icon: '📊' },
+  { label: 'Notifications', href: '/admin/notifications', icon: '🔔' },
+  { label: 'Settings', href: '/admin/settings', icon: '⚙️' },
 ]
 
 export function AdminNav() {

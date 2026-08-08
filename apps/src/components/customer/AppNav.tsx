@@ -7,12 +7,12 @@ import { createClient } from '@/lib/supabase/client'
 
 // Bottom nav — mobile only. "Open a Shop" lives in the profile popover on mobile.
 const BOTTOM_NAV = [
-  { href: '/home',          label: 'Home',     icon: '⌂' },
-  { href: '/search',        label: 'Explore',  icon: '◎' },
-  { href: '/styles',        label: 'Styles',   icon: '✂' },
-  { href: '/bookings',      label: 'Bookings', icon: '◈' },
-  { href: '/notifications', label: 'Alerts',   icon: '◉' },
-  { href: '/profile',       label: 'Profile',  icon: '◷' },
+  { href: '/home',          label: 'Home',     icon: '🏠' },
+  { href: '/search',        label: 'Explore',  icon: '🔍' },
+  { href: '/styles',        label: 'Styles',   icon: '💇' },
+  { href: '/bookings',      label: 'Bookings', icon: '📅' },
+  { href: '/notifications', label: 'Alerts',   icon: '🔔' },
+  { href: '/profile',       label: 'Profile',  icon: '👤' },
 ]
 
 type SavedAccount = { id: string; name: string; email: string; role: string; refresh_token: string }
@@ -141,8 +141,8 @@ export function AppNav({ isGuest = false }: { isGuest?: boolean }) {
 
   // Mobile bottom nav — guests only see Home & Explore
   const guestBottomNav = [
-    { href: '/home',   label: 'Home',    icon: '⌂' },
-    { href: '/search', label: 'Explore', icon: '◎' },
+    { href: '/home',   label: 'Home',    icon: '🏠' },
+    { href: '/search', label: 'Explore', icon: '🔍' },
   ]
 
   const PopoverContent = () => (

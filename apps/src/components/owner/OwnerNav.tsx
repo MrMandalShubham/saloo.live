@@ -6,22 +6,22 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
 const NAV_ITEMS = [
-  { label: 'Dashboard',    href: '/owner/dashboard',   icon: '▦' },
-  { label: 'Queue',        href: '/owner/queue',       icon: '⧖' },
-  { label: 'Bookings',     href: '/owner/bookings',    icon: '◈' },
-  { label: 'Calendar',     href: '/owner/calendar',    icon: '▤' },
-  { label: 'Wallet',       href: '/owner/wallet',      icon: '◉' },
-  { label: 'Earnings',     href: '/owner/earnings',    icon: '₹' },
-  { label: 'Services',     href: '/owner/services',    icon: '✂' },
+  { label: 'Dashboard',    href: '/owner/dashboard',   icon: '🏠' },
+  { label: 'Queue',        href: '/owner/queue',       icon: '⏳' },
+  { label: 'Bookings',     href: '/owner/bookings',    icon: '📅' },
+  { label: 'Calendar',     href: '/owner/calendar',    icon: '🗓️' },
+  { label: 'Wallet',       href: '/owner/wallet',      icon: '👛' },
+  { label: 'Earnings',     href: '/owner/earnings',    icon: '💰' },
+  { label: 'Services',     href: '/owner/services',    icon: '✂️' },
   { label: 'Supplies',     href: '/owner/store',       icon: '🛍️' },
   { label: 'My Orders',    href: '/owner/orders',      icon: '📦' },
-  { label: 'Team',         href: '/owner/team',        icon: '◉' },
-  { label: 'Attendance',   href: '/owner/attendance',  icon: '◴' },
-  { label: 'Analytics',   href: '/owner/analytics',   icon: '◎' },
-  { label: 'Availability', href: '/owner/availability',icon: '◷' },
-  { label: 'Promotions',   href: '/owner/promotions',  icon: '✦' },
-  { label: 'Reviews',      href: '/owner/reviews',     icon: '★' },
-  { label: 'Settings',     href: '/owner/settings',    icon: '◐' },
+  { label: 'Team',         href: '/owner/team',        icon: '👥' },
+  { label: 'Attendance',   href: '/owner/attendance',  icon: '⏰' },
+  { label: 'Analytics',   href: '/owner/analytics',   icon: '📊' },
+  { label: 'Availability', href: '/owner/availability',icon: '📆' },
+  { label: 'Promotions',   href: '/owner/promotions',  icon: '🎁' },
+  { label: 'Reviews',      href: '/owner/reviews',     icon: '⭐' },
+  { label: 'Settings',     href: '/owner/settings',    icon: '⚙️' },
 ]
 
 // ── Account store (localStorage) ─────────────────────────────────────────────
