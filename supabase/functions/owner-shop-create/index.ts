@@ -59,6 +59,7 @@ Deno.serve(async (req) => {
         city: city.trim(),
         state: state.trim(),
         pincode: pincode.trim(),
+        segment: ['men', 'women', 'unisex'].includes(body.segment) ? body.segment : 'men',
         status: 'pending',
       })
       .select()

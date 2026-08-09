@@ -17,10 +17,16 @@ async function fetchAllShops(q: string) {
   const headers = { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey }
   const base = process.env['NEXT_PUBLIC_SUPABASE_URL']
 
+  let segment = 'men'
+  if (session) {
+    const { data: me } = await (supabase as any).from('users').select('segment').eq('id', session.user.id).single()
+    segment = me?.segment ?? 'men'
+  }
+
   const params = new URLSearchParams({
     lat: '22.7196', lng: '75.8577', radius_km: '50', limit: '50',
     ...(q && { q }),
-    sort_by: 'nearest',
+    sort_by: 'nearest', segment,
   })
 
   // Try nearby first (geo-based), fallback to search
@@ -30,7 +36,7 @@ async function fetchAllShops(q: string) {
     const results = json.data ?? []
     if (results.length > 0) return results
 
-    const fallback = await fetch(`${base}/functions/v1/shops-search?q=&city=&limit=50`, { headers })
+    const fallback = await fetch(`${base}/functions/v1/shops-search?q=&city=&limit=50&segment=${segment}`, { headers })
     const fbJson = await fallback.json()
     const fbData = fbJson.data
     return Array.isArray(fbData) ? fbData : (fbData?.shops ?? [])

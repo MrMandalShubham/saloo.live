@@ -18,6 +18,7 @@ Deno.serve(async (req) => {
     const max_price = url.searchParams.get('max_price') ? parseFloat(url.searchParams.get('max_price')!) : null
     const features = url.searchParams.get('features')?.split(',').filter(Boolean) ?? null
     const sort_by = url.searchParams.get('sort_by') ?? 'nearest'
+    const segment = url.searchParams.get('segment') // 'men' | 'women' | null
     const page = parseInt(url.searchParams.get('page') ?? '0')
     const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '20'), 50)
 
@@ -34,6 +35,7 @@ Deno.serve(async (req) => {
       p_sort_by: sort_by,
       p_limit: limit,
       p_offset: page * limit,
+      p_segment: segment === 'men' || segment === 'women' ? segment : null,
     })
 
     if (dbError) throw dbError

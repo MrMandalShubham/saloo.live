@@ -11,6 +11,8 @@ Deno.serve(async (req) => {
     const q = url.searchParams.get('q')?.trim()
     const city = url.searchParams.get('city')?.trim()
     const searchType = url.searchParams.get('type') ?? 'shop' // shop | barber | service | all
+    const seg = url.searchParams.get('segment')
+    const segList = seg === 'men' || seg === 'women' ? [seg, 'unisex'] : null
     const limit = Math.min(parseInt(url.searchParams.get('limit') ?? '20'), 50)
     const page = parseInt(url.searchParams.get('page') ?? '0')
 
@@ -25,6 +27,7 @@ Deno.serve(async (req) => {
       .order('rating', { ascending: false })
       .range(page * limit, page * limit + limit - 1)
 
+    if (segList) query = query.in('segment', segList)
     if (city) query = query.ilike('city', `%${city}%`)
     if (q) query = query.ilike('name', `%${q}%`)
 
@@ -36,7 +39,7 @@ Deno.serve(async (req) => {
     let serviceResults: any[] = []
 
     if (q && (searchType === 'barber' || searchType === 'all')) {
-      const { data: barbers } = await supabase
+      let bq = supabase
         .from('barbers')
         .select(`
           id, name, avatar_url, bio, specialties, rating, review_count,
@@ -48,12 +51,13 @@ Deno.serve(async (req) => {
         .eq('shops.status', 'verified')
         .or(`name.ilike.%${q}%,specialties.cs.{${q}}`)
         .limit(limit)
-
+      if (segList) bq = bq.in('shops.segment', segList)
+      const { data: barbers } = await bq
       barberResults = barbers ?? []
     }
 
     if (q && (searchType === 'service' || searchType === 'all')) {
-      const { data: services } = await supabase
+      let sq = supabase
         .from('services')
         .select(`
           id, name, category, price, duration_min,
@@ -63,7 +67,8 @@ Deno.serve(async (req) => {
         .eq('shops.status', 'verified')
         .ilike('name', `%${q}%`)
         .limit(limit)
-
+      if (segList) sq = sq.in('shops.segment', segList)
+      const { data: services } = await sq
       serviceResults = services ?? []
     }
 

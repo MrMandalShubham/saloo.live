@@ -55,6 +55,16 @@ Deno.serve(async (req) => {
     // Check if user has favourited this shop
     let is_favourite = false
     const { user } = await getAuthUser(req)
+
+    // Segment gate: a logged-in customer can only view their segment's shops (+ unisex)
+    if (user) {
+      const { data: me } = await supabase.from('users').select('segment').eq('id', user.id).single()
+      const seg = (me as any)?.segment
+      if (seg && shop.segment && shop.segment !== 'unisex' && shop.segment !== seg) {
+        return error('Shop not found', 404)
+      }
+    }
+
     if (user) {
       const { data: fav } = await supabase
         .from('favourites')

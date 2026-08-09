@@ -303,6 +303,7 @@ function ShopForm({ supabase, formLoading, setFormLoading, formError, setFormErr
     const pincode = (fd.get('pincode') as string)?.trim()
     const description = (fd.get('description') as string)?.trim()
     const email = (fd.get('email') as string)?.trim()
+    const segment = (fd.get('segment') as string) || 'men'
 
     if (!name || !phone || !address || !city || !state || !pincode) {
       setFormError('Please fill in all required fields.')
@@ -330,7 +331,7 @@ function ShopForm({ supabase, formLoading, setFormLoading, formError, setFormErr
           'Content-Type': 'application/json',
           apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         },
-        body: JSON.stringify({ name, description, phone, email, address, city, state, pincode }),
+        body: JSON.stringify({ name, description, phone, email, address, city, state, pincode, segment }),
       })
 
       let json: any = {}
@@ -392,6 +393,15 @@ function ShopForm({ supabase, formLoading, setFormLoading, formError, setFormErr
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="text-ink/70 text-xs font-medium mb-1 block">Who do you serve? <span className="text-red-400">*</span></label>
+          <select name="segment" defaultValue="men" required
+            className="w-full px-4 py-3 rounded-xl bg-white border border-border text-ink text-sm focus:outline-none focus:border-saloo-teal/40 focus:ring-1 focus:ring-saloo-teal/20 transition-all">
+            <option value="men">Men's grooming (barbershop)</option>
+            <option value="women">Women's beauty (salon / parlour)</option>
+            <option value="unisex">Unisex — both men &amp; women</option>
+          </select>
+        </div>
         <FormField label="Shop Name" name="name" placeholder="e.g. Classic Cuts Salon" required />
         <FormField label="Description" name="description" placeholder="Brief description of your shop" textarea />
         <FormField label="Phone" name="phone" placeholder="e.g. 9876543210" required type="tel" />

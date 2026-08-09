@@ -11,9 +11,16 @@ async function fetchNearbyShops() {
   const { data: { session } } = await supabase.auth.getSession()
   const apikey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
 
+  // Which section is this customer in? (defaults to men)
+  let segment = 'men'
+  if (session) {
+    const { data: me } = await (supabase as any).from('users').select('segment').eq('id', session.user.id).single()
+    segment = me?.segment ?? 'men'
+  }
+
   // Try nearby first (requires shops to have location set)
   const nearbyRes = await fetch(
-    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-nearby?lat=22.7196&lng=75.8577&radius_km=50&limit=12`,
+    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-nearby?lat=22.7196&lng=75.8577&radius_km=50&limit=12&segment=${segment}`,
     { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey } }
   )
   const nearbyJson = await nearbyRes.json()
@@ -21,7 +28,7 @@ async function fetchNearbyShops() {
 
   // Fallback: fetch all verified shops via search (for shops without location)
   const searchRes = await fetch(
-    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-search?q=&city=&limit=12`,
+    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-search?q=&city=&limit=12&segment=${segment}`,
     { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey } }
   )
   const searchJson = await searchRes.json()
