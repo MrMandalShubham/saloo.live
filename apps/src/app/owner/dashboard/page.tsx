@@ -247,7 +247,7 @@ export default async function OwnerDashboardPage() {
           ].map((a) => (
             <Link key={a.href} href={a.href}
               className="bg-white/60 backdrop-blur-md hover:bg-white border border-white/80 shadow-sm hover:shadow-glow-pink rounded-xl p-3 flex flex-col items-center gap-1.5 transition-all duration-300">
-              <span className="text-saloo-pink text-xl leading-none">{a.icon}</span>
+              <span className="text-saloo-pink text-base leading-none">{a.icon}</span>
               <span className="text-saloo-dark/80 text-[10px] font-bold text-center leading-tight">{a.label}</span>
             </Link>
           ))}

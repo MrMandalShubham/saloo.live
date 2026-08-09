@@ -40,7 +40,7 @@ export function AdminNav() {
                 className={`flex items-center gap-3 px-5 py-2.5 mx-2 rounded-xl text-sm transition-all ${
                   active ? 'bg-gold/10 text-gold border border-gold/20 shadow-sm' : 'text-saloo-dark/70 hover:text-saloo-dark hover:bg-saloo-dark/5'
                 }`}>
-                <span className={`text-base w-5 text-center font-syne ${active ? 'text-gold' : 'text-saloo-dark/50'}`}>{item.icon}</span>
+                <span className={`text-sm w-5 text-center font-syne ${active ? 'text-gold' : 'text-saloo-dark/50'}`}>{item.icon}</span>
                 <span className="font-medium">{item.label}</span>
               </Link>
             )
@@ -77,7 +77,7 @@ export function AdminNav() {
             const active = pathname.startsWith(item.href)
             return (
               <Link key={item.href} href={item.href} className={`flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 shrink-0 px-4 ${active ? 'text-gold' : 'text-saloo-dark/70 hover:text-saloo-dark'}`}>
-                <span className={`text-2xl font-syne leading-none ${active ? 'text-gold' : 'text-saloo-dark/50'}`}>{item.icon}</span>
+                <span className={`text-xl font-syne leading-none ${active ? 'text-gold' : 'text-saloo-dark/50'}`}>{item.icon}</span>
                 <span className={`text-[10px] font-medium whitespace-nowrap ${active ? 'text-gold' : 'text-saloo-dark/50'}`}>{item.label}</span>
               </Link>
             )

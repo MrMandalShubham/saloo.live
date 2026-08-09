@@ -336,7 +336,7 @@ export function AppNav({ isGuest = false }: { isGuest?: boolean }) {
                 className={`flex-1 flex flex-col items-center py-3 gap-0.5 transition-all active:scale-95 ${
                   active ? 'text-saloo-teal' : 'text-saloo-dark/50 hover:text-saloo-dark'
                 }`}>
-                <span className={`text-xl font-syne leading-none transition-all ${active ? 'scale-110' : ''}`}>
+                <span className={`text-lg font-syne leading-none transition-all ${active ? 'scale-110' : ''}`}>
                   {item.icon}
                 </span>
                 <span className={`text-[10px] font-medium leading-none ${active ? 'text-saloo-teal' : ''}`}>
