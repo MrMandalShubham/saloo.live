@@ -15,9 +15,9 @@ export default async function HomePage() {
   let favBarbers: any[] = []
 
   if (user) {
-    const { data: p } = await supabase
+    const { data: p } = await (supabase as any)
       .from('users')
-      .select('name, loyalty_tier, loyalty_points, avatar_url')
+      .select('name, loyalty_tier, loyalty_points, avatar_url, segment')
       .eq('id', user.id)
       .single()
     profile = p
@@ -45,6 +45,7 @@ export default async function HomePage() {
   }
 
   const firstName = profile?.name?.split(' ')[0] ?? 'there'
+  const isWomen = profile?.segment === 'women'
 
   const greetings = [
     'Looking sharp today,',
@@ -113,7 +114,10 @@ export default async function HomePage() {
           <div className="flex-1 min-w-0">
             <p className="text-white/80 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-0.5">{greeting}</p>
             <h1 className="font-syne text-2xl sm:text-3xl font-bold text-white tracking-tight truncate">{firstName}</h1>
-            <p className="text-white/70 text-[10px] sm:text-xs mt-1 font-light">Ready for your next great cut?</p>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[9px] font-bold uppercase tracking-widest bg-white/15 text-white px-2 py-0.5 rounded-full">{isWomen ? '💅 Women' : '💈 Men'}</span>
+              <p className="text-white/70 text-[10px] sm:text-xs font-light">{isWomen ? 'Ready to glow up?' : 'Ready for your next great cut?'}</p>
+            </div>
           </div>
 
           {/* Points — compact */}

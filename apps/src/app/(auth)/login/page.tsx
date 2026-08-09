@@ -19,6 +19,7 @@ function LoginPage() {
   const [email, setEmail]       = useState(prefillEmail)
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
+  const [segment, setSegment]   = useState<'men' | 'women'>('men')
   const [loading, setLoading]   = useState(false)
   const [error, setError]       = useState('')
 
@@ -66,7 +67,7 @@ function LoginPage() {
     const { data, error: err } = await supabase.auth.signUp({
       email, password,
       options: {
-        data: { full_name: fullName.trim() },
+        data: { full_name: fullName.trim(), segment },
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
@@ -154,6 +155,26 @@ function LoginPage() {
           {/* Sign Up form */}
           {mode === 'signup' && (
             <div className="space-y-3">
+              <div>
+                <label className={labelCls}>Looking for</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    { key: 'men', label: "Men's Grooming", emoji: '💈' },
+                    { key: 'women', label: "Women's Beauty", emoji: '💅' },
+                  ] as const).map(o => (
+                    <button
+                      key={o.key} type="button" onClick={() => { setSegment(o.key); setError('') }}
+                      className={`flex flex-col items-center gap-1 py-3 rounded-xl border text-sm font-semibold transition-all ${
+                        segment === o.key ? 'bg-gold/15 border-gold text-white' : 'bg-white/5 border-white/20 text-white/50 hover:bg-white/10'
+                      }`}
+                    >
+                      <span className="text-xl">{o.emoji}</span>
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-white/30 text-[11px] mt-1.5">You can only book in the section you choose.</p>
+              </div>
               <div>
                 <label className={labelCls}>Full Name</label>
                 <input
