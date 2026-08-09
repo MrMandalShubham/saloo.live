@@ -14,6 +14,7 @@ serve(async (req) => {
 
     const url = new URL(req.url)
     const status = url.searchParams.get('status') // pending | verified | suspended | all
+    const segment = url.searchParams.get('segment') // men | women | unisex | all
     const search = url.searchParams.get('search') ?? ''
     const page = parseInt(url.searchParams.get('page') ?? '1')
     const limit = parseInt(url.searchParams.get('limit') ?? '20')
@@ -22,13 +23,14 @@ serve(async (req) => {
     let query = admin
       .from('shops')
       .select(`
-        id, name, city, status, rating, review_count, created_at,
+        id, name, city, status, segment, rating, review_count, created_at,
         owner:users!shops_owner_id_fkey(name, phone)
       `, { count: 'exact' })
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
     if (status && status !== 'all') query = query.eq('status', status)
+    if (segment && segment !== 'all') query = query.eq('segment', segment)
     if (search) query = query.ilike('name', `%${search}%`)
 
     const { data, count, error } = await query
@@ -54,6 +56,7 @@ serve(async (req) => {
       name: s.name,
       city: s.city,
       status: s.status,
+      segment: s.segment,
       rating: s.rating,
       review_count: s.review_count,
       created_at: s.created_at,

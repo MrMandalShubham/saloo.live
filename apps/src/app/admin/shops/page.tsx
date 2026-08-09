@@ -7,8 +7,8 @@ import Link from 'next/link'
 
 const BASE = process.env.NEXT_PUBLIC_SUPABASE_URL
 
-async function fetchShops(token: string, status: string, search: string, page: number) {
-  const params = new URLSearchParams({ status, search, page: String(page), limit: '20' })
+async function fetchShops(token: string, status: string, search: string, page: number, segment: string) {
+  const params = new URLSearchParams({ status, search, page: String(page), limit: '20', segment })
   const res = await fetch(`${BASE}/functions/v1/admin-shops-list?${params}`, {
     headers: { Authorization: `Bearer ${token}`, apikey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY! },
   })
@@ -27,6 +27,13 @@ async function updateShopStatus(token: string, payload: any) {
 }
 
 const STATUS_TABS = ['all', 'pending', 'verified', 'suspended', 'rejected']
+const SEGMENT_TABS = ['all', 'men', 'women', 'unisex']
+
+const SEGMENT_COLORS: Record<string, string> = {
+  men:    'text-blue-500 bg-blue-400/10',
+  women:  'text-pink-500 bg-pink-400/10',
+  unisex: 'text-purple-500 bg-purple-400/10',
+}
 
 const STATUS_COLORS: Record<string, string> = {
   verified:  'text-green-400 bg-green-400/10',
@@ -45,6 +52,7 @@ interface ActionModal {
 
 export default function AdminShopsPage() {
   const [status, setStatus] = useState('all')
+  const [segment, setSegment] = useState('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [modal, setModal] = useState<ActionModal | null>(null)
@@ -54,10 +62,10 @@ export default function AdminShopsPage() {
   const supabase = createClient()
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-shops', status, search, page],
+    queryKey: ['admin-shops', status, search, page, segment],
     queryFn: async () => {
       const { data: { session } } = await supabase.auth.getSession()
-      return fetchShops(session!.access_token, status, search, page)
+      return fetchShops(session!.access_token, status, search, page, segment)
     },
   })
 
@@ -119,6 +127,20 @@ export default function AdminShopsPage() {
             </button>
           ))}
         </div>
+        <div className="flex gap-2 flex-wrap items-center">
+          <span className="text-saloo-dark/40 text-xs uppercase tracking-wide mr-1">Section:</span>
+          {SEGMENT_TABS.map(s => (
+            <button
+              key={s}
+              onClick={() => { setSegment(s); setPage(1) }}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium capitalize transition-colors ${
+                segment === s ? 'bg-saloo-pink text-white shadow-md' : 'text-saloo-dark/60 hover:text-saloo-dark/70'
+              }`}
+            >
+              {s === 'men' ? '💈 Men' : s === 'women' ? '💅 Women' : s === 'unisex' ? 'Unisex' : 'All'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table */}
@@ -126,7 +148,7 @@ export default function AdminShopsPage() {
         <table className="w-full text-sm min-w-[700px]">
           <thead>
             <tr className="border-b border-white/80 bg-white/60 backdrop-blur-md shadow-sm">
-              {['Shop', 'Owner', 'City', 'Rating', 'Bookings', 'Revenue', 'Status', 'Actions'].map(h => (
+              {['Shop', 'Owner', 'City', 'Section', 'Rating', 'Bookings', 'Revenue', 'Status', 'Actions'].map(h => (
                 <th key={h} className="text-left px-4 py-3 text-saloo-dark/60 text-xs font-medium uppercase tracking-wide">{h}</th>
               ))}
             </tr>
@@ -135,14 +157,14 @@ export default function AdminShopsPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-b border-white/5">
-                  <td colSpan={8} className="px-4 py-4">
+                  <td colSpan={9} className="px-4 py-4">
                     <div className="h-4 bg-white/60 backdrop-blur-md shadow-sm rounded animate-pulse" />
                   </td>
                 </tr>
               ))
             ) : shops.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-4 py-12 text-center text-saloo-dark/50">No shops found</td>
+                <td colSpan={9} className="px-4 py-12 text-center text-saloo-dark/50">No shops found</td>
               </tr>
             ) : shops.map((shop: any) => (
               <tr key={shop.id} className="border-b border-white/5 hover:bg-white/60 backdrop-blur-md shadow-sm transition-colors">
@@ -157,6 +179,11 @@ export default function AdminShopsPage() {
                   <p className="text-saloo-dark/50 text-xs">{shop.owner_phone}</p>
                 </td>
                 <td className="px-4 py-3 text-saloo-dark/80">{shop.city}</td>
+                <td className="px-4 py-3">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize ${SEGMENT_COLORS[shop.segment] ?? 'text-saloo-dark/60'}`}>
+                    {shop.segment === 'women' ? '💅 Women' : shop.segment === 'unisex' ? 'Unisex' : '💈 Men'}
+                  </span>
+                </td>
                 <td className="px-4 py-3 text-saloo-dark/80">⭐ {shop.rating?.toFixed(1) ?? '—'}</td>
                 <td className="px-4 py-3 text-saloo-dark/80">{shop.total_bookings}</td>
                 <td className="px-4 py-3 text-saloo-dark/80">
