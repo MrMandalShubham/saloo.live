@@ -14,8 +14,15 @@ export default function LeaderboardPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['leaderboard'],
     queryFn: async () => {
-      const { data: { session } } = await createClient().auth.getSession()
-      const res = await fetch(`${BASE}/functions/v1/leaderboard-get`, {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      // Show only the customer's section (women see women+unisex, etc.); guests default to men
+      let segment = 'men'
+      if (session) {
+        const { data: me } = await (supabase as any).from('users').select('segment').eq('id', session.user.id).single()
+        segment = me?.segment ?? 'men'
+      }
+      const res = await fetch(`${BASE}/functions/v1/leaderboard-get?segment=${segment}`, {
         headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: ANON },
       })
       return (await res.json()).data

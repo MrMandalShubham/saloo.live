@@ -8,6 +8,9 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url)
     const city = url.searchParams.get('city')?.trim()
+    const seg = url.searchParams.get('segment')
+    // Section gating: a customer sees only their own section's shops + unisex (guests → men)
+    const segList = seg === 'men' || seg === 'women' ? [seg, 'unisex'] : null
     const supabase = createAdminClient()
 
     let shopQuery = supabase
@@ -15,6 +18,7 @@ Deno.serve(async (req) => {
       .select('id, name, photos, rating, review_count, city, is_featured')
       .eq('status', 'verified')
     if (city) shopQuery = shopQuery.ilike('city', `%${city}%`)
+    if (segList) shopQuery = shopQuery.in('segment', segList)
 
     const { data: shops } = await shopQuery
       .order('is_featured', { ascending: false })
@@ -50,12 +54,14 @@ Deno.serve(async (req) => {
       starting_price: priceByShop[s.id] ?? null,
     }))
 
-    // Top barbers (in verified shops)
-    const { data: barbers } = await supabase
+    // Top barbers (in verified shops) — gated to the customer's section + unisex
+    let barberQuery = supabase
       .from('barbers')
-      .select('id, name, avatar_url, rating, review_count, specialties, shop_id, shop:shops!inner(name, city, status)')
+      .select('id, name, avatar_url, rating, review_count, specialties, shop_id, shop:shops!inner(name, city, status, segment)')
       .eq('is_active', true)
       .eq('shop.status', 'verified')
+    if (segList) barberQuery = barberQuery.in('shop.segment', segList)
+    const { data: barbers } = await barberQuery
       .order('rating', { ascending: false })
       .order('review_count', { ascending: false })
       .limit(10)
