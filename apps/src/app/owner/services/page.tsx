@@ -4,19 +4,12 @@ import { useState, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { formatINR } from '@saloo/lib'
+import { categoriesForSegment, categoryLabel } from '@/lib/categories'
 import Image from 'next/image'
 
 const BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-const CATEGORIES = [
-  { key: 'hair', label: 'Hair' },
-  { key: 'beard', label: 'Beard' },
-  { key: 'skin', label: 'Skin' },
-  { key: 'combo', label: 'Combo' },
-  { key: 'kids', label: 'Kids' },
-  { key: 'other', label: 'Other' },
-]
 const DURATIONS = [15, 30, 45, 60, 90, 120]
 const EMPTY = { name: '', category: 'hair', duration_min: 30, price: '', description: '', is_addon: false, is_active: true, image_url: '', parent_service_id: '' }
 
@@ -48,6 +41,17 @@ export default function OwnerServicesPage() {
       return data ?? []
     },
   })
+
+  // Which categories to offer depends on who the shop serves (men/women/unisex)
+  const { data: shop } = useQuery({
+    queryKey: ['owner-shop-segment'],
+    queryFn: async () => {
+      const token = await getToken()
+      const res = await fetch(`${BASE_URL}/functions/v1/owner-shop-get`, { headers: { Authorization: `Bearer ${token}`, apikey: ANON_KEY } })
+      return (await res.json()).data
+    },
+  })
+  const CATEGORIES = categoriesForSegment(shop?.segment)
 
   const upsertMutation = useMutation({
     mutationFn: async (payload: any) => {
@@ -125,7 +129,7 @@ export default function OwnerServicesPage() {
   // Services that can be a parent: standalone (non-addon, non-variant), excluding the one being edited
   const parentOptions = (services ?? []).filter((s: any) => !s.is_addon && !s.parent_service_id && s.id !== editId)
 
-  const catLabel = (key: string) => CATEGORIES.find(c => c.key === key)?.label ?? key
+  const catLabel = (key: string) => categoryLabel(key)
 
   return (
     <div className="space-y-6">

@@ -18,10 +18,16 @@ export default function StylesPage() {
   const { data: styles = [], isLoading } = useQuery({
     queryKey: ['hairstyles', face, hair],
     queryFn: async () => {
+      const supabase = createClient()
       const p = new URLSearchParams()
       if (face) p.set('face_shape', face)
       if (hair) p.set('hair_type', hair)
-      const { data: { session } } = await createClient().auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
+      // Show the customer's segment's styles (women see women+unisex, etc.)
+      if (session) {
+        const { data: me } = await (supabase as any).from('users').select('segment').eq('id', session.user.id).single()
+        if (me?.segment) p.set('gender', me.segment)
+      }
       const res = await fetch(`${BASE}/functions/v1/hairstyles-list?${p}`, {
         headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: ANON },
       })

@@ -141,7 +141,7 @@ export default async function HomePage() {
         <section>
           <div className="flex items-center gap-2 mb-3">
             <div className="w-1 h-6 rounded-full bg-red-400" />
-            <h2 className="font-syne font-bold text-xl text-navy">Your Barbers</h2>
+            <h2 className="font-syne font-bold text-xl text-navy">{isWomen ? 'Your Stylists' : 'Your Barbers'}</h2>
           </div>
           <div className="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
             {favBarbers.map((b: any) => {
@@ -180,7 +180,7 @@ export default async function HomePage() {
           </svg>
         </div>
         <div>
-          <p className="font-syne font-bold text-navy text-base">Find a Barbershop</p>
+          <p className="font-syne font-bold text-navy text-base">{isWomen ? 'Find a Salon' : 'Find a Barbershop'}</p>
           <p className="text-muted text-xs mt-0.5">Search by name, location, or service</p>
         </div>
         <div className="ml-auto w-8 h-8 rounded-full bg-background flex items-center justify-center border border-border group-hover:bg-navy group-hover:border-navy transition-all">
@@ -197,7 +197,7 @@ export default async function HomePage() {
         <div className="relative z-10 flex items-center gap-4 w-full">
           <div className="text-2xl">🏆</div>
           <div className="flex-1">
-            <p className="font-syne font-bold text-white">Discover Top Barbers</p>
+            <p className="font-syne font-bold text-white">{isWomen ? 'Discover Top Stylists' : 'Discover Top Barbers'}</p>
             <p className="text-white/60 text-xs mt-0.5">Trending shops & city leaderboard</p>
           </div>
           <span className="text-gold text-xl group-hover:translate-x-1 transition-transform">→</span>
@@ -212,7 +212,7 @@ export default async function HomePage() {
           <div className="text-2xl">💇</div>
           <div className="flex-1">
             <p className="font-syne font-bold text-navy">Find Your Hairstyle</p>
-            <p className="text-navy/70 text-xs mt-0.5">Browse looks by face shape & show your barber</p>
+            <p className="text-navy/70 text-xs mt-0.5">Browse looks by face shape & show your {isWomen ? 'stylist' : 'barber'}</p>
           </div>
           <span className="text-navy text-xl group-hover:translate-x-1 transition-transform">→</span>
         </div>
@@ -224,7 +224,7 @@ export default async function HomePage() {
           <div className="w-1 h-6 rounded-full bg-saloo-teal" />
           <h2 className="font-syne font-bold text-xl text-navy">Nearby Shops</h2>
         </div>
-        <p className="text-secondary text-sm font-medium ml-3 mb-4 tracking-wide">Top-rated barbers around you</p>
+        <p className="text-secondary text-sm font-medium ml-3 mb-4 tracking-wide">{isWomen ? 'Top-rated salons around you' : 'Top-rated barbers around you'}</p>
         <ShopsGrid />
       </section>
 
