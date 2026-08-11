@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
+import { getGuestSegment } from '@/lib/segment'
 import { FACE_SHAPES, HAIR_TYPES } from '@/lib/hairstyles'
 
 const BASE = process.env['NEXT_PUBLIC_SUPABASE_URL']
@@ -27,6 +28,8 @@ export default function StylesPage() {
       if (session) {
         const { data: me } = await (supabase as any).from('users').select('segment').eq('id', session.user.id).single()
         if (me?.segment) p.set('gender', me.segment)
+      } else {
+        p.set('gender', getGuestSegment())
       }
       const res = await fetch(`${BASE}/functions/v1/hairstyles-list?${p}`, {
         headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey: ANON },

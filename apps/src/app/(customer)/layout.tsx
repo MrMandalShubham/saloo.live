@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { AppNav } from '@/components/customer/AppNav'
+import { SegmentGate } from '@/components/customer/SegmentGate'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies()
@@ -13,6 +14,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   // Allow guests — no redirect to /login
   const isGuest = !user && !isDevBypass
+
+  // Guests must pick a section (men/women) before browsing. Logged-in users
+  // already carry their segment from signup, so they never see this.
+  const guestSegment = cookieStore.get('guest_segment')?.value
+  if (isGuest && guestSegment !== 'men' && guestSegment !== 'women') {
+    return <SegmentGate />
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 flex flex-col relative overflow-x-clip selection:bg-saloo-teal/20 selection:text-saloo-dark">

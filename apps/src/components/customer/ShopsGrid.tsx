@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
+import { getGuestSegment } from '@/lib/segment'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatINR, formatDistance } from '@saloo/lib'
@@ -11,11 +12,13 @@ async function fetchNearbyShops() {
   const { data: { session } } = await supabase.auth.getSession()
   const apikey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] ?? ''
 
-  // Which section is this customer in? (defaults to men)
+  // Which section? Logged-in → their segment; guest → their chosen section (cookie)
   let segment = 'men'
   if (session) {
     const { data: me } = await (supabase as any).from('users').select('segment').eq('id', session.user.id).single()
     segment = me?.segment ?? 'men'
+  } else {
+    segment = getGuestSegment()
   }
 
   // Try nearby first (requires shops to have location set)

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
+import { getGuestSegment } from '@/lib/segment'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatINR, formatDistance } from '@saloo/lib'
@@ -21,6 +22,8 @@ async function fetchAllShops(q: string) {
   if (session) {
     const { data: me } = await (supabase as any).from('users').select('segment').eq('id', session.user.id).single()
     segment = me?.segment ?? 'men'
+  } else {
+    segment = getGuestSegment()
   }
 
   const params = new URLSearchParams({

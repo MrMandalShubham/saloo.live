@@ -1,14 +1,17 @@
 export const dynamic = 'force-dynamic'
 
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { ShopsGrid } from '@/components/customer/ShopsGrid'
 import { QuickReBook } from '@/components/customer/QuickReBook'
+import { GuestSectionSwitch } from '@/components/customer/GuestSectionSwitch'
 import { getAvatarById } from '@/lib/avatars'
 import Link from 'next/link'
 
 export default async function HomePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const cookieStore = await cookies()
 
   let profile = null
   let lastBooking = null
@@ -45,7 +48,9 @@ export default async function HomePage() {
   }
 
   const firstName = profile?.name?.split(' ')[0] ?? 'there'
-  const isWomen = profile?.segment === 'women'
+  // Logged-in → their signup segment; guest → their chosen section (cookie)
+  const guestSegment = cookieStore.get('guest_segment')?.value
+  const isWomen = user ? profile?.segment === 'women' : guestSegment === 'women'
 
   const greetings = [
     'Looking sharp today,',
@@ -115,7 +120,9 @@ export default async function HomePage() {
             <p className="text-white/80 text-[10px] sm:text-xs font-bold uppercase tracking-widest mb-0.5">{greeting}</p>
             <h1 className="font-syne text-2xl sm:text-3xl font-bold text-white tracking-tight truncate">{firstName}</h1>
             <div className="flex items-center gap-2 mt-1">
-              <span className="text-[9px] font-bold uppercase tracking-widest bg-white/15 text-white px-2 py-0.5 rounded-full">{isWomen ? '💅 Women' : '💈 Men'}</span>
+              {user
+                ? <span className="text-[9px] font-bold uppercase tracking-widest bg-white/15 text-white px-2 py-0.5 rounded-full">{isWomen ? '💅 Women' : '💈 Men'}</span>
+                : <GuestSectionSwitch isWomen={isWomen} />}
               <p className="text-white/70 text-[10px] sm:text-xs font-light">{isWomen ? 'Ready to glow up?' : 'Ready for your next great cut?'}</p>
             </div>
           </div>
