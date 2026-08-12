@@ -1,7 +1,8 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Syne, DM_Sans, Playfair_Display } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
+import { SwRegister } from './sw-register'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -23,19 +24,28 @@ const dmSans = DM_Sans({
 
 export const metadata: Metadata = {
   title: 'LooksOn — Book Your Barber',
-  description: 'India\'s premier barber booking platform. Find top barbers near you, book instantly, pay securely.',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-    viewportFit: 'cover',
+  description: 'India\'s premier barber & beauty booking platform. Find top barbers and salons near you, book instantly, pay securely.',
+  applicationName: 'LooksOn',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'LooksOn',
   },
   openGraph: {
     title: 'LooksOn — Book Your Barber',
-    description: 'India\'s premier barber booking platform.',
+    description: 'India\'s premier barber & beauty booking platform.',
     type: 'website',
+    images: ['/looks-on-logo.png'],
   },
+}
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#202f32',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -43,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${playfair.variable} ${syne.variable} ${dmSans.variable}`}>
       <body>
         <Providers>{children}</Providers>
+        <SwRegister />
       </body>
     </html>
   )
