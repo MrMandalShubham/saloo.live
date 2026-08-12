@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { getGuestSegment } from '@/lib/segment'
+import { getUserCoords } from '@/lib/geo'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatINR, formatDistance } from '@saloo/lib'
@@ -26,8 +27,9 @@ async function fetchAllShops(q: string) {
     segment = getGuestSegment()
   }
 
+  const { lat, lng } = await getUserCoords()
   const params = new URLSearchParams({
-    lat: '22.7196', lng: '75.8577', radius_km: '50', limit: '50',
+    lat: String(lat), lng: String(lng), radius_km: '50', limit: '50',
     ...(q && { q }),
     sort_by: 'nearest', segment,
   })

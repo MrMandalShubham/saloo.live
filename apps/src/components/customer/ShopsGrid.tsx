@@ -3,6 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { createClient } from '@/lib/supabase/client'
 import { getGuestSegment } from '@/lib/segment'
+import { getUserCoords } from '@/lib/geo'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatINR, formatDistance } from '@saloo/lib'
@@ -21,9 +22,12 @@ async function fetchNearbyShops() {
     segment = getGuestSegment()
   }
 
+  // Use the device's real location when allowed (falls back to Indore)
+  const { lat, lng } = await getUserCoords()
+
   // Try nearby first (requires shops to have location set)
   const nearbyRes = await fetch(
-    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-nearby?lat=22.7196&lng=75.8577&radius_km=50&limit=12&segment=${segment}`,
+    `${process.env['NEXT_PUBLIC_SUPABASE_URL']}/functions/v1/shops-nearby?lat=${lat}&lng=${lng}&radius_km=50&limit=12&segment=${segment}`,
     { headers: { Authorization: `Bearer ${session?.access_token ?? ''}`, apikey } }
   )
   const nearbyJson = await nearbyRes.json()
