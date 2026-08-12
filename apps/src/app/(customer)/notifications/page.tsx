@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { PushOptIn } from '@/components/customer/PushOptIn'
 import { relativeTime } from '@saloo/lib'
 
 const FILTERS = [
@@ -86,6 +87,9 @@ export default function NotificationsPage() {
           </button>
         )}
       </div>
+
+      {/* Enable push notifications (shows only when opt-in is possible) */}
+      <PushOptIn />
 
       {/* Filters */}
       <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
