@@ -87,7 +87,7 @@ export default async function HomePage() {
       <TrendingHaircuts segment={segment} isWomen={isWomen} />
 
       {/* Top-rated near you */}
-      <TopRatedStrip segment={segment} isWomen={isWomen} />
+      <TopRatedStrip segment={segment} />
 
       {/* Book again (returning customers only) */}
       {lastBooking && <QuickReBook booking={lastBooking as any} />}

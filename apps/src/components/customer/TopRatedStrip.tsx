@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { fetchHomeData } from '@/lib/homeData'
 import { formatINR } from '@saloo/lib'
 
-export function TopRatedStrip({ segment, isWomen }: { segment: string; isWomen: boolean }) {
+export function TopRatedStrip({ segment }: { segment: string }) {
   // Same queryKey as the hero → one shared network request
   const { data } = useQuery({ queryKey: ['home-data', segment], queryFn: () => fetchHomeData(segment), staleTime: 60_000 })
   const shops = (data?.shops ?? []).slice(0, 10)
