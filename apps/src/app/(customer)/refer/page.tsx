@@ -46,20 +46,28 @@ export default function ReferPage() {
   })
 
   const code = data?.code ?? ''
-  const shareText = `Join me on LooksOn and book your next haircut! Use my code ${code} to get bonus points on your first booking. https://saloo.live`
+  const origin = typeof window !== 'undefined' ? window.location.origin : 'https://saloo.live'
+  const shareUrl = code ? `${origin}/login?ref=${code}` : origin
+  const shareText = `Join me on LooksOn and book your next haircut! Tap my link to get 100 bonus points on your first booking 👉 ${shareUrl}`
+  const [linkCopied, setLinkCopied] = useState(false)
 
   async function handleShare() {
     if (navigator.share) {
-      try { await navigator.share({ title: 'Join me on LooksOn', text: shareText }) } catch {}
+      try { await navigator.share({ title: 'Join me on LooksOn', text: shareText, url: shareUrl }) } catch {}
     } else {
       await navigator.clipboard.writeText(shareText)
-      setCopied(true); setTimeout(() => setCopied(false), 2000)
+      setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000)
     }
   }
 
   async function copyCode() {
     await navigator.clipboard.writeText(code)
     setCopied(true); setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function copyLink() {
+    await navigator.clipboard.writeText(shareUrl)
+    setLinkCopied(true); setTimeout(() => setLinkCopied(false), 2000)
   }
 
   return (
@@ -94,10 +102,16 @@ export default function ReferPage() {
             <span className="text-saloo-teal text-sm font-semibold">{copied ? '✓ Copied' : 'Tap to copy'}</span>
           </button>
         )}
-        <button onClick={handleShare}
-          className="w-full bg-saloo-teal text-navy font-syne font-bold py-3.5 rounded-xl hover:bg-saloo-teal/90 transition-colors">
-          Share with Friends
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleShare}
+            className="flex-1 bg-saloo-teal text-navy font-syne font-bold py-3.5 rounded-xl hover:bg-saloo-teal/90 transition-colors">
+            Share with Friends
+          </button>
+          <button onClick={copyLink}
+            className="px-4 bg-navy text-white font-semibold text-sm rounded-xl hover:bg-navy/90 transition-colors whitespace-nowrap">
+            {linkCopied ? '✓ Copied' : 'Copy link'}
+          </button>
+        </div>
       </div>
 
       {/* Stats */}
@@ -141,8 +155,8 @@ export default function ReferPage() {
         <p className="text-xs text-muted uppercase tracking-widest font-bold mb-4">How it works</p>
         <div className="space-y-4">
           {[
-            { n: '1', t: 'Share your code', d: 'Send your code to friends via WhatsApp, SMS, anywhere.' },
-            { n: '2', t: 'They book', d: 'Your friend applies your code and completes their first booking.' },
+            { n: '1', t: 'Share your link', d: 'Send your invite link to friends via WhatsApp, SMS, anywhere.' },
+            { n: '2', t: 'They sign up & book', d: 'Your code applies automatically — they just complete their first booking.' },
             { n: '3', t: 'You both earn', d: 'They get 100 points, you get 200 — automatically.' },
           ].map(s => (
             <div key={s.n} className="flex gap-3">

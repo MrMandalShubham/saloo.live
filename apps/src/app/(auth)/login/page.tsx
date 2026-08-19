@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { storePendingReferral } from '@/lib/referral'
 import Link from 'next/link'
 
 type AuthMode = 'signin' | 'signup'
@@ -14,8 +15,12 @@ function LoginPage() {
 
   const prefillEmail = searchParams.get('email') ?? ''
   const redirectTo = searchParams.get('redirect') ?? '/home'
+  const refCode = (searchParams.get('ref') ?? '').trim().toUpperCase()
 
-  const [mode, setMode]         = useState<AuthMode>('signin')
+  // Referred via a ?ref= link → remember the code and steer them to sign up
+  useEffect(() => { if (refCode) storePendingReferral(refCode) }, [refCode])
+
+  const [mode, setMode]         = useState<AuthMode>(refCode ? 'signup' : 'signin')
   const [email, setEmail]       = useState(prefillEmail)
   const [password, setPassword] = useState('')
   const [fullName, setFullName] = useState('')
@@ -105,6 +110,17 @@ function LoginPage() {
 
         {/* Card */}
         <div className="bg-white/[0.07] backdrop-blur-sm border border-white/15 rounded-2xl p-6 space-y-5">
+
+          {/* Referral bonus banner */}
+          {refCode && (
+            <div className="bg-gold/15 border border-gold/40 rounded-xl px-4 py-3 flex items-center gap-3">
+              <span className="text-2xl">🎁</span>
+              <div>
+                <p className="text-white text-sm font-semibold">You&apos;ve been invited!</p>
+                <p className="text-white/60 text-xs">Sign up and earn <span className="text-gold font-bold">100 bonus points</span> on your first booking.</p>
+              </div>
+            </div>
+          )}
 
           {/* Tabs */}
           <div className="flex bg-white/10 rounded-xl p-1 gap-1">
