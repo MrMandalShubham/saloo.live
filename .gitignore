@@ -64,7 +64,8 @@ coverage
 extracted_content.txt
 plan_raw.txt
 
-# Claude
-.claude/todos.json
+# AI tooling (local config, not app code)
+.claude/
+.agent/
 .gemini
 .gsd
