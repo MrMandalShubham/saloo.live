@@ -16,19 +16,12 @@ Deno.serve(async (req) => {
 
     const supabase = createAdminClient()
 
-    // Fetch shop
-    const { data: shop, error: shopErr } = await supabase
-      .from('shops')
-      .select('*')
-      .eq('id', shopId)
-      .eq('status', 'verified')
-      .single()
-
-    if (shopErr || !shop) return error('Shop not found', 404)
-
-    // Fetch related data in parallel
-    const [hoursRes, breaksRes, barbersRes, servicesRes, promotionsRes, reviewsRes] =
+    // Fetch the shop, all its related data, AND decode the caller — all at once.
+    // Related data is keyed on the shopId param (not the fetched shop row), and
+    // auth doesn't depend on the shop, so none of this needs to be sequential.
+    const [shopRes, hoursRes, breaksRes, barbersRes, servicesRes, promotionsRes, reviewsRes, auth] =
       await Promise.all([
+        supabase.from('shops').select('*').eq('id', shopId).eq('status', 'verified').single(),
         supabase.from('shop_hours').select('*').eq('shop_id', shopId).order('day_of_week'),
         supabase.from('shop_breaks').select('*').eq('shop_id', shopId),
         supabase.from('barbers').select('*, barber_hours(*), portfolio:barber_portfolio(*), barber_services(service_id, price)').eq('shop_id', shopId).eq('is_active', true),
@@ -40,7 +33,28 @@ Deno.serve(async (req) => {
           .eq('is_visible', true)
           .order('created_at', { ascending: false })
           .range(reviewPage * 10, reviewPage * 10 + 9),
+        getAuthUser(req),
       ])
+
+    const shop = shopRes.data
+    if (shopRes.error || !shop) return error('Shop not found', 404)
+
+    const user = auth.user
+
+    // User-dependent queries (segment gate + favourite) run in parallel
+    let is_favourite = false
+    if (user) {
+      const [meRes, favRes] = await Promise.all([
+        supabase.from('users').select('segment').eq('id', user.id).single(),
+        supabase.from('favourites').select('user_id').eq('user_id', user.id).eq('shop_id', shopId).maybeSingle(),
+      ])
+      // Segment gate: a logged-in customer can only view their section's shops (+ unisex)
+      const seg = (meRes.data as any)?.segment
+      if (seg && shop.segment && shop.segment !== 'unisex' && shop.segment !== seg) {
+        return error('Shop not found', 404)
+      }
+      is_favourite = !!favRes.data
+    }
 
     // Calculate distance if coordinates provided
     let distance_km = null
@@ -50,29 +64,6 @@ Deno.serve(async (req) => {
       const a = Math.sin(dlat/2)**2 + Math.cos(lat*Math.PI/180) * Math.cos(shop.lat*Math.PI/180) * Math.sin(dlng/2)**2
       distance_km = 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
       distance_km = Math.round(distance_km * 10) / 10
-    }
-
-    // Check if user has favourited this shop
-    let is_favourite = false
-    const { user } = await getAuthUser(req)
-
-    // Segment gate: a logged-in customer can only view their segment's shops (+ unisex)
-    if (user) {
-      const { data: me } = await supabase.from('users').select('segment').eq('id', user.id).single()
-      const seg = (me as any)?.segment
-      if (seg && shop.segment && shop.segment !== 'unisex' && shop.segment !== seg) {
-        return error('Shop not found', 404)
-      }
-    }
-
-    if (user) {
-      const { data: fav } = await supabase
-        .from('favourites')
-        .select('user_id')
-        .eq('user_id', user.id)
-        .eq('shop_id', shopId)
-        .maybeSingle()
-      is_favourite = !!fav
     }
 
     // Cache shop profiles for 15s — reduces DB load for popular shops

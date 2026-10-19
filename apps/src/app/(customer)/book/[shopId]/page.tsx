@@ -223,12 +223,17 @@ export default function BookingFlowPage() {
           },
         },
         handler: async (payment: any) => {
-          await confirmBooking(
-            payment.razorpay_order_id,
-            payment.razorpay_payment_id,
-            payment.razorpay_signature,
-            session?.access_token
-          )
+          try {
+            await confirmBooking(
+              payment.razorpay_order_id,
+              payment.razorpay_payment_id,
+              payment.razorpay_signature,
+              session?.access_token
+            )
+          } catch (e: any) {
+            setErr(e.message ?? 'Payment verification failed. Any amount deducted will be refunded.')
+            setPaying(false)
+          }
         },
         modal: {
           ondismiss: () => setPaying(false),
@@ -236,9 +241,12 @@ export default function BookingFlowPage() {
         },
       })
       rzp.open()
+      // Do NOT reset `paying` here: the Razorpay modal is now open. It resets via
+      // modal.ondismiss (user cancels) or the handler's catch (verify fails);
+      // success navigates away. This keeps the Pay button disabled so a user
+      // can't double-tap and open a second checkout / create a duplicate order.
     } catch (e: any) {
       setErr(e.message)
-    } finally {
       setPaying(false)
     }
   }
