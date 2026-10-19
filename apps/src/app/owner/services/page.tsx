@@ -11,7 +11,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
 const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
 const DURATIONS = [15, 30, 45, 60, 90, 120]
-const EMPTY = { name: '', category: 'hair', duration_min: 30, price: '', description: '', is_addon: false, is_active: true, image_url: '', parent_service_id: '' }
+const EMPTY = { name: '', category: 'hair', duration_min: 30, buffer_time_minutes: 10, price: '', description: '', is_addon: false, is_active: true, image_url: '', parent_service_id: '' }
 
 async function getToken() {
   const { data: { session } } = await createClient().auth.getSession()
@@ -106,7 +106,7 @@ export default function OwnerServicesPage() {
   }
 
   function openEdit(s: any) {
-    setForm({ name: s.name, category: s.category, duration_min: s.duration_min, price: String(s.price), description: s.description ?? '', is_addon: s.is_addon, is_active: s.is_active, image_url: s.image_url ?? '', parent_service_id: s.parent_service_id ?? '' })
+    setForm({ name: s.name, category: s.category, duration_min: s.duration_min, buffer_time_minutes: s.buffer_time_minutes ?? 10, price: String(s.price), description: s.description ?? '', is_addon: s.is_addon, is_active: s.is_active, image_url: s.image_url ?? '', parent_service_id: s.parent_service_id ?? '' })
     setImagePreview(s.image_url || null)
     setEditId(s.id); setShowForm(true)
   }
@@ -174,6 +174,19 @@ export default function OwnerServicesPage() {
                 <button type="button" key={d} onClick={() => setForm({ ...form, duration_min: d })}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${form.duration_min === d ? 'bg-saloo-pink text-saloo-cream' : 'bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 hover:bg-white/80 hover:text-saloo-dark/70'}`}>
                   {d}m
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-saloo-dark/50 text-xs uppercase tracking-wider block mb-1">Buffer / cleanup after</label>
+            <p className="text-saloo-dark/40 text-[11px] mb-2.5">Reset time reserved before the next booking</p>
+            <div className="flex flex-wrap gap-2">
+              {[0, 5, 10, 15, 20, 30].map(b => (
+                <button type="button" key={b} onClick={() => setForm({ ...form, buffer_time_minutes: b })}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${form.buffer_time_minutes === b ? 'bg-saloo-pink text-saloo-cream' : 'bg-white/60 backdrop-blur-md shadow-sm text-saloo-dark/60 hover:bg-white/80 hover:text-saloo-dark/70'}`}>
+                  {b === 0 ? 'None' : `${b}m`}
                 </button>
               ))}
             </div>

@@ -36,6 +36,7 @@ Deno.serve(async (req) => {
       is_addon: body.is_addon ?? false,
       is_active: body.is_active ?? true,
       parent_service_id: body.parent_service_id || null,
+      buffer_time_minutes: Math.max(0, Math.min(120, Math.round(Number(body.buffer_time_minutes ?? 10)) || 10)),
     }
     if (body.image_url !== undefined) payload.image_url = body.image_url || null
 

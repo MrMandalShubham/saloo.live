@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
 
     if (barberId) barbersQuery = barbersQuery.eq('id', barberId)
 
-    const [hoursRes, barbersRes, bookingsRes, holdsRes, blocksRes, breaksRes, shopRes] = await Promise.all([
+    const [hoursRes, barbersRes, bookingsRes, holdsRes, blocksRes, breaksRes, shopRes, servicesRes] = await Promise.all([
       // 1. Shop hours for this day
       supabase
         .from('shop_hours')
@@ -64,7 +64,7 @@ Deno.serve(async (req) => {
       // 3. Existing bookings for this date
       supabase
         .from('bookings')
-        .select('barber_id, start_time, end_time')
+        .select('barber_id, start_time, end_time, service_ids')
         .eq('shop_id', shopId)
         .eq('date', date)
         .in('status', ['confirmed', 'in_chair']),
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
       // 4. Active slot holds
       supabase
         .from('slot_holds')
-        .select('barber_id, start_time, end_time')
+        .select('barber_id, start_time, end_time, service_ids')
         .eq('shop_id', shopId)
         .eq('hold_date', date)
         .gt('expires_at', new Date().toISOString()),
@@ -91,12 +91,18 @@ Deno.serve(async (req) => {
         .eq('shop_id', shopId)
         .or(`day_of_week.eq.${dayOfWeek},day_of_week.is.null`),
 
-      // 7. Shop buffer setting
+      // 7. Shop default buffer setting
       supabase
         .from('shops')
         .select('slot_buffer_min')
         .eq('id', shopId)
         .single(),
+
+      // 8. Per-service buffer times for this shop
+      supabase
+        .from('services')
+        .select('id, buffer_time_minutes')
+        .eq('shop_id', shopId),
     ])
 
     const hoursData = hoursRes.data
@@ -114,31 +120,41 @@ Deno.serve(async (req) => {
     const activeHolds = holdsRes.data ?? []
     const blocks = blocksRes.data ?? []
     const breaks = breaksRes.data ?? []
-    const buffer = shopRes.data?.slot_buffer_min ?? 10
+    // Shop-wide default buffer, plus each service's own buffer (max across a
+    // booking's services decides how long to reserve after it).
+    const shopBuffer = shopRes.data?.slot_buffer_min ?? 10
+    const serviceBuffer = new Map<string, number>()
+    for (const s of (servicesRes.data ?? [])) serviceBuffer.set(s.id, s.buffer_time_minutes ?? shopBuffer)
+    const bufferFor = (ids: string[] | null | undefined): number => {
+      if (!ids?.length) return shopBuffer
+      let max = 0
+      for (const id of ids) max = Math.max(max, serviceBuffer.get(id) ?? shopBuffer)
+      return max || shopBuffer
+    }
 
-    // Build occupied intervals per barber
-    const occupied = new Map<string, Array<{ start: number; end: number }>>()
+    // Build occupied intervals per barber (each carries its own buffer)
+    const occupied = new Map<string, Array<{ start: number; end: number; buffer: number }>>()
     for (const b of barbers) occupied.set(b.id, [])
 
-    const addInterval = (bId: string | null, start: string, end: string) => {
+    const addInterval = (bId: string | null, start: string, end: string, buf: number) => {
       const s = timeToMinutes(start)
       const e = timeToMinutes(end)
       if (bId) {
-        occupied.get(bId)?.push({ start: s, end: e })
+        occupied.get(bId)?.push({ start: s, end: e, buffer: buf })
       } else {
-        for (const id of barberIds) occupied.get(id)?.push({ start: s, end: e })
+        for (const id of barberIds) occupied.get(id)?.push({ start: s, end: e, buffer: buf })
       }
     }
 
-    // Only process bookings for relevant barbers
+    // Bookings & holds use their service's buffer; blocks/breaks use the shop default
     for (const b of existingBookings) {
-      if (barberIds.includes(b.barber_id)) addInterval(b.barber_id, b.start_time, b.end_time)
+      if (barberIds.includes(b.barber_id)) addInterval(b.barber_id, b.start_time, b.end_time, bufferFor(b.service_ids))
     }
     for (const h of activeHolds) {
-      if (barberIds.includes(h.barber_id)) addInterval(h.barber_id, h.start_time, h.end_time)
+      if (barberIds.includes(h.barber_id)) addInterval(h.barber_id, h.start_time, h.end_time, bufferFor(h.service_ids))
     }
-    for (const bl of blocks) addInterval(bl.barber_id, bl.start_time, bl.end_time)
-    for (const br of breaks) addInterval(null, br.start_time, br.end_time)
+    for (const bl of blocks) addInterval(bl.barber_id, bl.start_time, bl.end_time, shopBuffer)
+    for (const br of breaks) addInterval(null, br.start_time, br.end_time, shopBuffer)
 
     // Generate slots
     const shopOpen = timeToMinutes(hoursData.open_time)
@@ -170,7 +186,7 @@ Deno.serve(async (req) => {
 
         const intervals = occupied.get(barber.id) ?? []
         const conflict = intervals.some(i =>
-          t < i.end + buffer && slotEnd > i.start
+          t < i.end + i.buffer && slotEnd > i.start
         )
 
         if (!conflict) {
